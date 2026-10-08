@@ -1,0 +1,40 @@
+# Keeps demo-tapes/index.json in step with the .jsonl files in demo-tapes/.
+# The site finds its demo tapes by listing that folder, but GitHub Pages doesn't serve folder listings, so there it
+# reads index.json instead (js/shared/demo-tapes.js). This rewrites it whenever a tape is added, removed or renamed:
+# tapes already listed keep their place (the first one is the shelf's default), new ones go at the end.
+name: Demo tapes index
+
+on:
+  push:
+    branches: [main]
+    paths: ['demo-tapes/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rebuild demo-tapes/index.json
+        run: |
+          python3 - <<'PY'
+          import json, pathlib
+          folder = pathlib.Path('demo-tapes')
+          on_disk = sorted(p.name for p in folder.glob('*.jsonl'))
+          try:
+              listed = json.loads((folder / 'index.json').read_text())
+          except (FileNotFoundError, ValueError):
+              listed = []
+          order = [f for f in listed if f in on_disk] + [f for f in on_disk if f not in listed]
+          (folder / 'index.json').write_text(json.dumps(order) + '\n')
+          print(order)
+          PY
+      - name: Commit it if it changed
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add demo-tapes/index.json
+          git diff --cached --quiet || { git commit -m 'Update demo-tapes/index.json'; git push; }

@@ -1,0 +1,268 @@
+/* ─────────────────────────────────────────────
+   Neon Glass Components
+   Requires: VT323 font (Google Fonts)
+   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+───────────────────────────────────────────── */
+
+/* ═══════════════════════════════════════
+   BUTTON
+═══════════════════════════════════════ */
+
+.ng-platform {
+  display: inline-block;
+  padding: 3px 3px 14px;
+  border-radius: 9px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: linear-gradient(180deg, rgba(10,12,20,0.99) 0%, rgba(7,9,16,0.99) 100%);
+  box-shadow:
+    inset 0 2px 6px rgba(0,0,0,0.70),
+    inset 0 0  2px rgba(0,0,0,0.40),
+    0 0 8px rgba(0,0,0,0.40);
+}
+
+.ng-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 28px 7px;
+  border: none;
+  border-radius: 6px;
+  outline: none;
+  cursor: pointer;
+  background: linear-gradient(180deg,
+    rgba(210,218,212,0.99) 0%,
+    rgba(182,192,185,0.99) 45%,
+    rgba(152,164,156,0.99) 100%
+  );
+  box-shadow:
+    0 1px 0 0 rgba(148,158,150,1), 0 2px 0 0 rgba(132,142,134,1),
+    0 3px 0 0 rgba(116,126,118,1), 0 4px 0 0 rgba(100,110,102,1),
+    0 5px 0 0 rgba(86, 96, 88, 1), 0 6px 0 0 rgba(72, 82, 74, 1),
+    0 7px 0 0 rgba(58, 68, 60, 1), 0 8px 0 0 rgba(44, 54, 46, 1),
+    0 12px 24px rgba(0,0,0,0.50),  0 8px 10px rgba(0,0,0,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.95),
+    inset 0 -2px 4px rgba(0,0,0,0.12);
+  font-family: 'VT323', monospace;
+  font-size: 22px;
+  letter-spacing: 0.18em;
+  color: #2a3d2e;
+  text-shadow:
+    0 1px 1px rgba(255,255,255,0.95),
+    0 -1px 0  rgba(0,0,0,0.22);
+  transition: color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease, background 0.12s ease;
+  overflow: hidden;
+}
+
+.ng-btn:hover {
+  color: #1a2e1e;
+  text-shadow:
+    0 1px 1px rgba(255,255,255,1),
+    0 -1px 0  rgba(0,0,0,0.28);
+  background: linear-gradient(180deg,
+    rgba(222,230,224,0.99) 0%,
+    rgba(194,204,197,0.99) 45%,
+    rgba(164,176,167,0.99) 100%
+  );
+  box-shadow:
+    0 1px 0 0 rgba(155,165,157,1), 0 2px 0 0 rgba(138,148,140,1),
+    0 3px 0 0 rgba(122,132,124,1), 0 4px 0 0 rgba(106,116,108,1),
+    0 5px 0 0 rgba(90, 100, 92, 1),0 6px 0 0 rgba(75, 85, 77, 1),
+    0 7px 0 0 rgba(60, 70, 62, 1), 0 8px 0 0 rgba(46, 56, 48, 1),
+    0 14px 28px rgba(0,0,0,0.55),  0 8px 12px rgba(0,0,0,0.28),
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 0 -2px 4px rgba(0,0,0,0.10);
+}
+
+.ng-btn:active {
+  transform: translateY(6px);
+  box-shadow:
+    0 1px 0 0 rgba(100,110,102,1), 0 2px 0 0 rgba(72,82,74,1),
+    0 5px 12px rgba(0,0,0,0.35),
+    inset 0 2px 5px rgba(0,0,0,0.18),
+    inset 0 -1px 0 rgba(255,255,255,0.60);
+}
+
+/* CRT scanlines overlay — disabled */
+.ng-btn-scan { display: none; }
+
+/* Shine sweep */
+.ng-btn-shine {
+  position: absolute; inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 3;
+  border-radius: 6px;
+}
+.ng-btn-shine::after {
+  content: '';
+  position: absolute; top: 0; left: -40%;
+  width: 30%; height: 100%;
+  background: linear-gradient(108deg,
+    transparent 0% 20%,
+    rgba(255,255,255,0.55) 20% 50%,
+    rgba(255,255,255,0.25) 50% 70%,
+    transparent 70% 100%
+  );
+  opacity: 0;
+  animation: ng-shine 1.2s ease-in-out infinite;
+  transition: opacity 0.12s ease;
+}
+.ng-btn:hover .ng-btn-shine::after { opacity: 1; }
+
+@keyframes ng-shine { 0% { left: -40%; } 100% { left: 120%; } }
+
+/* Button label sits above overlays */
+.ng-btn-label {
+  position: relative;
+  z-index: 10;
+}
+
+/* ═══════════════════════════════════════
+   SWITCH
+═══════════════════════════════════════ */
+
+.ng-switch-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ng-switch {
+  position: relative;
+  display: inline-block;
+  width: 74px;
+  height: 36px;
+  cursor: pointer;
+}
+
+.ng-switch input { display: none; }
+
+/* Recessed track */
+.ng-switch-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  background: linear-gradient(180deg,
+    rgba(6,8,16,0.99)  0%,
+    rgba(10,12,22,0.99) 100%
+  );
+  box-shadow:
+    inset 0 3px 8px rgba(0,0,0,0.85),
+    inset 0 1px 3px rgba(0,0,0,0.55),
+    inset 0 -1px 0   rgba(255,255,255,0.02);
+  transition: box-shadow 0.2s ease, background 0.2s ease;
+  overflow: hidden;
+}
+
+/* CRT scanlines on track */
+.ng-switch-track::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg,
+    transparent, transparent 1px,
+    rgba(0,0,0,0.18) 1px, rgba(0,0,0,0.18) 2px
+  );
+  pointer-events: none;
+}
+
+/* Raised thumb */
+.ng-switch-thumb {
+  position: absolute;
+  top: 4px; left: 4px;
+  width: 26px; height: 26px;
+  border-radius: 4px;
+  background: linear-gradient(180deg,
+    rgba(38,44,64,0.99) 0%,
+    rgba(26,30,48,0.99) 40%,
+    rgba(16,18,32,0.99) 100%
+  );
+  box-shadow:
+    0 1px 0 0 rgba(14,16,28,1),
+    0 2px 0 0 rgba(11,13,24,1),
+    0 3px 0 0 rgba(8,10,20,1),
+    0 7px 12px rgba(0,0,0,0.60),
+    inset 0  1px 0   rgba(180,190,255,0.08),
+    inset 0 -1px 3px rgba(0,0,0,0.50);
+  transition:
+    transform  0.22s cubic-bezier(.23,1,.32,1),
+    box-shadow 0.22s ease,
+    background 0.22s ease;
+  z-index: 2;
+}
+
+/* ON state — track */
+.ng-switch input:checked + .ng-switch-track {
+  background: linear-gradient(180deg,
+    rgba(4,18,8,0.99)  0%,
+    rgba(8,28,14,0.99) 100%
+  );
+  animation: ng-switch-glow 2.4s ease-in-out infinite;
+}
+
+@keyframes ng-switch-glow {
+  0%, 100% { box-shadow:
+    0 0  8px rgba(74,222,128,0.50), 0 0 20px rgba(74,222,128,0.28), 0 0 40px rgba(74,222,128,0.12),
+    inset 0 2px 6px rgba(0,0,0,0.55), inset 0 0 20px rgba(74,222,128,0.14), inset 0 -1px 0 rgba(74,222,128,0.08); }
+  50% { box-shadow:
+    0 0 12px rgba(74,222,128,0.70), 0 0 30px rgba(74,222,128,0.40), 0 0 55px rgba(74,222,128,0.18),
+    inset 0 2px 6px rgba(0,0,0,0.50), inset 0 0 26px rgba(74,222,128,0.20), inset 0 -1px 0 rgba(74,222,128,0.10); }
+}
+
+/* ON state — thumb */
+.ng-switch input:checked ~ .ng-switch-thumb {
+  transform: translateX(38px);
+  background: linear-gradient(180deg,
+    rgba(180,255,190,0.95) 0%,
+    rgba(80,200,100,0.99)  35%,
+    rgba(20,80,35,0.99)    100%
+  );
+  box-shadow:
+    0 1px 0 0 rgba(14,46,18,1),
+    0 2px 0 0 rgba(10,30,12,1),
+    0 3px 0 0 rgba(6,18,8,1),
+    0 4px 14px rgba(74,222,128,0.55),
+    0 6px 22px rgba(74,222,128,0.30),
+    inset 0  1px 0   rgba(255,255,255,0.80),
+    inset 0  2px 6px rgba(200,255,210,0.30),
+    inset 0 -1px 3px rgba(0,0,0,0.35);
+}
+
+/* Press effects */
+.ng-switch:active .ng-switch-thumb {
+  transform: translateY(2px) scaleY(0.94);
+}
+.ng-switch:has(input:checked):active .ng-switch-thumb {
+  transform: translateX(38px) translateY(2px) scaleY(0.94);
+}
+
+/* State label */
+.ng-switch-label {
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #4a5060;
+  min-width: 36px;
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+.ng-switch-label.is-on {
+  color: #7dd99a;
+  text-shadow: 0 0 8px rgba(74,222,128,0.5);
+}
+
+/* ═══════════════════════════════════════
+   SHARED — pixel particles
+═══════════════════════════════════════ */
+.ng-pixel {
+  position: fixed;
+  z-index: 9999;
+  border-radius: 0;
+  pointer-events: none;
+  image-rendering: pixelated;
+  animation: ng-float var(--dur) steps(12) forwards;
+}
+@keyframes ng-float {
+  0%   { opacity: 1; transform: translate(0, 0); }
+  100% { opacity: 0; transform: translate(var(--tx), -72px); }
+}

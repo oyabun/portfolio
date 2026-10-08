@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VCR: the tape, drawn</title>
+<!-- Caveat, for the label. A cassette inlay is printed once and then filled in
+     by hand, so the fields are set in a sans and what a person would write is
+     handwritten. Loaded here rather than inherited: this is its own document. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+/* A conveyor of cassettes, each one drawn rather than rendered: the geometry is
+   real and lit by nothing, and only its edges are kept. That is what a
+   blueprint is — the object described by where its surfaces end.
+   Embedded by index.html as the hero; standalone it is the same drawing on
+   its own sheet, which makes it something you can open and check. */
+/* The drawing, and nothing else. No background: the canvas is transparent and
+   the object sits directly on the hero's paper, so the page's own rules pass
+   behind it instead of being interrupted by a dark panel.
+
+   The fill faces are still painted — that is what hides the geometry behind
+   each part — but they are painted in the *page's* paper colour, which is why
+   --paper here has to be the same value as the host's. */
+:root{
+  --paper:#F7F5F3;
+  --ink:#141312;
+  --fine:#8D8880;
+  --rule:#E4E0DB;
+  --accent:#50CDA7;
+  --accent-ink:#0B2A22;
+  --accent-wash:rgba(80,205,167,.18);
+  --gut:44px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:transparent}
+canvas{position:relative;z-index:1;display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+canvas.dragging{cursor:grabbing}
+
+/* The controls, in the host page's register: a filled pill for the thing that
+   moves and hairline pills for the rest. Restated rather than imported — this
+   is a separate document and one shared stylesheet for two buttons would be a
+   file to keep in step. */
+/* The stream. Paper and hairlines like everything else here — the deck draws
+   this panel dark on its own sheet, but on the landing a black rectangle in
+   the corner would be the loudest thing on the page. It sits behind the
+   canvas, so the tape passes in front of it, and its box is snapped to the
+   host page's own 64px grid (placeStreamBox, below) rather than left at a
+   guessed percentage, so the panel one hairline plane reads as ruled on the
+   same sheet as the paper behind it instead of floating at an offset of its
+   own. */
+.stream{position:absolute;z-index:0;
+  display:flex;flex-direction:column;border:1px solid var(--rule);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  opacity:0;transform:translateY(6px);transition:opacity .45s,transform .45s;pointer-events:none}
+body.streaming .stream{opacity:1;transform:none}
+/* Ruled off, not filled. A tinted bar in the corner of a page made of
+   hairlines is the one loud thing on it. */
+.stream header{display:flex;align-items:center;gap:8px;padding:6px 10px;
+  border-bottom:1px solid var(--rule);
+  font-size:8.5px;letter-spacing:.16em;text-transform:uppercase}
+.stream header b{font-weight:700;color:var(--ink)}
+.stream header em{margin-left:auto;font-style:normal;color:var(--fine);letter-spacing:.1em}
+.stream header i{width:6px;height:6px;border-radius:50%;border:1px solid var(--ink);flex:none}
+body.streaming .stream header i{background:var(--accent);border-color:var(--accent);
+  animation:pulse .9s steps(2,end) infinite}
+@keyframes pulse{50%{opacity:.25}}
+/* A column, so the file runs down the right of the frame and the tape passes
+   in front of it. Lines are not wrapped — a wrapped .jsonl record stops looking
+   like a record — so they run off the right edge under a mask, which is what a
+   stream going past should look like. */
+/* The failures, in the one other colour this sheet allows itself. Not the
+   deck's own --t-error #D95926: that value is mixed for a dark panel and comes
+   out at 3.6:1 on paper, which fails for 10.5px of mono. Same hue, taken deep
+   enough to read — 5.4:1. Weight is left alone; bold 10.5px mono in a column of
+   regular is a bar, not a line of a file. */
+.stream pre b{font-weight:400;color:#B23C1E}
+.stream pre{flex:1;margin:0;padding:9px 10px 0;overflow:hidden;white-space:pre;
+  font-size:10.5px;line-height:1.62;color:color-mix(in srgb,var(--fine) 60%,var(--ink) 40%);
+  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 16%,#000 88%,transparent),
+    linear-gradient(to right,#000 76%,transparent);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(to bottom,transparent,#000 16%,#000 88%,transparent),
+    linear-gradient(to right,#000 76%,transparent);
+  mask-composite:intersect}
+@media(prefers-reduced-motion:reduce){.stream,body.streaming .stream header i{transition:none;animation:none}}
+
+/* The deck's own transport used to be drawn here, centred under the canvas.
+   It now lives in the host page, beside "Use the CLI" — a real DOM element
+   next to a real link reads as one row of controls, where a row inside this
+   iframe never could sit flush beside anything outside it. This document
+   still runs the whole state machine (below); it only takes its orders by
+   postMessage now instead of from a button in its own body. */
+</style>
+</head>
+<body>
+<!-- Behind the canvas, bottom right: the file the machine is reading. It is
+     under the drawing rather than over it because the tape is the subject and
+     this is what the tape contains. -->
+<section class="stream" aria-live="off">
+  <header><i></i><b>Live .jsonl</b><em data-clock>00:00:00.0</em></header>
+  <pre data-lines></pre>
+</section>
+<canvas id="c"></canvas>
+
+<script src="../vendor/three.min.js"></script>
+<script>
+(function () {
+  const params = new URLSearchParams(location.search);
+  if (params.get('embed')) document.body.classList.add('embed');
+  if (params.get('skin') === 'blueprint') document.body.classList.add('blueprint');
+
+  const canvas = document.getElementById('c');
+  const scene = new THREE.Scene();
+  // No scene background at all: the canvas is cleared to transparent so the
+  // hero's paper shows through and the page's rules run behind the object.
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setClearAlpha(0);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+  // Orthographic, because an axonometric drawing has no vanishing point. It is
+  // declared here, above the assembly, because the assembly needs it while it
+  // is being built: addPrismContours picks which two side lines to draw on each
+  // extruded part by testing the shape against the camera's right vector, so a
+  // camera declared after the build is a camera that does not exist yet.
+  //
+  // The position is the drafting sheet's own station point, kept so the object
+  // sits at the attitude it has there: high, off the left shoulder.
+  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, .1, 200);
+  camera.position.set(8.6, 10.2, 12.5);
+  camera.lookAt(0, 0, 0);
+
+  // ---- the tape, as the technical sheet draws it ----------------------------
+  //
+  // Ported from tapes__1_.html's drafting assembly rather than its studio
+  // model: every part carries a fill face painted in the sheet colour, which
+  // hides the geometry behind it, and an edge pass over the top supplies the
+  // linework. That is the whole trick, and it is why the background and the
+  // fill must be the same colour.
+  //
+  // Dropped in the port: the shaded layer, its lights and its shadow catcher.
+  // They exist on that sheet to wipe between drawn and rendered halves; this
+  // hero only ever shows the drawing. RoundedBoxGeometry is an addon and the
+  // vendored build has none, so the reel spokes use an extruded rounded box.
+
+  // The sheet's ink and paper. The fill faces are painted in TECH_BG to hide
+  // what is behind them, so the scene background has to be the same colour or
+  // every part of the drawing reads as a hole cut in the page.
+  // Paper and ink are the host page's, not the drafting sheet's: this drawing
+  // is on the landing, in the landing's colours.
+  const TECH_BG = 0xF7F5F3, TECH_INK = 0x141312;
+const TECH_THEMES={
+  technical:{bg:0x4b4b49,ink:0xf1f0e9,fine:0xa9a8a3,dash:0xa3a29e,paper:'#4b4b49',rule:'#a9a8a3',type:'#f1f0e9'}
+};
+let technicalTheme='technical';
+
+function roundedShape(w,h,r){const x=-w/2,y=-h/2,s=new THREE.Shape();r=Math.min(r,w/2,h/2);s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);s.closePath();return s}
+function roundedPath(w,h,r,xo=0,yo=0){const x=xo-w/2,y=yo-h/2,p=new THREE.Path();r=Math.min(r,w/2,h/2);p.moveTo(x+r,y);p.lineTo(x+w-r,y);p.quadraticCurveTo(x+w,y,x+w,y+r);p.lineTo(x+w,y+h-r);p.quadraticCurveTo(x+w,y+h,x+w-r,y+h);p.lineTo(x+r,y+h);p.quadraticCurveTo(x,y+h,x,y+h-r);p.lineTo(x,y+r);p.quadraticCurveTo(x,y,x+r,y);p.closePath();return p}
+
+  function RoundedBoxGeometry(w, h, d, seg, r) {
+    const g = new THREE.ExtrudeGeometry(roundedShape(w, h, r), { depth: d,
+      bevelEnabled: true, bevelSize: r * .5, bevelThickness: r * .5,
+      bevelSegments: 3, curveSegments: 6 });
+    g.center();
+    return g;
+  }
+
+const technicalAssembly=new THREE.Group();scene.add(technicalAssembly);
+const technicalFillMaterial=new THREE.MeshBasicMaterial({color:TECH_BG,side:THREE.DoubleSide,depthTest:true,depthWrite:true,polygonOffset:true,polygonOffsetFactor:4,polygonOffsetUnits:4,toneMapped:false});
+const technicalLineMaterial=new THREE.LineBasicMaterial({color:TECH_INK,depthTest:true,depthFunc:THREE.LessEqualDepth,depthWrite:false,toneMapped:false});
+const technicalFineMaterial=new THREE.LineBasicMaterial({color:0xa9a8a3,depthTest:true,depthFunc:THREE.LessEqualDepth,depthWrite:false,toneMapped:false});
+const technicalDashMaterial=new THREE.LineDashedMaterial({color:0xa3a29e,dashSize:.12,gapSize:.10,depthTest:true,depthFunc:THREE.LessEqualDepth,depthWrite:false,toneMapped:false});
+const technicalGuides=[],technicalScrews=[],technicalReels=[],technicalContourConnectors=[];
+// The host posts its resolved palette whenever the reader picks a theme (and
+// once on load, in reply to the 'hello' below). The fill faces have to move
+// with --paper exactly as the comment above them says, or the theme picker
+// repaints the sheet around a cassette that is still drawn in "lines".
+function applyHeroTheme(t){
+  if(t.paper) technicalFillMaterial.color.set(t.paper);
+  if(t.ink) technicalLineMaterial.color.set(t.ink);
+  if(t.fine){ technicalFineMaterial.color.set(t.fine); technicalDashMaterial.color.set(t.fine); }
+  // The label is a texture, not a material: repainting the three materials
+  // above leaves it exactly as drawn, which is the one part of the drawing a
+  // theme switch used to skip. Its own "rule" is the fine ink, not the page's
+  // hairline --rule — that is what the default THEME below already used it for.
+  if(t.paper && t.ink && t.fine) drawTechnicalLabel({ paper:t.paper, rule:t.fine, type:t.ink });
+  const root = document.documentElement.style;
+  if(t.paper) root.setProperty('--paper', t.paper);
+  if(t.ink) root.setProperty('--ink', t.ink);
+  if(t.fine) root.setProperty('--fine', t.fine);
+  if(t.rule) root.setProperty('--rule', t.rule);
+  if(t.accent) root.setProperty('--accent', t.accent);
+  if(t.accentInk) root.setProperty('--accent-ink', t.accentInk);
+  if(t.accentWash) root.setProperty('--accent-wash', t.accentWash);
+}
+// the rendered half drops a shadow on the sheet; the drawn half never sees it
+
+
+function draftPart(geometry,position=[0,0,0],rotation=[0,0,0],fine=false,parent=technicalAssembly,edgeThreshold=13){
+  const part=new THREE.Group();part.position.set(...position);part.rotation.set(...rotation);
+  const fill=new THREE.Mesh(geometry,technicalFillMaterial);fill.renderOrder=1;part.add(fill);
+  if(edgeThreshold!==null){const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry,edgeThreshold),fine?technicalFineMaterial:technicalLineMaterial);edges.renderOrder=2;edges.frustumCulled=false;part.add(edges)}
+  parent.add(part);return part;
+}
+function roundedDraft(w,h,d,r,position,rotation=[0,0,0],fine=false,parent=technicalAssembly){return draftPart(new RoundedBoxGeometry(w,h,d,4,r),position,rotation,fine,parent)}
+function cylinderDraft(radius,height,position,segments=32,fine=false,parent=technicalAssembly){return draftPart(new THREE.CylinderGeometry(radius,radius,height,segments,1,false),position,[0,0,0],fine,parent)}
+function addGuide(from,to){const geometry=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...from),new THREE.Vector3(...to)]);const line=new THREE.Line(geometry,technicalDashMaterial);line.computeLineDistances();technicalAssembly.add(line);technicalGuides.push(line);return line}
+function extrudedShapeGeometry(shape,height){const geometry=new THREE.ExtrudeGeometry(shape,{depth:height,steps:1,bevelEnabled:false,curveSegments:24});geometry.center();return geometry}
+function contourPoints(path){const points=path.getPoints(32);if(points.length>1&&points[0].distanceToSquared(points.at(-1))<1e-10)points.pop();return points}
+function addPrismContours(part,paths,height,material=technicalLineMaterial){
+  const right=new THREE.Vector2(camera.position.z,-camera.position.x).normalize();
+  for(const path of paths){
+    const points=contourPoints(path);
+    for(const depth of [-height/2,height/2]){const geometry=new THREE.BufferGeometry().setFromPoints(points.map(point=>new THREE.Vector3(point.x,point.y,depth)));const loop=new THREE.LineLoop(geometry,material);loop.renderOrder=3;loop.frustumCulled=false;part.add(loop)}
+    let low=points[0],high=points[0],lowDot=Infinity,highDot=-Infinity;
+    for(const point of points){const dot=point.dot(right);if(dot<lowDot){lowDot=dot;low=point}if(dot>highDot){highDot=dot;high=point}}
+    const connectors=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(low.x,low.y,-height/2),new THREE.Vector3(low.x,low.y,height/2),new THREE.Vector3(high.x,high.y,-height/2),new THREE.Vector3(high.x,high.y,height/2)]);
+    const sides=new THREE.LineSegments(connectors,material);sides.renderOrder=3;sides.frustumCulled=false;part.add(sides);technicalContourConnectors.push({part,sides,points,height});
+  }
+}
+function updateTechnicalSilhouettes(){
+  camera.updateMatrixWorld();technicalAssembly.updateMatrixWorld(true);const cameraRight=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion),partQuaternion=new THREE.Quaternion();
+  for(const contour of technicalContourConnectors){contour.part.getWorldQuaternion(partQuaternion);const localRight=cameraRight.clone().applyQuaternion(partQuaternion.clone().invert()),right2D=new THREE.Vector2(localRight.x,localRight.y).normalize();let low=contour.points[0],high=contour.points[0],lowDot=Infinity,highDot=-Infinity;for(const point of contour.points){const dot=point.dot(right2D);if(dot<lowDot){lowDot=dot;low=point}if(dot>highDot){highDot=dot;high=point}}const position=contour.sides.geometry.attributes.position,half=contour.height/2;position.setXYZ(0,low.x,low.y,-half);position.setXYZ(1,low.x,low.y,half);position.setXYZ(2,high.x,high.y,-half);position.setXYZ(3,high.x,high.y,half);position.needsUpdate=true}
+}
+
+function horizontalFrame(w,d,height,windowW,windowD,y,windowX=0,windowZ=0){const outer=roundedShape(w,d,.16),hole=roundedPath(windowW,windowD,.13,windowX,windowZ);outer.holes.push(hole);const part=draftPart(extrudedShapeGeometry(outer,height),[0,y,0],[Math.PI/2,0,0],false,technicalAssembly,null);addPrismContours(part,[outer,hole],height);return part}
+function horizontalPlate(w,d,height,r,y,x=0,z=0,fine=false){const shape=roundedShape(w,d,r),material=fine?technicalFineMaterial:technicalLineMaterial,part=draftPart(extrudedShapeGeometry(shape,height),[x,y,z],[Math.PI/2,0,0],fine,technicalAssembly,null);addPrismContours(part,[shape],height,material);return part}
+function addScrew(x,z,top,bottom){const screw=cylinderDraft(.055,.28,[x,(top+bottom)/2,z],16,true);technicalScrews.push(screw);addGuide([x,top,z],[x,bottom,z]);return screw}
+// What is written on the label. Rolled once per load rather than fixed: a demo
+// tape that always says the same thing reads as a picture of a tape, and the
+// one thing this label is for is showing that a tape carries whose session it
+// was. The provider set is the page's own — the two it reads today and the one
+// listed as coming — and the stock names are cassette stock names, which is the
+// register the drawing is already in.
+const TECH_PROVIDERS=[
+  {provider:'Anthropic',model:'Claude Opus 4.8',mark:'claude'},
+  {provider:'OpenAI',   model:'GPT-5',          mark:'openai'},
+  {provider:'Google',   model:'Gemini 2.5 Pro', mark:'gemini'}
+];
+// The session's own name, built from two halves so a handful of words cover a
+// hundred-odd tapes. Kept in two pools rather than one, because a verb that
+// suits a problem does not suit a system: you fix a regression and you harden a
+// container, and one shared list would have produced "speed up frontend
+// regression" on a page whose whole claim is that it reads real sessions.
+const TECH_NAMES=[
+  {verbs:['Fix','Debug','Chase down','Track down'],
+   things:['frontend regression','flaky test suite','memory leak','race condition',
+           'CI timeout','token overrun','failing migration']},
+  {verbs:['Improve','Harden','Refactor','Audit','Simplify','Speed up','Rework','Instrument'],
+   things:['app performance','Docker container','K8s/Terraform infra layout',
+           'auth middleware','CI pipeline','checkout flow','session parser',
+           'token accounting','WebGL renderer','sandbox networking','cache layer']}
+];
+// The provider marks, on the same 24-unit grid the rest of the site draws them
+// on, inlined for the same reason index.html inlines them: this sheet is one
+// file. Only the three the label can show, not the whole set.
+const TECH_MARKS={
+  claude:'M4.709 15.955l4.72-2.647.08-.23-.08-.128H9.2l-.79-.048-2.698-.073-2.339-.097-2.266-.122-.571-.121L0 11.784l.055-.352.48-.321.686.06 1.52.103 2.278.158 1.652.097 2.449.255h.389l.055-.157-.134-.098-.103-.097-2.358-1.596-2.552-1.688-1.336-.972-.724-.491-.364-.462-.158-1.008.656-.722.881.06.225.061.893.686 1.908 1.476 2.491 1.833.365.304.145-.103.019-.073-.164-.274-1.355-2.446-1.446-2.49-.644-1.032-.17-.619a2.97 2.97 0 01-.104-.729L6.283.134 6.696 0l.996.134.42.364.62 1.414 1.002 2.229 1.555 3.03.456.898.243.832.091.255h.158V9.01l.128-1.706.237-2.095.23-2.695.08-.76.376-.91.747-.492.584.28.48.685-.067.444-.286 1.851-.559 2.903-.364 1.942h.212l.243-.242.985-1.306 1.652-2.064.73-.82.85-.904.547-.431h1.033l.76 1.129-.34 1.166-1.064 1.347-.881 1.142-1.264 1.7-.79 1.36.073.11.188-.02 2.856-.606 1.543-.28 1.841-.315.833.388.091.395-.328.807-1.969.486-2.309.462-3.439.813-.042.03.049.061 1.549.146.662.036h1.622l3.02.225.79.522.474.638-.079.485-1.215.62-1.64-.389-3.829-.91-1.312-.329h-.182v.11l1.093 1.068 2.006 1.81 2.509 2.33.127.578-.322.455-.34-.049-2.205-1.657-.851-.747-1.926-1.62h-.128v.17l.444.649 2.345 3.521.122 1.08-.17.353-.608.213-.668-.122-1.374-1.925-1.415-2.167-1.143-1.943-.14.08-.674 7.254-.316.37-.729.28-.607-.461-.322-.747.322-1.476.389-1.924.315-1.53.286-1.9.17-.632-.012-.042-.14.018-1.434 1.967-2.18 2.945-1.726 1.845-.414.164-.717-.37.067-.662.401-.589 2.388-3.036 1.44-1.882.93-1.086-.006-.158h-.055L4.132 18.56l-1.13.146-.487-.456.061-.746.231-.243 1.908-1.312-.006.006z',
+  openai:'M9.205 8.658v-2.26c0-.19.072-.333.238-.428l4.543-2.616c.619-.357 1.356-.523 2.117-.523 2.854 0 4.662 2.212 4.662 4.566 0 .167 0 .357-.024.547l-4.71-2.759a.797.797 0 00-.856 0l-5.97 3.473zm10.609 8.8V12.06c0-.333-.143-.57-.429-.737l-5.97-3.473 1.95-1.118a.433.433 0 01.476 0l4.543 2.617c1.309.76 2.189 2.378 2.189 3.948 0 1.808-1.07 3.473-2.76 4.163zM7.802 12.703l-1.95-1.142c-.167-.095-.239-.238-.239-.428V5.899c0-2.545 1.95-4.472 4.591-4.472 1 0 1.927.333 2.712.928L8.23 5.067c-.285.166-.428.404-.428.737v6.898zM12 15.128l-2.795-1.57v-3.33L12 8.658l2.795 1.57v3.33L12 15.128zm1.796 7.23c-1 0-1.927-.332-2.712-.927l4.686-2.712c.285-.166.428-.404.428-.737v-6.898l1.974 1.142c.167.095.238.238.238.428v5.233c0 2.545-1.974 4.472-4.614 4.472zm-5.637-5.303l-4.544-2.617c-1.308-.761-2.188-2.378-2.188-3.948A4.482 4.482 0 014.21 6.327v5.423c0 .333.143.571.428.738l5.947 3.449-1.95 1.118a.432.432 0 01-.476 0zm-.262 3.9c-2.688 0-4.662-2.021-4.662-4.519 0-.19.024-.38.047-.57l4.686 2.71c.286.167.571.167.856 0l5.97-3.448v2.26c0 .19-.07.333-.237.428l-4.543 2.616c-.619.357-1.356.523-2.117.523zm5.899 2.83a5.947 5.947 0 005.827-4.756C22.287 18.339 24 15.84 24 13.296c0-1.665-.713-3.282-1.998-4.448.119-.5.19-.999.19-1.498 0-3.401-2.759-5.947-5.946-5.947-.642 0-1.26.095-1.88.31A5.962 5.962 0 0010.205 0a5.947 5.947 0 00-5.827 4.757C1.713 5.447 0 7.945 0 10.49c0 1.666.713 3.283 1.998 4.448-.119.5-.19 1-.19 1.499 0 3.401 2.759 5.946 5.946 5.946.642 0 1.26-.095 1.88-.309a5.96 5.96 0 004.162 1.713z',
+  gemini:'M20.616 10.835a14.147 14.147 0 01-4.45-3.001 14.111 14.111 0 01-3.678-6.452.503.503 0 00-.975 0 14.134 14.134 0 01-3.679 6.452 14.155 14.155 0 01-4.45 3.001c-.65.28-1.318.505-2.002.678a.502.502 0 000 .975c.684.172 1.35.397 2.002.677a14.147 14.147 0 014.45 3.001 14.112 14.112 0 013.679 6.453.502.502 0 00.975 0c.172-.685.397-1.351.677-2.003a14.145 14.145 0 013.001-4.45 14.113 14.113 0 016.453-3.678.503.503 0 000-.975 13.245 13.245 0 01-2.003-.678z'
+};
+const techMarkCache={};
+function drawTechnicalMark(context,key,x,y,size,colour){
+  const d=TECH_MARKS[key];
+  if(!d)return 0;
+  if(!techMarkCache[key])techMarkCache[key]=new Path2D(d);
+  context.save();
+  context.translate(x,y);
+  context.scale(size/24,size/24);
+  context.fillStyle=colour;
+  context.fill(techMarkCache[key]);
+  context.restore();
+  return size;
+}
+const techPick=list=>list[Math.floor(Math.random()*list.length)];
+const techRoll=techPick(TECH_PROVIDERS);
+const techNamePool=techPick(TECH_NAMES);
+const technicalSessionLabel={
+  name:techPick(techNamePool.verbs)+' '+techPick(techNamePool.things),
+  date:'2026-08-25',
+  provider:techRoll.provider,model:techRoll.model,mark:techRoll.mark};
+// The theme the label was last painted with. Kept because the redraw below runs
+// from a promise at the top level of this script, where the palette the drawing
+// actually uses is a const inside the assembly's own closure and out of reach.
+let labelTheme;
+// Two faces on one label. PRINT is what the inlay comes with: the field names,
+// set in a sans, small and letterspaced. HAND is what someone wrote in the gaps
+// afterwards. Caveat runs small for its size, so the handwritten sizes are set
+// larger than the printed ones they replace rather than matched to them.
+const LABEL_PRINT='Arial,Helvetica,sans-serif';
+const LABEL_HAND='"Caveat",'+LABEL_PRINT;
+let labelContext,labelTexture;
+function drawTechnicalLabel(theme,context=labelContext){
+  if(context===labelContext)labelTheme=theme;
+  context.fillStyle=theme.paper;context.fillRect(0,0,960,760);context.strokeStyle=theme.rule;context.lineWidth=3;context.strokeRect(18,18,924,724);
+  context.fillStyle=theme.rule;context.textBaseline='top';context.font='600 28px '+LABEL_PRINT;context.fillText('.JSONL SESSION',52,56);
+  // The stock name is rolled, so its width is not known in advance: fitted to
+  // the label rather than trusted to fit, because the long ones overrun the
+  // rule and a name printed off the edge of its own label is worse than one set
+  // a few points smaller.
+  context.fillStyle=theme.type;
+  let nameSize=88;
+  do{context.font='600 '+nameSize+'px '+LABEL_HAND;nameSize-=2}
+  while(context.measureText(technicalSessionLabel.name).width>856&&nameSize>52);
+  context.fillText(technicalSessionLabel.name,52,104);
+  context.strokeStyle=theme.rule;context.lineWidth=2;context.beginPath();context.moveTo(52,226);context.lineTo(908,226);context.stroke();
+  context.fillStyle=theme.rule;context.font='600 23px '+LABEL_PRINT;context.fillText('DATE',52,278);context.fillText('PROVIDER / MODEL',52,470);
+  context.fillStyle=theme.type;context.font='600 64px '+LABEL_HAND;context.fillText(technicalSessionLabel.date,52,308);
+  // The mark, then the words. On the label the provider is the one fact a tape
+  // has that its own spine cannot show, so it gets the badge as well as the
+  // name — and the mark is drawn in the sheet's ink like everything else here,
+  // not in brand colour, because this is a drawing of a tape and not a sticker.
+  const markSize=54,markGap=18;
+  drawTechnicalMark(context,technicalSessionLabel.mark,52,502,markSize,theme.type);
+  context.font='600 60px '+LABEL_HAND;
+  context.fillText(`${technicalSessionLabel.provider} / ${technicalSessionLabel.model}`,
+    52+markSize+markGap,500);
+  if(context===labelContext&&labelTexture)labelTexture.needsUpdate=true;
+}
+
+// Canvas takes no part in font loading: it draws with whatever is available the
+// instant fillText runs, and a webfont that arrives a moment later leaves the
+// label printed in the fallback for good. So the label is drawn again once the
+// hand has actually loaded, which is the only way a canvas gets a webfont.
+if(document.fonts&&document.fonts.load){
+  Promise.all([document.fonts.load('600 88px "Caveat"'),
+               document.fonts.load('600 60px "Caveat"')])
+    .then(()=>{ if(labelContext&&labelTheme) drawTechnicalLabel(labelTheme); })
+    .catch(()=>{ /* no hand, and the label stays in the printed face */ });
+}
+
+// The label's artwork, and the one number that has to agree with the canvas it
+// is painted from. At 1.94 x 1.46 the plane was 1.329 wide to 1 tall while the
+// texture is 1.263, so everything on the label came out 5.2% wide: the provider
+// marks went oval and the type stretched. The height is derived from the canvas
+// now rather than set beside it, which also lands the artwork on an even inset
+// inside its plate (.090 across, .092 down, against .09 and .13 before).
+const LABEL_PX_W=960,LABEL_PX_H=760,LABEL_W=1.94;
+function addTechnicalLabel(){
+  const labelCanvas=document.createElement('canvas');labelCanvas.width=LABEL_PX_W;labelCanvas.height=LABEL_PX_H;labelContext=labelCanvas.getContext('2d');
+  drawTechnicalLabel(TECH_THEMES.technical);
+  const texture=labelTexture=new THREE.CanvasTexture(labelCanvas);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=renderer.capabilities.getMaxAnisotropy();
+  const material=new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide,depthTest:true,depthWrite:false,toneMapped:false});
+  const artwork=new THREE.Mesh(new THREE.PlaneGeometry(LABEL_W,LABEL_W*LABEL_PX_H/LABEL_PX_W),material);artwork.position.set(.70,5.307,-.10);artwork.rotation.x=-Math.PI/2;artwork.renderOrder=4;technicalAssembly.add(artwork);
+  return artwork;
+}
+
+// Cassette: the asymmetric top face matches the Studio object — one window on
+// the left and a solid index label on the right.
+const technicalTopShell=horizontalFrame(4.35,2.75,.14,1.26,1.72,5.18,-1.04,-.10);
+const technicalLabelPlate=horizontalPlate(2.12,1.72,.024,.08,5.29,.70,-.10,true),technicalLabelArtwork=addTechnicalLabel();
+const reelY=4.36;
+for(const x of [-1.04,1.04]){
+  const reel=new THREE.Group();reel.position.set(x,reelY,0);technicalAssembly.add(reel);technicalReels.push(reel);
+  cylinderDraft(.67,.15,[0,0,0],40,false,reel);
+  cylinderDraft(.25,.22,[0,.04,0],24,false,reel);
+  for(let i=0;i<6;i++){const a=i*Math.PI/3;roundedDraft(.46,.06,.055,.01,[Math.cos(a)*.34,.13,Math.sin(a)*.34],[0,-a,0],true,reel)}
+}
+const tapeCurve=new THREE.CatmullRomCurve3([new THREE.Vector3(-1.55,reelY,-.35),new THREE.Vector3(-1.20,reelY,.74),new THREE.Vector3(0,reelY,.92),new THREE.Vector3(1.20,reelY,.74),new THREE.Vector3(1.55,reelY,-.35)]);
+const technicalTapePath=draftPart(new THREE.TubeGeometry(tapeCurve,48,.025,6,false));
+const technicalBottomShell=horizontalPlate(4.35,2.75,.17,.14,3.52);
+for(const x of [-1.85,1.85])for(const z of [-1.08,1.08])addScrew(x,z,5.48,3.25);
+for(const x of [-1.04,1.04])addGuide([x,5.18,0],[x,3.52,0]);
+
+  // The sheet's transport state, its fake .JSONL ticker and the panel that
+  // drives them are not ported: they write into DOM nodes that page has and
+  // this one does not, so they would throw on the first frame. The hero shows
+  // the drawing assembling itself and nothing else.
+
+function applyTechnicalAssembly(progress){
+  const eased=progress*progress*progress*(progress*(progress*6-15)+10);
+  technicalTopShell.position.y=THREE.MathUtils.lerp(5.18,4.43,eased);
+  technicalLabelPlate.position.y=THREE.MathUtils.lerp(5.29,4.515,eased);
+  technicalLabelArtwork.position.y=THREE.MathUtils.lerp(5.307,4.532,eased);
+  technicalReels.forEach(reel=>reel.position.y=THREE.MathUtils.lerp(reelY,4.29,eased));
+  technicalTapePath.position.y=THREE.MathUtils.lerp(0,-.07,eased);
+  technicalBottomShell.position.y=THREE.MathUtils.lerp(3.52,4.275,eased);
+  technicalScrews.forEach(screw=>screw.position.y=THREE.MathUtils.lerp(4.365,4.35,eased));
+  technicalGuides.forEach(guide=>guide.visible=progress<.985);
+  document.body.classList.toggle('technical-built',progress>.985);
+}
+
+  // The assembly is built around y ≈ 4.4 — that is where the sheet puts it —
+  // while its group origin sits at 0. Rotating that group therefore swung the
+  // object around a point four units underneath it, which is an orbit, not a
+  // turn. So the assembly is offset inside a pivot: the offset brings the
+  // object's centre onto the pivot's origin, and the pivot is what turns.
+  const CENTRE_Y = 4.4;
+  const pivot = new THREE.Group();
+  scene.add(pivot);
+  technicalAssembly.position.y = -CENTRE_Y;
+  pivot.add(technicalAssembly);
+  const tape = pivot;
+
+  // Framed from the object's own size, measured — not from a constant I keep
+  // lowering every time the tape should be bigger, which is exactly how it came
+  // to hang off the right edge of the frame.
+  //
+  // A bounding *sphere* rather than a box, because the object turns: a box
+  // fits the opening pose and clips the moment you drag it round to its
+  // diagonal. Measured shut or exploded it comes out the same — 2.80 either
+  // way, against a shut box of 4.35 × 2.23 × 2.75 — because the explosion
+  // moves parts along y inside a radius the width already sets.
+  const bounds = new THREE.Sphere();
+  function measure() {
+    new THREE.Box3().setFromObject(pivot).getBoundingSphere(bounds);
+  }
+
+  // Well under 1, and this is the number that sets how big the tape is drawn.
+  // A sphere that circumscribes a wide flat object is mostly air: fit that
+  // sphere to the frame and the drawing inside it lands about a third smaller
+  // than the frame it was given, which is what used to make the tape look like
+  // a small picture next to a large paragraph.
+  //
+  // So it is sized against the copy instead, measured rather than guessed. It
+  // was tuned when the copy column was a fraction of the sheet and stood 489px
+  // tall, and the fit matched that exactly; the column is now a given 564px,
+  // which lets the headline set in fewer lines and leaves the copy 347px tall
+  // in a narrower frame for the drawing. The tape comes out 427px there — half
+  // again the height it started at, and a little taller than the block beside
+  // it rather than level with it. Matching the new height exactly would mean
+  // drawing it smaller than it was before any of this, so it is deliberately
+  // not matched: MARGIN_WIDE ≈ .87 would do it if that is ever wanted.
+  //
+  // It crosses into the copy column and the overlap is the intent — the canvas
+  // is transparent and the type sits over it — and at full stretch it bleeds
+  // past the frame when dragged round to its diagonal, which is also intended.
+  //
+  // Two of them, because a fit this tight is only safe in a frame with width to
+  // spare. WIDE is the hero's, where the spare room is vertical and the drawing
+  // is allowed to fill it; TIGHT is the honest fit a squarer frame needs, and is
+  // what the drawing was framed at before. Between them it eases on the aspect
+  // — so the height match is exact at the hero's own size and gives way to
+  // staying uncut as the frame narrows, rather than the drawing running out
+  // through both side edges on a phone.
+  const MARGIN_WIDE = .618, MARGIN_TIGHT = .88;
+  // Both are signed fractions of the frame, and both move the *object* the
+  // opposite way to the camera window they shift: positive SHIFT carries the
+  // drawing left, positive LIFT carries it down. Screen offset works out at
+  // exactly twice the fraction, in NDC, independent of MARGIN — so LIFT -.03
+  // lifts the tape 19px in a 640px frame, which is what brings its top and
+  // bottom onto the copy block's.
+  const SHIFT = .10;
+  const LIFT = -.03;
+
+  function resize() {
+    const w = canvas.clientWidth || innerWidth, h = canvas.clientHeight || innerHeight;
+    renderer.setSize(w, h, false);
+    const aspect = Math.max(w / h, .0001);
+    // 0 at a square frame, 1 by the time it is 1.8 wide — the hero's own shape.
+    // Both the size of the drawing and how far off-centre it sits are spent
+    // against it, because they are the same budget: room to the side.
+    const wide = Math.min(1, Math.max(0, (aspect - 1) / .8));
+    const r = (bounds.radius || 4) * (MARGIN_TIGHT + (MARGIN_WIDE - MARGIN_TIGHT) * wide);
+    // Shifting the box eats the room it shifts by, on both sides — the object
+    // has to clear the near edge and the far one — so the half-extent has to
+    // grow to pay for it, or the shift is just a crop. It is the *magnitude*
+    // that costs the room: with a bare 1 - 2 * LIFT a negative offset paid
+    // nothing and quietly resized the drawing instead of moving it.
+    // Sitting off-centre costs room on the side it moves toward, and a narrow
+    // frame has none to give: at this size the drawing reached the canvas's own
+    // left edge and was cut by a straight vertical line, which reads as a
+    // broken render rather than as a bleed. So the offset is spent only where
+    // there is width to spend it, and on the stacked layout the drawing is
+    // centred, which is what it wants there anyway.
+    const shiftF = SHIFT * wide;
+    const needH = r / (1 - 2 * Math.abs(LIFT));
+    const needW = r / (1 - 2 * Math.abs(shiftF));
+    const view = Math.max(needH, needW / aspect);
+    camera.left = -view * aspect; camera.right = view * aspect;
+    camera.top = view; camera.bottom = -view;
+    const shift = (camera.right - camera.left) * shiftF;
+    const lift = (camera.top - camera.bottom) * LIFT;
+    camera.left += shift; camera.right += shift;
+    camera.top += lift; camera.bottom += lift;
+    camera.updateProjectionMatrix();
+    // The panel is ruled in percentages of this same frame, so its capacity in
+    // lines changes whenever the frame does.
+    measureStream();
+  }
+  addEventListener('resize', resize, { passive: true });
+
+  // ---- skins --------------------------------------------------------------
+
+  // The two skins are the sheet's own themes: everything the drawing is made of
+  // takes its colour from one record, including the label canvas, which is
+  // repainted rather than tinted — it is a texture, not a material.
+  // One theme now: the page's. The fills are the paper — they hide what is
+  // behind each part — so they carry the page's paper colour exactly, and the
+  // label canvas is repainted to match rather than tinted, being a texture.
+  const THEME = { bg: 0xF7F5F3, ink: 0x141312, fine: 0x8D8880, dash: 0xA3A29E,
+                  paper: '#f7f5f3', rule: '#8d8880', type: '#141312' };
+  function repaint() {
+    technicalFillMaterial.color.setHex(THEME.bg);
+    technicalLineMaterial.color.setHex(THEME.ink);
+    technicalFineMaterial.color.setHex(THEME.fine);
+    technicalDashMaterial.color.setHex(THEME.dash);
+    drawTechnicalLabel(THEME);
+  }
+  // ---- the transport --------------------------------------------------------
+  //
+  // One state, read by the frame loop. Play assembles the tape and then runs
+  // it; pause holds it where it is; rewind and fast forward shuttle the reels
+  // while they are held; eject takes it apart again. There is no stop, because
+  // stop and pause are the same button on a machine with one tape in it.
+
+  const T = {
+    progress: 0,        // 0 exploded → 1 assembled
+    target: 0,
+    playing: false,
+    shuttle: 0,         // -1 rewind, +1 fast forward, 0 none
+    reel: 0,            // radians turned, for the spin
+    // Every assembly move is a tween rather than a constant crawl toward the
+    // target: a mechanism that starts and stops abruptly reads as a slider,
+    // and this one eases in and out of both.
+    tw: { from: 0, to: 0, at: 1, dur: 1 },
+    intro: true,
+  };
+  const easeInOut = x => x * x * (3 - 2 * x);
+
+  function goTo(target, dur) {
+    T.tw = { from: T.progress, to: target, at: 0, dur };
+    T.target = target;
+  }
+
+  function setStatus() {
+    // Tell the host page what the transport is doing. It used to update a
+    // label drawn in here (deck status); the host now owns that concern
+    // entirely — the assurance dot's beat and the play/pause icon on its
+    // own button both key off this. Posted to '*' and not to an origin,
+    // because embedded from a file:// page there is no origin to post to;
+    // the host checks the source window instead.
+    if (parent !== window) {
+      try {
+        parent.postMessage({ vcr: 'transport', playing: T.playing && !T.shuttle,
+          shuttle: T.shuttle }, '*');
+      } catch (e) { /* a host that will not be spoken to keeps a still dot */ }
+    }
+  }
+
+  function doPlay() {
+    T.playing = !T.playing;
+    T.intro = false;
+    // Playing a tape that is in pieces assembles it first, which is what the
+    // machine would do: you cannot run a cassette that is not shut.
+    if (T.playing) goTo(1, 1.6);
+    setStatus();
+  }
+  function doEject() {
+    // Eject is a two-way key here: it takes an assembled tape apart, and puts
+    // an already-apart one back together. A key that does nothing on half the
+    // states it can be pressed in is a key you press twice and give up on.
+    T.intro = false;
+    const apart = T.progress < .02 || T.target === 0;
+    if (apart) { goTo(1, 1.6); }
+    else { T.playing = false; goTo(0, 1.2); }
+    setStatus();
+  }
+  function setShuttle(dir) {
+    T.shuttle = dir;
+    setStatus();
+  }
+
+  // The keys live in the host page now, beside "Use the CLI" — see the note
+  // by the removed .deck rule above — so they reach this document as
+  // messages rather than as clicks on a button in here.
+  addEventListener('message', e => {
+    if (e.source !== parent || !e.data) return;
+    if (e.data.vcr === 'theme') applyHeroTheme(e.data);
+    if (e.data.vcr === 'cmd') {
+      if (e.data.do === 'play') doPlay();
+      else if (e.data.do === 'eject') doEject();
+      else if (e.data.do === 'rew') setShuttle(e.data.state === 'on' ? -1 : 0);
+      else if (e.data.do === 'ff') setShuttle(e.data.state === 'on' ? 1 : 0);
+    }
+  });
+  // Ask on the way up: the host cannot know when this document is ready, and
+  // with a lazily loaded frame the order of the two is not fixed.
+  if (parent !== window) {
+    try { parent.postMessage({ vcr: 'hello' }, '*'); } catch (e) { /* no host to ask */ }
+  }
+
+  // ---- the stream ------------------------------------------------------------
+  //
+  // What a session looks like on its way past: one record at a time, oldest
+  // scrolling off the top. Ported from the sheet's ticker, minus its panel —
+  // the records are the same, because inventing plausible-looking log lines
+  // when a real set exists is how a demo starts lying.
+
+// Nine happy-path records was a session where nothing ever goes wrong, which is
+// not a session — and it is the half of the file VCR is most useful for. Every
+// record below is drawn from the tapes in ../tapes: the tool names are the ones
+// those sessions actually call (Read, Edit, Bash, Write, ToolSearch), the error
+// strings are the errors they actually hit, the policy lines are their real
+// `mode` and `permission-mode` records, and `entrypoint:"cli"` is what all
+// 2,975 of their lines carry. The MCP call is the one shape not in them: those
+// tapes make no MCP calls, and the parser has no MCP case because it does not
+// need one — an MCP tool is a tool call whose name is mcp__server__tool, so
+// that is how it is written here.
+const fakeJsonlRecords=[
+  {type:'session',title:'AI icons',entrypoint:'cli',version:'2.0.14'},
+  {type:'mode',mode:'normal'},
+  {type:'permission-mode',permissionMode:'bypassPermissions'},
+  {type:'user',prompt:'Use full-color agent icons',at:'12:13:52.196Z'},
+  {type:'assistant',provider:'anthropic',model:'claude-opus-4-8'},
+  {type:'tool_call',name:'Read',file:'index.html'},
+  {type:'tool_result',name:'Read',is_error:true,error:'File content 503.5KB exceeds maximum 256KB'},
+  {type:'tool_call',name:'ToolSearch',query:'select:WebFetch'},
+  {type:'attachment',attachment:'deferred_tools_delta',added:['WebFetch','Monitor']},
+  {type:'tool_call',name:'Edit',file:'tape.html'},
+  {type:'tool_result',name:'Edit',is_error:true,error:'String to replace not found in file'},
+  {type:'tool_call',name:'Bash',status:'running'},
+  {type:'tool_result',name:'Bash',exit:2,is_error:true,error:'awk: runaway string constant'},
+  {type:'tool_call',name:'mcp__linear__create_issue',status:'running'},
+  {type:'tool_result',name:'mcp__linear__create_issue',ms:412,errors:0},
+  {type:'error',scope:'api',message:'Unable to connect to API (ECONNRESET)'},
+  {type:'assistant',provider:'anthropic',model:'claude-opus-4-8',retry:1},
+  {type:'tool_call',name:'Write',file:'assets/cli-lockup.svg'},
+  {type:'tool_result',name:'Write',exit:0,errors:0},
+  {type:'system',subtype:'stop_hook_summary',hookCount:1,hookErrors:0},
+  {type:'queue-operation',operation:'enqueue'},
+  {type:'file-history-snapshot',tracked:6},
+  {type:'usage',input:3376,output:255,cache:18271},
+  {type:'git',branch:'den-map-landing',dirty:false},
+  {type:'assistant',response:'Card assets updated',status:'complete'},
+  {type:'cost',usd:0.084}
+];
+// What the panel paints red. An unresolved call is the parser's own third state
+// — a tool_call with no result ever arriving — so a bare exit code that is not
+// zero counts too, not just the explicit flag.
+const isErrorRecord = r => !!r.is_error || r.type === 'error'
+  || (r.exit !== undefined && r.exit !== 0) || r.hookErrors > 0;
+
+  const streamEl = document.querySelector('.stream [data-lines]');
+  const clockEl = document.querySelector('.stream [data-clock]');
+  // The file is kept, not just the screenful of it. `log` is every record that
+  // has gone past, `head` is where the machine is reading — measured in lines,
+  // fractional, so the clock can run smoothly between them — and the panel
+  // shows the window of `log` that ends at the head. Rewind moves the head back
+  // through what is already there, which is a scroll; it used to pop records off
+  // the end, which threw the file away to show you less of it. Winding back and
+  // playing forward now re-reads the same lines, the way a tape does, and only a
+  // head that runs past the end of the log pulls new records in.
+  const HISTORY = 2000;   // lines kept to scroll back through
+  const GAP = .34;        // seconds of tape per record
+  const stream = { cursor: -1, head: 0, dropped: 0, log: [] };
+
+  // The panel sits behind the canvas on its own sheet of paper, so it reads
+  // right only if it is ruled on the same grid the paper already carries.
+  // That grid is drawn by the host page, fixed to the *viewport* (.grid-bg
+  // is `position:fixed`), not to this document — so the 64px it is spaced at
+  // only lines up with a box drawn in here once this iframe's own on-screen
+  // offset is folded in. Same-origin embedding makes that offset readable
+  // straight off `frameElement`, no postMessage round trip needed for it.
+  const streamBox = document.querySelector('.stream');
+  const GRID = 64;
+  function placeStreamBox() {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (!w || !h) return;
+    let originX = 0, originY = 0;
+    try {
+      const fe = window.frameElement;
+      if (fe) { const r = fe.getBoundingClientRect(); originX = r.left; originY = r.top; }
+    } catch (e) { /* cross-origin or no host: align to this document's own corner */ }
+    const phaseX = ((-originX % GRID) + GRID) % GRID;
+    const phaseY = ((-originY % GRID) + GRID) % GRID;
+    const lineBefore = (v, phase) => phase + GRID * Math.floor((v - phase) / GRID);
+    const lineAfter = (v, phase) => phase + GRID * Math.ceil((v - phase) / GRID);
+    // Right-anchored, a cell shy of the frame edge; the width is whatever
+    // whole cells are left after a cell of margin on the left as well, capped
+    // to five so the column stays a sidebar rather than half the drawing.
+    const right = lineBefore(w - GRID * .5, phaseX);
+    const leftMost = lineAfter(GRID * .5, phaseX);
+    const width = Math.min(GRID * 5, right - leftMost);
+    const left = right - width;
+    const top = lineAfter(GRID * .75, phaseY);
+    const bottom = Math.min(lineBefore(h - GRID * .5, phaseY), top + GRID * 8);
+    streamBox.style.left = left + 'px';
+    streamBox.style.top = top + 'px';
+    streamBox.style.width = Math.max(0, width) + 'px';
+    streamBox.style.height = Math.max(0, bottom - top) + 'px';
+  }
+
+  // How many records the panel actually holds, measured off it. It was a
+  // hardcoded 8, which filled a third of a 416px column and left the rest of
+  // the panel empty however long you watched it — the panel is ruled to a
+  // height and then told to use a fixed number of lines, and the two had no
+  // way of agreeing. Now the window is the panel's own height in lines, so it
+  // fills whatever column the layout gives it and re-fills when that changes.
+  let streamCap = 8;
+  function measureStream() {
+    placeStreamBox();
+    const cs = getComputedStyle(streamEl);
+    const lh = parseFloat(cs.lineHeight) || 17;
+    const usable = streamEl.clientHeight - parseFloat(cs.paddingTop || 0);
+    streamCap = Math.max(4, Math.floor(usable / lh));
+  }
+
+  const esc = s => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  let painted = -1;
+  function renderStream(force) {
+    // The window ends at the head and runs back a panel's worth. Only repainted
+    // when the line it ends on changes — the head moves every frame while
+    // shuttling, and rebuilding 22 lines of markup 60 times a second to show
+    // the same 22 lines is work nobody sees.
+    // Never ends before the first full screenful: wound all the way back, the
+    // panel holds the top of the file and stays there while the counter runs
+    // the rest of the way down to zero. An empty panel under a running clock
+    // would read as a machine that had lost the tape.
+    const end = Math.max(
+      Math.min(streamCap, stream.log.length),
+      Math.max(0, Math.min(stream.log.length, Math.floor(stream.head) - stream.dropped)));
+    if (!force && end === painted) return;
+    painted = end;
+    // Records are marked up rather than set as text, because a file where the
+    // failures look exactly like the successes is a file you have to read
+    // every line of. That is the whole reason to replay one.
+    streamEl.innerHTML = stream.log.slice(Math.max(0, end - streamCap), end).map(i => {
+      const rec = fakeJsonlRecords[i], line = esc(JSON.stringify(rec));
+      return isErrorRecord(rec) ? `<b>${line}</b>` : line;
+    }).join('\n');
+  }
+  function resetStream() {
+    stream.cursor = -1; stream.head = 0; stream.dropped = 0; stream.log.length = 0;
+    clockEl.textContent = '00:00:00.0';
+    renderStream(true);
+  }
+  function tickStream(dt, running) {
+    document.body.classList.toggle('streaming', running);
+    if (!running) return;
+    // Signed, because the shuttle has a direction and the file has to agree
+    // with it. `T.shuttle ? 6 : 1` ran the file *forward* at six times speed
+    // while the reels were spinning backwards: the clock climbed and fresh
+    // records kept arriving on rewind, which is the one thing rewinding cannot
+    // do. Six either way, and the clock cannot go below zero — that is the head
+    // of the tape, not a negative timestamp.
+    // Six either way, and signed: the shuttle has a direction and the file has
+    // to agree with it. `T.shuttle ? 6 : 1` ran the file *forward* at six times
+    // speed while the reels span backwards.
+    const rate = T.shuttle ? 6 * T.shuttle : (T.playing ? 1 : 0);
+    stream.head += dt * rate / GAP;
+
+    // Forward, the head can run off the end of the log, and every line it
+    // passes pulls the next record off the tape. Fast forward therefore fills
+    // the panel six times quicker without a separate path for it: the rate is
+    // in the head, and the records follow the head.
+    const n = fakeJsonlRecords.length;
+    while (stream.head > stream.dropped + stream.log.length) {
+      stream.cursor = (stream.cursor + 1) % n;
+      stream.log.push(stream.cursor);
+      if (stream.log.length > HISTORY) { stream.log.shift(); stream.dropped++; }
+    }
+    // Back, it stops at the head of the tape — or at the oldest line still
+    // held, once the log has started dropping its front, because winding to a
+    // line that has been let go would show a panel with nothing in it.
+    if (stream.head < stream.dropped) stream.head = stream.dropped;
+
+    const tenths = Math.max(0, Math.floor(stream.head * GAP * 10));
+    const pad = v => String(v).padStart(2, '0');
+    clockEl.textContent = `${pad(Math.floor(tenths / 36000))}:${pad(Math.floor(tenths / 600) % 60)}` +
+      `:${pad(Math.floor(tenths / 10) % 60)}.${tenths % 10}`;
+    renderStream();
+  }
+  resetStream();
+
+  // ---- turning it ------------------------------------------------------------
+  //
+  // Drag turns the object about its own centre. Pitch is clamped: past about
+  // 35° either way an axonometric drawing stops reading as one.
+  // Where the intro leaves the tape, and where it sits until a hand moves it.
+  // Not square-on to the sheet: at yaw 0 the label's line of type runs down the
+  // screen at 21 degrees and its face is only .56 toward the camera, which is a
+  // label you tilt your head at. Turned .35 and tilted .35 the type comes within
+  // 3 degrees of level and the face opens to .76, so the tape stands up enough to
+  // be read while the view stays axonometric. Both are measured against the
+  // camera's own basis, and the pitch is inside the drag clamp so the pose is
+  // still a starting point rather than a wall.
+  const REST = { yaw: .35, pitch: .35 };
+  const view = { yaw: 0, pitch: 0, vYaw: 0, vPitch: 0 };
+  let drag = null;
+
+  canvas.addEventListener('pointerdown', e => {
+    drag = { x: e.clientX, y: e.clientY };
+    canvas.setPointerCapture(e.pointerId);
+    canvas.classList.add('dragging');
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    drag = { x: e.clientX, y: e.clientY };
+    view.yaw += dx * .008;
+    view.pitch = Math.max(-.6, Math.min(.6, view.pitch + dy * .006));
+    view.vYaw = dx * .008; view.vPitch = dy * .006;
+  });
+  const endDrag = e => {
+    if (!drag) return;
+    drag = null;
+    canvas.classList.remove('dragging');
+    if (canvas.hasPointerCapture?.(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
+  };
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+
+  // ---- run ----------------------------------------------------------------
+
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let last = performance.now(), t = 0;
+  function frame(now) {
+    const dt = Math.min((now - last) / 1000, .05); last = now;
+    // the assembly eases toward whatever the transport asked for
+    if (T.tw.at < 1) {
+      T.tw.at = Math.min(1, T.tw.at + dt / T.tw.dur);
+      T.progress = T.tw.from + (T.tw.to - T.tw.from) * easeInOut(T.tw.at);
+      applyTechnicalAssembly(T.progress);
+      setStatus();
+      // The intro hands over to playback the moment the tape is shut, so the
+      // first thing the page does is show the machine working rather than
+      // waiting to be asked.
+      if (T.intro && T.tw.at >= 1) { T.intro = false; T.playing = true; setStatus(); }
+    }
+
+    // Reels turn when the tape is shut: playing at one, shuttling at six, and
+    // in the shuttle's direction. A spool spinning in an exploded view is a
+    // spool with no tape on it, so nothing turns below .985.
+    if (!reduce && T.progress > .985) {
+      const rate = T.shuttle ? 6.5 * T.shuttle : (T.playing ? 1.15 : 0);
+      if (rate) {
+        T.reel += dt * rate;
+        technicalReels.forEach((reel, i) => { reel.rotation.y = T.reel * (i ? -1 : 1); });
+      }
+    }
+
+    // The file is only going past while the tape is shut and moving.
+    tickStream(dt, T.progress > .985 && (T.playing || T.shuttle !== 0));
+    if (T.progress < .02 && stream.log.length) resetStream();
+
+    // Orbit, with a glide after the hand comes off — damped rather than
+    // stopped dead, because an object that halts the instant you let go feels
+    // like a slider and not a thing.
+    if (!drag) {
+      view.yaw += view.vYaw; view.pitch += view.vPitch;
+      view.pitch = Math.max(-.6, Math.min(.6, view.pitch));
+      view.vYaw *= .92; view.vPitch *= .92;
+      if (Math.abs(view.vYaw) < 1e-4) view.vYaw = 0;
+      if (Math.abs(view.vPitch) < 1e-4) view.vPitch = 0;
+    }
+    t += dt;
+    // While the intro runs, the view eases square on the same curve the
+    // assembly is using, so the two read as one movement.
+    if (T.intro && T.tw.at < 1 && !drag) {
+      // one movement: the assembly closes and the tape turns onto its rest pose
+      const k = easeInOut(T.tw.at);
+      view.yaw = -.34 + (REST.yaw + .34) * k;
+      view.pitch = REST.pitch * k;
+    }
+    tape.rotation.y = view.yaw + (reduce ? 0 : Math.sin(t * .17) * .035);
+    tape.rotation.x = view.pitch;
+    // The silhouette lines down the side of each extruded part are chosen
+    // against the camera, so they are re-chosen whenever anything turns.
+    updateTechnicalSilhouettes();
+    // Re-read every frame rather than on resize/scroll alone: the host's
+    // own layout can shift this iframe's on-screen offset for reasons that
+    // fire neither event — a web font swapping in and rewrapping the copy
+    // column, for one — and a stale offset is exactly what throws the grid
+    // lock off by a fraction of a cell.
+    placeStreamBox();
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+  measure();
+  resize();
+  repaint();
+  setStatus();          // the readout is right before anything is pressed
+
+  // The intro. A short beat exploded so the drawing registers as an assembly of
+  // parts, then it comes together and starts running — eased at both ends, and
+  // skipped entirely for anyone who has asked for less motion, who gets the
+  // finished object instead.
+  if (reduce) {
+    T.progress = T.target = 1;
+    view.yaw = REST.yaw; view.pitch = REST.pitch;
+    applyTechnicalAssembly(1);
+    T.intro = false;
+    setStatus();
+  } else {
+    view.yaw = -.34;                      // it turns square as it closes
+    setTimeout(() => { if (T.intro) goTo(1, 2.4); }, 620);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

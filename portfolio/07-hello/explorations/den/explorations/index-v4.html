@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>den. — full YOLO, zero blast radius</title>
+  <meta name="description" content="den runs any AI coding agent inside a disposable, network-policed box.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --paper:   #E7E6E0;   /* light engineering paper */
+      --paper-2: #EFEEE8;
+      --card:    #F8F7F3;   /* card / plate surface */
+      --ink:     #15150F;   /* near-black text + linework */
+      --ink-2:   #3B3B34;
+      --muted:   #83837A;
+      --muted-2: #ADACA2;
+      --line:    rgba(0,0,0,0.16);
+      --line-2:  rgba(0,0,0,0.10);
+      --grid:    rgba(0,0,0,0.045);
+      --tick:    rgba(0,0,0,0.17);
+      --ember-rgb: 255,106,26;
+      --ember:   rgb(var(--ember-rgb));
+      --lab: #1c9d6b;                          /* annotation green, poster-style */
+      --font-disp: 'Chakra Petch', sans-serif; /* squared technical display */
+      --font-mono: 'Space Mono', monospace;
+      --font-body: 'Space Grotesk', sans-serif;
+      --page-max: 1152px;                      /* 18 modules; half-width = 9 modules so edges land on gridlines */
+      --gutter:   clamp(24px, 5vw, 64px);      /* one module at wide viewports → inner content stays on the grid */
+      --step: 64px;                            /* grid module */
+      --r:    14px;                            /* cards, panels, window, nav */
+      --r-md: 10px;                            /* buttons, inputs, menus */
+      --r-sm: 7px;                             /* chips, tags, small controls */
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--paper);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+      line-height: 1.55;
+      position: relative;
+    }
+
+    /* ─── GRID + CROSSHAIR BACKPLATE ─── */
+    /* Absolute (not fixed) so it scrolls locked to the content, and the tile's
+       centre line/tick sits at x = 50% of the page. Because the content column
+       is centred and its half-width is a whole number of modules, its edges land
+       exactly on gridlines. */
+    .backplate {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cpath d='M32 0V64 M0 32H64' stroke='rgba(0,0,0,0.05)' stroke-width='1'/%3E%3Cpath d='M32 26V38 M26 32H38' stroke='rgba(0,0,0,0.17)' stroke-width='1'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-position: center top;   /* 50% phase → a gridline falls on the page centre */
+      background-size: var(--step) var(--step);
+    }
+    /* thin device frame around the whole screen */
+    .bezel { position: fixed; inset: 9px; z-index: 1; pointer-events: none;
+      border: 1.5px solid rgba(0,0,0,0.22); border-radius: 20px; }
+    .bezel::before, .bezel::after { content: ''; position: absolute; }
+    /* reticle top-right + × top-left, echoing the reference chrome */
+    .screen-mark { position: fixed; z-index: 3; pointer-events: none; color: var(--ink);
+      width: 22px; height: 22px; }
+    .screen-mark svg { width: 100%; height: 100%; opacity: 0.7; }
+    .screen-mark.tl { top: 20px; left: 20px; }
+    .screen-mark.tr { top: 20px; right: 20px; }
+    @media (max-width: 640px){ .screen-mark { display: none; } }
+
+    .wrap { max-width: var(--page-max); margin: 0 auto; padding-inline: var(--gutter); }
+
+    /* reusable corner brackets — rounded elbows nudged just outside the box so
+       they read as focus ticks hugging the rounded corner */
+    .brk { position: relative; }
+    .brk > .c { position: absolute; width: 15px; height: 15px; border: 1.5px solid var(--ink); z-index: 4; }
+    .brk > .c.tl { top: -6px; left: -6px; border-right: 0; border-bottom: 0; border-top-left-radius: 9px; }
+    .brk > .c.tr { top: -6px; right: -6px; border-left: 0; border-bottom: 0; border-top-right-radius: 9px; }
+    .brk > .c.bl { bottom: -6px; left: -6px; border-right: 0; border-top: 0; border-bottom-left-radius: 9px; }
+    .brk > .c.br { bottom: -6px; right: -6px; border-left: 0; border-top: 0; border-bottom-right-radius: 9px; }
+
+    /* mono kicker/label used everywhere */
+    .kick { font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+    .kick .em { color: var(--ember); }
+    .sq { display: inline-block; width: 8px; height: 8px; background: var(--ember); flex: none; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 16px; left: 0; right: 0; z-index: 50;
+      width: min(100% - 48px, var(--page-max)); margin-inline: auto;   /* same column as content → edges on gridlines */
+      display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+      padding: 10px 12px 10px 16px;
+      background: rgba(240,239,233,0.82);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      backdrop-filter: blur(14px) saturate(130%);
+      -webkit-backdrop-filter: blur(14px) saturate(130%);
+      transition: background 0.25s, box-shadow 0.25s;
+    }
+    nav.scrolled { background: rgba(240,239,233,0.95); box-shadow: 0 12px 30px rgba(0,0,0,0.07); }
+    .nav-logo { justify-self: start; display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+    .nav-mark { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; }
+    .nav-mark img { width: 26px; height: 26px; }
+    .nav-logo-text { font-family: var(--font-disp); font-size: 21px; font-weight: 700; letter-spacing: -0.01em; }
+    .nav-logo-tag { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 0.08em; padding-top: 3px; }
+    .nav-links { justify-self: center; display: flex; align-items: center; gap: 4px; list-style: none; margin: 0; }
+    .nav-links a { display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+      color: var(--ink-2); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em;
+      padding: 7px 12px; transition: color 0.2s, background 0.2s; }
+    .nav-links a:hover { color: var(--ink); background: rgba(0,0,0,0.05); }
+    .nav-links a .caret { width: 9px; height: 9px; opacity: 0.55; }
+    .nav-right { justify-self: end; display: flex; align-items: center; gap: 12px; }
+    .nav-login { text-decoration: none; color: var(--ink); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; }
+
+    /* rounded buttons, matching the product UI */
+    .notch { border-radius: var(--r-md); }
+    .btn-ember {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: var(--ember); color: #14140f; text-decoration: none;
+      font-family: var(--font-mono); font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 11px 18px; border: 0; transition: transform 0.18s, filter 0.18s;
+    }
+    .btn-ember:hover { transform: translateY(-1px); filter: brightness(1.06); }
+    .btn-ember .cta-ico { width: 16px; height: 16px; object-fit: contain; filter: brightness(0); }
+    .btn-dark {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: var(--ink); color: #fff; text-decoration: none;
+      font-family: var(--font-mono); font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 11px 18px; transition: transform 0.18s, background 0.18s;
+    }
+    .btn-dark:hover { transform: translateY(-1px); background: #000; }
+    .btn-dark .cta-ico { width: 16px; height: 16px; object-fit: contain; }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: transparent; color: var(--ink); text-decoration: none;
+      font-family: var(--font-mono); font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 11px 18px; border: 1.5px solid var(--ink); transition: background 0.18s, color 0.18s;
+    }
+    .btn-ghost:hover { background: var(--ink); color: #fff; }
+    .nav-cta { padding: 9px 15px; font-size: 11.5px; }
+
+    /* accent switcher */
+    .accent-wrap { position: relative; display: inline-flex; }
+    .accent-switch { width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--line); border-radius: var(--r-sm); background: none; cursor: pointer; transition: transform 0.2s; }
+    .accent-switch:hover { transform: translateY(-1px); }
+    .accent-ball { display: block; width: 15px; height: 15px; border-radius: 4px; background: var(--ember);
+      box-shadow: 0 0 8px rgba(var(--ember-rgb),0.6); transition: background 0.3s, box-shadow 0.3s; }
+    .accent-menu { position: absolute; top: calc(100% + 12px); right: 0; min-width: 200px; padding: 6px;
+      background: var(--card); border: 1px solid var(--line); border-radius: var(--r-md);
+      box-shadow: 0 18px 44px rgba(0,0,0,0.16); display: flex; flex-direction: column; gap: 2px;
+      opacity: 0; visibility: hidden; transform: translateY(-6px); transform-origin: top right;
+      transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s; z-index: 60; }
+    .accent-menu.open { opacity: 1; visibility: visible; transform: none; }
+    .accent-opt { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+      border: 0; background: none; cursor: pointer; width: 100%; font-family: var(--font-mono);
+      font-size: 12px; letter-spacing: 0.03em; color: var(--ink-2); text-align: left; transition: background 0.15s, color 0.15s; }
+    .accent-opt { border-radius: var(--r-sm); }
+    .accent-opt:hover { background: rgba(0,0,0,0.06); color: var(--ink); }
+    .accent-opt.active { color: var(--ink); }
+    .accent-opt-dot { width: 13px; height: 13px; flex: none; }
+    .accent-opt-check { margin-left: auto; color: var(--ember); opacity: 0; font-size: 12px; }
+    .accent-opt.active .accent-opt-check { opacity: 1; }
+
+    /* ─── HERO ─── */
+    .hero { position: relative; z-index: 2; padding: 160px 0 64px; }
+    /* 7fr + gap(1 module) + 8fr = 448 + 64 + 512 across the 1024px content column;
+       every column edge lands on a gridline */
+    .hero-grid { display: grid; grid-template-columns: 7fr 8fr; gap: var(--step); align-items: center; }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 9px;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);
+      border: 1px solid var(--line); border-radius: var(--r-md); padding: 7px 13px; margin-bottom: 26px;
+    }
+    .hero-eyebrow .em { color: var(--ember); }
+    .hero-h {
+      font-family: var(--font-disp); font-weight: 700; line-height: 0.92;
+      letter-spacing: -0.02em; color: var(--ink); text-transform: uppercase;
+      font-size: clamp(46px, 7.4vw, 108px);
+    }
+    .hero-h .u { color: var(--muted-2); }
+    .hero-h .cur { color: var(--ember); }
+    .hero-sub { max-width: 480px; margin: 24px 0 30px; font-size: 15.5px; color: var(--ink-2); line-height: 1.62; }
+    .hero-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .hero-params { margin-top: 30px; display: grid; gap: 5px; max-width: 460px;
+      font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); }
+    .hero-params .row { display: flex; gap: 8px; }
+    .hero-params .k { color: var(--muted); min-width: 118px; }
+    .hero-params .v { color: var(--ink); }
+    .hero-params .c2 { color: var(--muted-2); }
+
+    /* right column: annotated diagram, poster-style */
+    .hero-stage { position: relative; width: 100%; aspect-ratio: 1 / 1; }
+    .hero-stage > .c { position: absolute; width: 20px; height: 20px; border: 1.5px solid var(--ink); z-index: 4; }
+    .hero-stage > .c.tl { top: 0; left: 0; border-right: 0; border-bottom: 0; border-top-left-radius: 10px; }
+    .hero-stage > .c.tr { top: 0; right: 0; border-left: 0; border-bottom: 0; border-top-right-radius: 10px; }
+    .hero-stage > .c.bl { bottom: 0; left: 0; border-right: 0; border-top: 0; border-bottom-left-radius: 10px; }
+    .hero-stage > .c.br { bottom: 0; right: 0; border-left: 0; border-top: 0; border-bottom-right-radius: 10px; }
+    .stage-tag { position: absolute; top: -9px; left: 24px; z-index: 4; background: var(--paper);
+      font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; color: var(--muted); padding: 0 8px; }
+    .stage-tag .em { color: var(--ember); }
+    #heroCube { position: absolute; inset: 0; z-index: 1; }
+    #heroCube canvas { display: block; }
+    .callouts { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+    .callouts svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+    .callouts svg polyline { fill: none; stroke: var(--lab); stroke-width: 1; vector-effect: non-scaling-stroke; opacity: 0.85; }
+    .callouts svg circle { fill: var(--lab); }
+    /* poster-style boxed coordinate label */
+    .callout {
+      position: absolute; display: inline-flex; flex-direction: column; gap: 3px;
+      font-family: var(--font-mono); white-space: nowrap;
+    }
+    .callout .code { display: inline-flex; align-items: center; gap: 6px;
+      font-size: 10px; letter-spacing: 0.08em; color: var(--lab);
+      border: 1px solid var(--lab); border-radius: 5px; padding: 2px 6px; align-self: flex-start; }
+    .callout .code img { width: 11px; height: 11px; }
+    .callout .name { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+    .callout.tl { left: 1%;  top: 26%; }
+    .callout.r  { right: 0%; top: 35%; align-items: flex-end; }
+    .callout.r .code { align-self: flex-end; }
+    .callout.br { right: 0%; top: 62%; align-items: flex-end; }
+    .callout.br .code { align-self: flex-end; }
+    .callout.bl { left: 1%;  top: 71%; }
+
+    /* vertical edge caption, poster-style */
+    .vcap { position: absolute; right: -6px; top: 50%; transform: translateY(-50%) rotate(180deg);
+      writing-mode: vertical-rl; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--muted); z-index: 3; }
+    @media (max-width: 1080px){ .vcap { display: none; } }
+
+    /* ─── SPEC BAND (logos + stats) ─── */
+    .band { position: relative; z-index: 2; padding: 32px 0 96px; }
+    /* 6 + 6 + 4 modules across the 1024px column → both dividers land on gridlines */
+    .band-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r);
+      display: grid; grid-template-columns: 6fr 6fr 4fr; }
+    .band-col { padding: 26px 28px; border-right: 1px solid var(--line-2); position: relative; }
+    .band-col:last-child { border-right: 0; }
+    .band-head { display: flex; align-items: center; gap: 8px; margin-bottom: 22px; }
+    .band-logos { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 26px; }
+    .band-logos img { height: 20px; width: auto; opacity: 0.82; }
+    .stat-num { font-family: var(--font-disp); font-weight: 700; font-size: 52px; line-height: 1; color: var(--ink); letter-spacing: -0.01em; }
+    .stat-num .em { color: var(--ember); }
+    .stat-label { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); margin-top: 10px; letter-spacing: 0.03em; }
+    .band-copy { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-2); margin-bottom: 20px; line-height: 1.6; }
+
+    /* ─── FEATURE CARDS (portfolio-style with stat grids) ─── */
+    .feat { position: relative; z-index: 2; padding: 0 0 96px; }
+    .sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 32px; flex-wrap: wrap; }
+    .sec-title { font-family: var(--font-disp); font-weight: 700; text-transform: uppercase;
+      font-size: clamp(30px, 4.4vw, 62px); line-height: 0.95; letter-spacing: -0.015em; }
+    .sec-title .dim { color: var(--muted-2); }
+    .sec-index { font-family: var(--font-mono); font-size: 12px; color: var(--muted); letter-spacing: 0.06em; text-align: right; }
+    /* each card = 4 modules (256px), each gap = 2 modules (128px): 4+2+4+2+4 = 16.
+       Card edges and the mid stat-divider (at 2 modules) all land on gridlines. */
+    .feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 128px; }
+    .fcard { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 0; display: flex; flex-direction: column; }
+    .fcard-top { padding: 20px 20px 18px; }
+    .fcard-tag { display: inline-block; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--ink-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 2px 7px; margin-bottom: 30px; }
+    .fcard-icon { width: 34px; height: 34px; margin-bottom: 14px; color: var(--ember); }
+    .fcard-title { font-family: var(--font-disp); font-size: 21px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 8px; }
+    .fcard-copy { font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); line-height: 1.62; }
+    .fcard-stats { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line); margin-top: auto; }
+    .fstat { padding: 14px 16px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); }
+    .fstat:nth-child(2n){ border-right: 0; }
+    .fstat:nth-last-child(-n+2){ border-bottom: 0; }
+    .fstat b { display: block; font-family: var(--font-disp); font-size: 22px; font-weight: 700; color: var(--ink); line-height: 1; }
+    .fstat b .em { color: var(--ember); }
+    .fstat span { display: block; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+    .fcard-foot { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid var(--line); }
+    .fcard-foot .lbl { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .fcard-foot .arw { color: var(--ink); }
+
+    /* ─── PRODUCT MOCKUP ─── */
+    .mockup { position: relative; z-index: 2; padding: 0 0 96px; }
+    .mockup-head { max-width: 720px; margin: 0 auto 32px; text-align: center; }
+    .mockup-sub { font-family: var(--font-mono); font-size: 13px; color: var(--ink-2); margin-top: 14px; line-height: 1.6; }
+    .app-shell { position: relative; margin: 0 auto; padding: 16px;      /* fills the aligned content column; brackets sit on gridlines */
+      display: flex; flex-direction: column; justify-content: center; }   /* when snapped to a module height, centre the window in the frame */
+    .app-window { position: relative; overflow: hidden; background: #FFFFFF; border: 1px solid var(--line); border-radius: var(--r); }
+    .aw-bar { display: flex; align-items: center; gap: 14px; padding: 11px 15px; background: #EFEEE8; border-bottom: 1px solid var(--line-2); }
+    .aw-dots { display: flex; gap: 7px; }
+    .aw-dot { width: 11px; height: 11px; border-radius: 50%; }
+    .aw-dot.r { background: #FF5F57; } .aw-dot.y { background: #FEBC2E; } .aw-dot.g { background: #28C840; }
+    .aw-title { flex: 1; text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); }
+    .aw-title b { font-weight: 700; color: var(--ink); }
+    .aw-title .aw-run { color: var(--ember); }
+    .aw-user { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+    .aw-user .aw-av { width: 22px; height: 22px; border-radius: 6px; background: var(--ink); color: #fff; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+    .aw-body { display: grid; grid-template-columns: 220px 1fr; height: 468px; }
+    .aw-sb { background: #F4F3EE; border-right: 1px solid var(--line-2); padding: 13px 9px; overflow: hidden; display: flex; flex-direction: column; }
+    .aw-navitem { display: flex; align-items: center; gap: 9px; padding: 7px 9px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); }
+    .aw-navitem { border-radius: var(--r-sm); }
+    .aw-navitem.on { background: #E5E4DE; color: var(--ink); }
+    .aw-ic { width: 14px; height: 14px; flex: none; border: 1.5px solid currentColor; opacity: 0.7; }
+    .aw-sec { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted-2); margin: 16px 6px 8px; }
+    .aw-sbx { display: flex; align-items: center; gap: 9px; padding: 7px 8px; margin-bottom: 2px; border-radius: var(--r-sm); }
+    .aw-sbx.active { background: #fff; border: 1px solid var(--line); }
+    .aw-sbav { width: 25px; height: 25px; border-radius: var(--r-sm); flex: none; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 9px; font-weight: 700; color: #fff; }
+    .aw-sbtext { min-width: 0; flex: 1; }
+    .aw-sbname { display: block; font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .aw-sbsub { display: block; font-family: var(--font-mono); font-size: 10px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .aw-sbsub.work { color: var(--ember); }
+    .aw-sbfoot { margin-top: auto; padding-top: 12px; display: flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); }
+    .aw-sbfoot .d { width: 7px; height: 7px; border-radius: 50%; background: #28C840; }
+    .aw-main { display: flex; flex-direction: column; background: #FFFFFF; min-width: 0; }
+    .aw-mhead { display: flex; align-items: center; gap: 11px; padding: 12px 17px; border-bottom: 1px solid var(--line-2); }
+    .aw-mtitle { font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--ink); }
+    .aw-chip { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-2); background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 2px 8px; }
+    .aw-chip img { width: 11px; height: 11px; }
+    .aw-mstatus { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+    .aw-mstatus .d { width: 7px; height: 7px; border-radius: 50%; background: #28C840; }
+    .aw-stop { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 5px 11px; background: var(--card); }
+    .aw-tabs { display: flex; gap: 3px; padding: 10px 15px 0; }
+    .aw-tab { font-family: var(--font-mono); font-size: 12px; padding: 5px 12px; color: var(--muted); border-radius: var(--r-sm) var(--r-sm) 0 0; }
+    .aw-tab.on { color: var(--ink); background: var(--paper-2); font-weight: 700; }
+    .aw-term { flex: 1; overflow: hidden; padding: 15px 19px; font-family: var(--font-mono); font-size: 12px; line-height: 1.75; color: var(--ink-2); }
+    .aw-term .warn { color: var(--ember); }
+    .aw-term .prompt { color: var(--ink); font-weight: 700; }
+    .aw-term .tool { color: var(--ink); }
+    .aw-term .dim { color: var(--muted); }
+    .aw-term .add { color: #16A34A; }
+    .aw-term .bullet { color: var(--ember); }
+    .aw-term .row { display: flex; gap: 9px; }
+    .aw-input { margin: 6px 15px 15px; border: 1px solid var(--line); border-radius: var(--r-md); padding: 11px 13px; font-family: var(--font-mono); font-size: 12px; color: var(--muted); background: var(--card); display: flex; align-items: center; gap: 8px; }
+    .aw-input .car { color: var(--ember); font-weight: 700; }
+    @media (max-width: 720px) {
+      .aw-body { grid-template-columns: 1fr; height: 520px; }
+      .aw-sb { display: none; }
+    }
+
+    /* ─── CLOSING ─── */
+    .closing { position: relative; z-index: 2; padding: 96px 0; border-top: 1px solid var(--line-2); }
+    .closing-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 40px; align-items: end; }
+    .closing h2 { font-family: var(--font-disp); font-size: clamp(32px, 4.6vw, 66px); font-weight: 700; text-transform: uppercase; letter-spacing: -0.02em; line-height: 0.95; }
+    .closing h2 .dim { color: var(--muted-2); }
+    .closing-side { font-family: var(--font-mono); font-size: 13px; color: var(--ink-2); line-height: 1.65; }
+    .closing-side b { display: block; color: var(--ink); font-weight: 700; margin-bottom: 8px; letter-spacing: 0.04em; text-transform: uppercase; font-size: 12px; }
+    .closing-actions { margin-top: 22px; display: flex; gap: 12px; flex-wrap: wrap; }
+
+    /* ─── FOOTER ─── */
+    footer { position: relative; z-index: 2; padding: 32px 0 64px; border-top: 1px solid var(--line-2); }
+    .footer-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    .footer-links { display: flex; gap: 8px; list-style: none; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-family: var(--font-mono); font-size: 12px; padding: 5px 9px; }
+    .footer-links a:hover { color: var(--ink); background: rgba(0,0,0,0.05); }
+    .footer-meta { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); letter-spacing: 0.04em; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 960px) {
+      .nav-links { display: none; }
+      .hero-grid { grid-template-columns: 1fr; gap: 28px; }
+      .hero-stage { max-width: 440px; margin: 0 auto; order: 2; }
+      .band-card { grid-template-columns: 1fr; }
+      .band-col { border-right: 0; border-bottom: 1px solid var(--line-2); }
+      .band-col:last-child { border-bottom: 0; }
+      .feat-grid { grid-template-columns: 1fr; }
+      .closing-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .nav-login { display: none; }
+      .hero { padding-top: 130px; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+</head>
+<body>
+
+<div class="backplate"></div>
+<div class="bezel"></div>
+<span class="screen-mark tl" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.4"/></svg></span>
+<span class="screen-mark tr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4" stroke="currentColor" stroke-width="1.4"/></svg></span>
+
+<nav id="nav">
+  <a href="./" class="nav-logo" aria-label="den home">
+    <span class="nav-mark"><img src="../resources/icon-light.svg" alt="den"></span>
+    <span class="nav-logo-text">den</span>
+    <span class="nav-logo-tag">/ SBX.∞</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#feature">Platform
+      <svg class="caret" viewBox="0 0 10 6" fill="none" aria-hidden="true"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a></li>
+    <li><a href="#how">How_it_works</a></li>
+    <li><a href="https://docs.docker.com/ai/sandboxes/" target="_blank" rel="noopener">Docs</a></li>
+    <li><a href="#">Company</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="#" class="nav-login">Log_In</a>
+    <div class="accent-wrap">
+      <button type="button" id="accentSwitch" class="accent-switch" aria-label="Change accent color" aria-haspopup="true" aria-expanded="false"><span class="accent-ball"></span></button>
+      <div class="accent-menu" id="accentMenu" role="menu"></div>
+    </div>
+    <a href="#" class="btn-ember notch nav-cta"><img class="cta-ico" src="../resources/icon-dark.svg" alt="">Download</a>
+  </div>
+</nav>
+
+<!-- ─── HERO ─── -->
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div class="hero-left">
+        <span class="hero-eyebrow"><span class="sq"></span>[ SAFE_YOLO ] <span class="em">// ANY_AGENT</span></span>
+        <h1 class="hero-h">FULL<br>YOLO.<br><span class="u">ZERO</span><br><span class="cur">BLAST_</span></h1>
+        <p class="hero-sub">Drop Claude, Codex, Gemini, or any coding agent into its own microVM. A private Docker daemon, filesystem, and network walled off from your machine. Kill the guardrails, skip the yes / no / cancel dance, and let it run unattended.</p>
+        <div class="hero-actions">
+          <a href="#" class="btn-ember notch"><img class="cta-ico" src="../resources/icon-dark.svg" alt="">Download</a>
+          <a href="#feature" class="btn-ghost notch">See_it_live →</a>
+        </div>
+        <div class="hero-params">
+          <div class="row"><span class="k">isolation</span><span class="c2">=</span><span class="v">microVM // isolated by default</span></div>
+          <div class="row"><span class="k">network</span><span class="c2">=</span><span class="v">policed // deny-by-default</span></div>
+          <div class="row"><span class="k">platform</span><span class="c2">=</span><span class="v">macOS // Windows &amp; Linux soon…</span></div>
+          <div class="row"><span class="k">blast_radius</span><span class="c2">=</span><span class="v">0 // on your host</span></div>
+        </div>
+      </div>
+
+      <div class="hero-stage brk">
+        <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
+        <span class="stage-tag">[ SANDBOX ] <span class="em">FIG.01</span> // network-policy membrane</span>
+        <div id="heroCube"></div>
+        <div class="callouts">
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <polyline points="15,33 34,33 45,45" />
+            <polyline points="85,42 66,42 56,48" />
+            <polyline points="85,66 66,66 56,55" />
+            <polyline points="15,72 40,72 46,57" />
+            <circle cx="45" cy="45" r="0.9" />
+            <circle cx="56" cy="48" r="0.9" />
+            <circle cx="56" cy="55" r="0.9" />
+            <circle cx="46" cy="57" r="0.9" />
+          </svg>
+          <span class="callout tl"><span class="code"><img src="../resources/brand-mono/claude.svg" alt="">AGT·01</span><span class="name">Agent</span></span>
+          <span class="callout r"><span class="code">MCP·02</span><span class="name">Tools</span></span>
+          <span class="callout br"><span class="code">FS·03</span><span class="name">Filesystem</span></span>
+          <span class="callout bl"><span class="code">NET·04</span><span class="name">Network policy</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <span class="vcap">Run wild inside the box · your host never feels a thing</span>
+</header>
+
+<!-- ─── SPEC BAND ─── -->
+<section class="band">
+  <div class="wrap">
+    <div class="band-card brk" data-snap>
+      <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
+      <div class="band-col">
+        <div class="band-head"><span class="sq"></span><span class="kick">Works_with // any agent</span></div>
+        <div class="band-logos">
+          <img src="../resources/brand-mono/claude.svg" alt="Claude">
+          <img src="../resources/brand-mono/codex.svg" alt="Codex">
+          <img src="../resources/brand-mono/gemini.svg" alt="Gemini">
+          <img src="../resources/brand-mono/cursor.svg" alt="Cursor">
+        </div>
+        <div class="stat-num">00</div>
+        <div class="stat-label">// blast radius on your host machine</div>
+      </div>
+      <div class="band-col">
+        <div class="band-head"><span class="sq"></span><span class="kick">Isolated // by default</span></div>
+        <div class="band-logos">
+          <img src="../resources/brand-mono/docker.svg" alt="Docker">
+          <img src="../resources/brand-mono/opencode.svg" alt="OpenCode">
+          <img src="../resources/brand-mono/droid.svg" alt="Droid">
+        </div>
+        <div class="stat-num">100<span class="em">%</span></div>
+        <div class="stat-label">// private daemon, filesystem &amp; network</div>
+      </div>
+      <div class="band-col">
+        <div class="band-head"><span class="sq"></span><span class="kick">Get_started</span></div>
+        <p class="band-copy">Point den at your codebase and drop any agent into its own microVM. Ephemeral, policed, and disposable.</p>
+        <a href="#" class="btn-dark notch">Sign_up →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FEATURE CARDS ─── -->
+<section class="feat" id="how">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 class="sec-title">HOW_IT<br><span class="dim">WORKS.</span></h2>
+      <div class="sec-index">[ PROTOCOL ]<br>03 // modules</div>
+    </div>
+    <div class="feat-grid" data-snap>
+
+      <div class="fcard brk">
+        <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
+        <div class="fcard-top">
+          <span class="fcard-tag">MOD·01 / Isolate</span>
+          <svg class="fcard-icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" stroke="currentColor" stroke-width="1.6"/><rect x="8" y="8" width="8" height="8" stroke="currentColor" stroke-width="1.6"/></svg>
+          <div class="fcard-title">Own microVM</div>
+          <p class="fcard-copy">Each agent boots into a disposable microVM with its own private Docker daemon, filesystem and kernel. Nothing touches your host.</p>
+        </div>
+        <div class="fcard-stats">
+          <div class="fstat"><b>1:1</b><span>vm per agent</span></div>
+          <div class="fstat"><b>0</b><span>host access</span></div>
+          <div class="fstat"><b>&lt;2s</b><span>cold boot</span></div>
+          <div class="fstat"><b>∞</b><span>disposable</span></div>
+        </div>
+        <div class="fcard-foot"><span class="lbl">// walled off</span><span class="arw">→</span></div>
+      </div>
+
+      <div class="fcard brk">
+        <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
+        <div class="fcard-top">
+          <span class="fcard-tag">MOD·02 / Police</span>
+          <svg class="fcard-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2l8 3v6c0 5-3.5 8-8 11-4.5-3-8-6-8-11V5l8-3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <div class="fcard-title">Policed network</div>
+          <p class="fcard-copy">Deny-by-default egress. Requests hit the policy membrane and get blocked unless you allow the domain. Escapes are the exception.</p>
+        </div>
+        <div class="fcard-stats">
+          <div class="fstat"><b class="em">deny</b><span>by default</span></div>
+          <div class="fstat"><b>403</b><span>on block</span></div>
+          <div class="fstat"><b>allow</b><span>per domain</span></div>
+          <div class="fstat"><b>log</b><span>every hit</span></div>
+        </div>
+        <div class="fcard-foot"><span class="lbl">// egress control</span><span class="arw">→</span></div>
+      </div>
+
+      <div class="fcard brk">
+        <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
+        <div class="fcard-top">
+          <span class="fcard-tag">MOD·03 / Unleash</span>
+          <svg class="fcard-icon" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <div class="fcard-title">Full YOLO</div>
+          <p class="fcard-copy">Turn off the guardrails once. No more yes / no / cancel. The agent installs packages, spins up containers and rewrites code unattended.</p>
+        </div>
+        <div class="fcard-stats">
+          <div class="fstat"><b>0</b><span>prompts</span></div>
+          <div class="fstat"><b>∞</b><span>autonomy</span></div>
+          <div class="fstat"><b>yes</b><span>sudo ok</span></div>
+          <div class="fstat"><b>1×</b><span>click setup</span></div>
+        </div>
+        <div class="fcard-foot"><span class="lbl">// zero babysitting</span><span class="arw">→</span></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── PRODUCT MOCKUP ─── -->
+<section class="mockup" id="feature">
+  <div class="wrap">
+    <div class="mockup-head">
+      <div class="band-head" style="justify-content:center"><span class="sq"></span><span class="kick">The_app <span class="em">// FIG.02</span></span></div>
+      <h2 class="sec-title" style="margin-top:14px">EVERY AGENT,<br><span class="dim">ITS OWN BOX.</span></h2>
+      <p class="mockup-sub">Spin up disposable sandboxes, drop any agent in, and watch it work — all from a single light, quiet interface.</p>
+    </div>
+
+    <div class="app-shell brk" data-snap>
+      <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
+      <div class="app-window">
+        <div class="aw-bar">
+          <div class="aw-dots"><span class="aw-dot r"></span><span class="aw-dot y"></span><span class="aw-dot g"></span></div>
+          <div class="aw-title"><b>feral-cosmos</b> <span class="aw-run">· Working… 6m 31s</span></div>
+          <div class="aw-user"><span class="aw-av">JA</span>javier@docker.com</div>
+        </div>
+
+        <div class="aw-body">
+          <aside class="aw-sb">
+            <div class="aw-navitem on"><span class="aw-ic"></span>Home</div>
+            <div class="aw-sec">Sandboxes</div>
+            <div class="aw-sbx">
+              <span class="aw-sbav" style="background:#2563EB">ES</span>
+              <span class="aw-sbtext"><span class="aw-sbname">electric-satellite</span><span class="aw-sbsub">Waiting for you</span></span>
+            </div>
+            <div class="aw-sbx active">
+              <span class="aw-sbav" style="background:#7C3AED">FC</span>
+              <span class="aw-sbtext"><span class="aw-sbname">feral-cosmos</span><span class="aw-sbsub work">Working…</span></span>
+            </div>
+            <div class="aw-sbx">
+              <span class="aw-sbav" style="background:#0EA5A0">LC</span>
+              <span class="aw-sbtext"><span class="aw-sbname">lively-canyon</span><span class="aw-sbsub">Waiting for you</span></span>
+            </div>
+            <div class="aw-sbx">
+              <span class="aw-sbav" style="background:#9CA3AF">HS</span>
+              <span class="aw-sbtext"><span class="aw-sbname">hidden-satellite</span><span class="aw-sbsub">agentic-platform-ff</span></span>
+            </div>
+            <div class="aw-sec">Projects</div>
+            <div class="aw-navitem"><span class="aw-ic"></span>den</div>
+            <div class="aw-navitem"><span class="aw-ic"></span>gordon-sbx</div>
+            <div class="aw-sbfoot"><span class="d"></span>sbx · connected</div>
+          </aside>
+
+          <div class="aw-main">
+            <div class="aw-mhead">
+              <span class="aw-mtitle">feral-cosmos</span>
+              <span class="aw-chip"><img src="../resources/brand-mono/claude.svg" alt="">claude</span>
+              <span class="aw-mstatus"><span class="d"></span>Running</span>
+              <span class="aw-stop">■ Stop</span>
+            </div>
+            <div class="aw-tabs">
+              <span class="aw-tab on">Agent</span>
+              <span class="aw-tab">Shell</span>
+            </div>
+            <div class="aw-term">
+              <div class="row"><span class="warn">⚠</span><span class="warn">5 MCP servers need authentication · run /mcp</span></div>
+              <div style="height:8px"></div>
+              <div class="row"><span class="prompt">›</span><span class="prompt">the agent status sticks on "working" after a cancelled turn — fix it</span></div>
+              <div style="height:8px"></div>
+              <div class="row"><span class="bullet">●</span><span>I'll trace how the state is set, then handle the interrupted-turn case.</span></div>
+              <div class="row"><span class="bullet">●</span><span class="tool">Read(src/main/index.ts)</span></div>
+              <div class="row"><span class="dim">&nbsp;&nbsp;└</span><span class="dim">Read 142 lines</span></div>
+              <div class="row"><span class="bullet">●</span><span class="tool">Grep(setAgentState)</span></div>
+              <div class="row"><span class="dim">&nbsp;&nbsp;└</span><span class="dim">6 matches in 1 file</span></div>
+              <div class="row"><span class="bullet">●</span><span class="tool">Update(src/main/index.ts)</span></div>
+              <div class="row"><span class="dim">&nbsp;&nbsp;└</span><span class="add">Updated with 8 additions and 3 removals</span></div>
+            </div>
+            <div class="aw-input"><span class="car">›</span>Reply to feral-cosmos…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CLOSING ─── -->
+<section class="closing">
+  <div class="wrap closing-grid">
+    <h2>RUN WILD INSIDE<br>THE BOX. <span class="dim">YOUR MACHINE<br>NEVER FEELS A THING.</span></h2>
+    <div class="closing-side">
+      <b>[ Full YOLO, zero babysitting ]</b>
+      Stop clicking yes / no / cancel. Turn off the guardrails once and let the agent finish the job on its own.
+      <div class="closing-actions">
+        <a href="#" class="btn-ember notch"><img class="cta-ico" src="../resources/icon-dark.svg" alt="">Download</a>
+        <a href="https://docs.docker.com/ai/sandboxes/" target="_blank" rel="noopener" class="btn-ghost notch">Read_docs →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-row">
+    <a href="./" class="nav-logo">
+      <span class="nav-mark"><img src="../resources/icon-light.svg" alt="den"></span>
+      <span class="nav-logo-text">den</span>
+    </a>
+    <ul class="footer-links">
+      <li><a href="#">Platform</a></li>
+      <li><a href="#how">How_it_works</a></li>
+      <li><a href="https://docs.docker.com/ai/sandboxes/" target="_blank" rel="noopener">Docs</a></li>
+      <li><a href="#">Company</a></li>
+    </ul>
+    <div class="footer-meta">Experimental · SBX.∞</div>
+  </div>
+</footer>
+
+<script>
+  // nav shadow on scroll
+  const nav = document.getElementById('nav');
+  addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 8), { passive: true });
+
+  // ── vertical grid snap ──
+  // A box's Y position depends on the (variable) height of everything above it,
+  // so static CSS can't guarantee it lands on a horizontal gridline. This pass
+  // nudges each [data-snap] box so its TOP sits on a gridline (y ≡ 32, matching
+  // the backplate) and forces its HEIGHT to a whole number of 64px modules, so
+  // the BOTTOM lands on a line too. Re-runs whenever geometry can change.
+  (function () {
+    const M = 64, PHASE = 32;
+    const boxes = () => [...document.querySelectorAll('[data-snap]')];
+    function snap() {
+      const list = boxes();
+      // Reset, and zero the bottom margin of each box's preceding sibling so the
+      // box's own margin-top can't collapse with it — that collapse (max, not sum)
+      // is what made the nudge non-linear. The gap above is then owned entirely by
+      // the snap margin, so it stays a clean 0–1 module.
+      list.forEach(el => {
+        el.style.marginTop = ''; el.style.height = '';
+        const prev = el.previousElementSibling;
+        if (prev && !prev.hasAttribute('data-snap')) prev.style.marginBottom = '0';
+      });
+      void document.body.offsetHeight;                       // reflow with styles cleared
+      for (const el of list) {                               // top-to-bottom; measure each live
+        const top = el.getBoundingClientRect().top + scrollY;
+        let targetTop = Math.ceil((top - PHASE) / M) * M + PHASE;   // next gridline at/below → margin stays ≥ 0
+        if (targetTop - top < 24) targetTop += M;                   // keep a little breathing room above the box
+        el.style.marginTop = (targetTop - top) + 'px';
+        const h = el.getBoundingClientRect().height;
+        el.style.height = Math.max(M, Math.ceil(h / M) * M) + 'px';
+      }
+    }
+    let raf;
+    const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(snap); };
+    addEventListener('load', schedule);
+    addEventListener('resize', schedule);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
+    schedule();
+  })();
+
+  // ── accent-colour switcher: coloured dot + dropdown ──
+  (function () {
+    const PALETTES = [
+      { name: 'Den Orange',     rgb: '255,106,26', hex: 0xFF6A1A },
+      { name: 'Whale Blue',     rgb: '36,150,237', hex: 0x2496ED },
+      { name: 'AI-Slop Purple', rgb: '168,85,247', hex: 0xA855F7 },
+      { name: 'Danger Red',     rgb: '240,68,56',  hex: 0xF04438 },
+      { name: 'Matrix Green',   rgb: '34,197,94',  hex: 0x22C55E },
+    ];
+    const root = document.documentElement;
+    const btn = document.getElementById('accentSwitch');
+    const menu = document.getElementById('accentMenu');
+    if (!btn || !menu) return;
+    let current = 0;
+    PALETTES.forEach((p, idx) => {
+      const opt = document.createElement('button');
+      opt.type = 'button';
+      opt.className = 'accent-opt' + (idx === 0 ? ' active' : '');
+      opt.setAttribute('role', 'menuitemradio');
+      opt.innerHTML = '<span class="accent-opt-dot"></span><span class="accent-opt-name"></span><span class="accent-opt-check">✓</span>';
+      opt.querySelector('.accent-opt-dot').style.background = 'rgb(' + p.rgb + ')';
+      opt.querySelector('.accent-opt-name').textContent = p.name;
+      opt.addEventListener('click', () => { select(idx); closeMenu(); });
+      menu.appendChild(opt);
+    });
+    const opts = [...menu.querySelectorAll('.accent-opt')];
+    function select(idx) {
+      current = idx;
+      opts.forEach((o, k) => o.classList.toggle('active', k === idx));
+      const p = PALETTES[idx];
+      root.style.setProperty('--ember-rgb', p.rgb);
+      btn.title = p.name;
+      dispatchEvent(new CustomEvent('den-accent', { detail: { hex: p.hex } }));
+    }
+    function openMenu()  { menu.classList.add('open');  btn.setAttribute('aria-expanded', 'true'); }
+    function closeMenu() { menu.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+    btn.title = PALETTES[0].name;
+    btn.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.contains('open') ? closeMenu() : openMenu(); });
+    document.addEventListener('click', (e) => { if (!e.target.closest('.accent-wrap')) closeMenu(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+  })();
+</script>
+
+<script type="module">
+  import * as THREE from 'three';
+
+  const ink = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#15150F');
+  const ember = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--ember').trim() || '#FF6A1A');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // A live "network-policy" visualization in clean lines: a wireframe cube (the
+  // sandbox) with a core that fires request pulses at the walls — most get
+  // BLOCKED (ring ripple), a few ESCAPE through.
+  function spinCube(stage, camZ, calloutEl, interactive) {
+    const size = () => ({ w: stage.clientWidth || 300, h: stage.clientHeight || 300 });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    let { w, h } = size();
+    renderer.setSize(w, h);
+    renderer.setClearColor(0x000000, 0);
+    stage.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, w / h, 1, 100);
+    camera.position.set(0, 0, camZ);
+
+    const target = { x: 0, y: 0 }, ease = { x: 0, y: 0 };
+    let easeS = 0;
+    if (interactive) addEventListener('pointermove', (e) => {
+      target.x = (e.clientX / innerWidth - 0.5) * 2;
+      target.y = (e.clientY / innerHeight - 0.5) * 2;
+    }, { passive: true });
+
+    const grp = new THREE.Group();
+    scene.add(grp);
+    const H = 1.3;
+
+    grp.add(new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(H * 2, H * 2, H * 2)),
+      new THREE.LineBasicMaterial({ color: ink, transparent: true, opacity: 0.8 })
+    ));
+    const Hp = 1.12;
+    const policyEdgeMat = new THREE.LineBasicMaterial({ color: ember.clone(), transparent: true, opacity: 0.55 });
+    const policyFaceMat = new THREE.MeshBasicMaterial({ color: ember.clone(), transparent: true, opacity: 0.03, depthWrite: false, side: THREE.FrontSide });
+    grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(Hp * 2, Hp * 2, Hp * 2)), policyEdgeMat));
+    grp.add(new THREE.Mesh(new THREE.BoxGeometry(Hp * 2, Hp * 2, Hp * 2), policyFaceMat));
+    const core = new THREE.LineSegments(
+      new THREE.WireframeGeometry(new THREE.IcosahedronGeometry(0.6, 0)),
+      new THREE.LineBasicMaterial({ color: ink, transparent: true, opacity: 0.9 })
+    );
+    grp.add(core);
+
+    let coPolys = [], coDots = [], coAnchors = [], coEntries = [];
+    if (calloutEl) {
+      coPolys = [...calloutEl.querySelectorAll('polyline')];
+      coDots  = [...calloutEl.querySelectorAll('circle')];
+      coAnchors = [[15, 33], [85, 42], [85, 66], [15, 72]];
+      const onCore = a => ({ obj: core, v: new THREE.Vector3(a[0], a[1], a[2]).normalize().multiplyScalar(0.62) });
+      coEntries = [
+        onCore([-0.5, 0.42, 0.25]),
+        onCore([0.55, 0.12, -0.15]),
+        onCore([0.45, -0.4, 0.22]),
+        { obj: grp, v: new THREE.Vector3(-Hp, -0.5, 0.45) },
+      ];
+    }
+
+    const N = 26, WIN = 5, COUNT = 4;
+    const zAxis = new THREE.Vector3(0, 0, 1);
+    const ringGeo = new THREE.BufferGeometry();
+    (() => { const segs = 48, p = []; for (let i = 0; i <= segs; i++) { const a = i / segs * Math.PI * 2; p.push(Math.cos(a), Math.sin(a), 0); } ringGeo.setAttribute('position', new THREE.Float32BufferAttribute(p, 3)); })();
+
+    const beams = [];
+    function aimBeam(b) {
+      const axis = Math.floor(Math.random() * 3), s = Math.random() < 0.5 ? -1 : 1;
+      b.blocked = Math.random() < 0.72;
+      const n = new THREE.Vector3(); n.setComponent(axis, s);
+      const end = new THREE.Vector3();
+      const wall = b.blocked ? Hp : H * 1.55;
+      const lim = (b.blocked ? Hp : H) * 0.9;
+      end.setComponent(axis, s * wall);
+      end.setComponent((axis + 1) % 3, (Math.random() * 2 - 1) * lim);
+      end.setComponent((axis + 2) % 3, (Math.random() * 2 - 1) * lim);
+      const start = end.clone().normalize().multiplyScalar(0.45);
+      const arr = b.line.geometry.attributes.position.array;
+      const tmp = new THREE.Vector3();
+      for (let i = 0; i < N; i++) { tmp.copy(start).lerp(end, i / (N - 1)); arr[i * 3] = tmp.x; arr[i * 3 + 1] = tmp.y; arr[i * 3 + 2] = tmp.z; }
+      b.line.geometry.attributes.position.needsUpdate = true;
+      b.line.material.color.copy(b.blocked ? ember : ink);
+      if (b.blocked) { b.ring.visible = true; b.ring.position.copy(end); b.ring.quaternion.setFromUnitVectors(zAxis, n); }
+      else b.ring.visible = false;
+    }
+    for (let i = 0; i < COUNT; i++) {
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
+      const line = new THREE.Line(g, new THREE.LineBasicMaterial({ color: ember, transparent: true, opacity: 0.9 }));
+      grp.add(line);
+      const ringMat = new THREE.LineBasicMaterial({ color: ember, transparent: true, opacity: 0 });
+      const ring = new THREE.LineLoop(ringGeo, ringMat); ring.visible = false; grp.add(ring);
+      const b = { line, ring, ringMat, off: Math.random(), speed: 0.06 + Math.random() * 0.045, prevP: 2 };
+      aimBeam(b);
+      beams.push(b);
+    }
+
+    addEventListener('den-accent', (e) => {
+      ember.set(e.detail.hex);
+      policyEdgeMat.color.copy(ember);
+      policyFaceMat.color.copy(ember);
+      for (const b of beams) b.ringMat.color.copy(ember);
+    });
+
+    function resize() {
+      const s = size(); w = s.w; h = s.h;
+      renderer.setSize(w, h);
+      camera.aspect = w / h; camera.updateProjectionMatrix();
+    }
+    addEventListener('resize', resize, { passive: true });
+    new ResizeObserver(resize).observe(stage);
+
+    const proj = new THREE.Vector3();
+    let t = 0;
+    (function tick() {
+      if (!reduce) {
+        t += 0.016;
+        ease.x += (target.x - ease.x) * 0.05;
+        ease.y += (target.y - ease.y) * 0.05;
+        if (interactive) {
+          const prog = Math.min(1, Math.max(0, scrollY / (innerHeight * 0.9)));
+          easeS += (prog - easeS) * 0.06;
+        }
+        grp.rotation.y = t * 0.16 + ease.x * 0.5 + easeS * 0.9;
+        grp.rotation.x = -0.3 + Math.sin(t * 0.13) * 0.2 - ease.y * 0.3;
+        core.rotation.y = -t * 0.4; core.rotation.x = t * 0.26;
+        core.scale.setScalar(1 + 0.05 * Math.sin(t * 0.8));
+        if (interactive) { camera.position.set(ease.x * 0.8, -ease.y * 0.6, camZ + easeS * 3); camera.lookAt(0, 0, 0); }
+        for (const b of beams) {
+          const p = (t * b.speed + b.off) % 1;
+          if (p < b.prevP) aimBeam(b);
+          b.prevP = p;
+          if (p < 0.6) {
+            const start = Math.floor((p / 0.6) * (N - WIN));
+            b.line.geometry.setDrawRange(start, WIN);
+            b.line.material.opacity = 0.8;
+            b.ringMat.opacity = 0;
+          } else {
+            const fp = (p - 0.6) / 0.4;
+            b.line.geometry.setDrawRange(N - WIN, WIN);
+            b.line.material.opacity = 0.8 * (1 - fp);
+            if (b.blocked) { b.ring.scale.setScalar(0.06 + 0.5 * fp); b.ringMat.opacity = 0.7 * (1 - fp) * (1 - fp); }
+          }
+        }
+      }
+      renderer.render(scene, camera);
+      for (let i = 0; i < coPolys.length; i++) {
+        const e = coEntries[i];
+        proj.copy(e.v); e.obj.localToWorld(proj); proj.project(camera);
+        const mx = (proj.x * 0.5 + 0.5) * 100, my = (0.5 - proj.y * 0.5) * 100;
+        const a = coAnchors[i];
+        coPolys[i].setAttribute('points', a[0] + ',' + a[1] + ' ' + mx.toFixed(1) + ',' + my.toFixed(1));
+        coDots[i].setAttribute('cx', mx.toFixed(1)); coDots[i].setAttribute('cy', my.toFixed(1));
+      }
+      requestAnimationFrame(tick);
+    })();
+  }
+
+  const heroCube = document.getElementById('heroCube');
+  if (heroCube) spinCube(heroCube, 6.6, document.querySelector('.hero-stage .callouts'), true);
+</script>
+
+</body>
+</html>

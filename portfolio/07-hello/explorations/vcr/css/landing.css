@@ -1,0 +1,663 @@
+/* ==========================================================================
+   VCR · landing page in the Deck Studio language.
+   Tokens are copied verbatim from studio.css so the page and the player read
+   as one product; everything below the tokens is landing-only.
+   ========================================================================== */
+:root {
+  /* event-kind accents (same in both themes: they live on black hardware) */
+  --orange: #FF5B1F;
+  --c-prompt: #FF5B1F;
+  --c-text: #5A86FF;
+  --c-thinking: #8C8880;
+  --c-bash: #C6F432;
+  --c-read: #3DDBD9;
+  --c-write: #FF7AD9;
+  --c-edit: #FFC83D;
+  --c-skill: #B18CFF;
+  --c-other: #9AA0A6;
+  --c-cost: #34D399;   /* money: its own hue, apart from the lanes' */
+  --err: #FF2E3A;
+  --ok: #7FC400;
+
+  /* "hardware black": screen, tape and timeline bay in both themes */
+  --hw-bg: #0C0C0D;
+  --hw-bg-2: #111113;
+  --hw-panel: #151517;
+  --hw-panel-2: #1B1B1E;
+  --hw-line: #242427;
+  --hw-line-2: #2E2E32;
+  --hw-line-3: #3F3F44;
+  --hw-fg: #EFEDE6;
+  --hw-fg-2: #C2BEB6;
+  --hw-fg-3: #8A867E;
+  --hw-fg-4: #5B5853;
+  --hw-wave: #3A3936;
+  --hw-wave-hi: #EFEDE6;
+
+  /* device body (light) */
+  --desk: #DAD7CF;
+  --body: #ECEAE4;
+  --body-2: #E2DFD7;
+  --ink: #141414;
+  --ink-2: #5E5A53;
+  --ink-3: #8F8A82;
+  --line: rgba(20, 20, 20, .10);
+  --line-2: rgba(20, 20, 20, .18);
+  --key: #F8F7F3;
+  --key-ink: #1A1A1A;
+  --key-lip: #C3BFB5;
+  --key-hi: rgba(255, 255, 255, .9);
+  --panel: #F5F3EF;
+  --card: #FFFFFF;
+  --bezel: #D3CFC6;
+  --shadow: 0 24px 50px -30px rgba(40, 30, 10, .35), 0 2px 0 rgba(255,255,255,.7) inset;
+  --soft: rgba(255, 91, 31, .12);
+
+  /* one radius scale for the whole deck:
+     r-1 small bits and buttons nested in a control, r-2 keys, controls and
+     cards, r-3 the panels and bays that hold them */
+  --r-1: 4px;
+  --r-2: 6px;
+  --r-3: 10px;
+
+  --left: 300px;
+  --right: 330px;
+  --tl-h: 40vh;
+
+  --f-ui: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-dot: "Doto", "DotGothic16", "JetBrains Mono", ui-monospace, monospace;
+  --f-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --desk: #0E0E0F; --body: #1B1B1D; --body-2: #232326;
+    --ink: #F2F0EA; --ink-2: #A29E97; --ink-3: #6E6A64;
+    --line: rgba(255, 255, 255, .08); --line-2: rgba(255, 255, 255, .14);
+    --key: #2B2B2F; --key-ink: #F2F0EA; --key-lip: #0B0B0C; --key-hi: rgba(255, 255, 255, .08);
+    --panel: #141416; --card: #1F1F22; --bezel: #2A2A2D;
+    --shadow: 0 24px 60px -30px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.05) inset;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --desk: #0E0E0F; --body: #1B1B1D; --body-2: #232326;
+  --ink: #F2F0EA; --ink-2: #A29E97; --ink-3: #6E6A64;
+  --line: rgba(255, 255, 255, .08); --line-2: rgba(255, 255, 255, .14);
+  --key: #2B2B2F; --key-ink: #F2F0EA; --key-lip: #0B0B0C; --key-hi: rgba(255, 255, 255, .08);
+  --panel: #141416; --card: #1F1F22; --bezel: #2A2A2D;
+  --shadow: 0 24px 60px -30px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.05) inset;
+  color-scheme: dark;
+}
+
+
+/* ---------- base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0s !important; transition-duration: 0s !important; } }
+body {
+  margin: 0; background: var(--desk); color: var(--ink);
+  font: 500 16px/1.55 var(--f-ui);
+  -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
+}
+a { color: inherit; }
+button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+.dot { font-family: var(--f-dot); font-weight: 900; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+.dim { color: var(--ink-3); }
+.grow { flex: 1 1 auto; }
+code { font: 500 .88em var(--f-mono); padding: 1px 5px; border-radius: var(--r-1); background: var(--body-2); box-shadow: inset 0 0 0 1px var(--line); }
+svg { flex: none; }
+main { max-width: 1240px; margin: 0 auto; padding: 0 20px; }
+
+/* ---------- shared controls (same recipes as the player) ---------- */
+.seg { display: inline-flex; padding: 3px; gap: 3px; background: var(--body-2); border-radius: var(--r-2); box-shadow: inset 0 1px 2px rgba(0,0,0,.08), inset 0 0 0 1px var(--line); }
+.seg-btn { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; border-radius: var(--r-1); font: 700 10.5px/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); text-decoration: none; transition: color .15s, background .15s; white-space: nowrap; }
+.seg-btn:hover { color: var(--ink); }
+.seg-btn.on { color: var(--ink); background: var(--key); box-shadow: 0 2px 0 var(--key-lip), inset 0 1px 0 var(--key-hi); }
+
+.mini-key {
+  flex: none; width: 38px; height: 36px; border-radius: var(--r-2);
+  display: grid; place-items: center; text-decoration: none;
+  background: var(--key); color: var(--key-ink);
+  box-shadow: 0 3px 0 var(--key-lip), inset 0 1px 0 var(--key-hi);
+  transition: transform .08s, box-shadow .08s;
+}
+.mini-key:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--key-lip), inset 0 1px 0 var(--key-hi); }
+.mini-key svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.mini-key svg.fill { fill: currentColor; stroke: none; }
+.theme-key .i-moon { display: none; fill: currentColor; stroke: none; }
+:root[data-theme="dark"] .theme-key .i-sun { display: none; }
+:root[data-theme="dark"] .theme-key .i-moon { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-key .i-sun { display: none; }
+  :root:not([data-theme="light"]) .theme-key .i-moon { display: block; }
+}
+
+.tog-key {
+  flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  height: 30px; padding: 0 12px; border-radius: var(--r-2); text-decoration: none;
+  background: var(--key); color: var(--key-ink);
+  font: 700 10.5px/1 var(--f-mono); letter-spacing: .12em; white-space: nowrap;
+  box-shadow: 0 3px 0 var(--key-lip), inset 0 1px 0 var(--key-hi);
+  transition: transform .07s, box-shadow .07s, color .15s;
+}
+.tog-key:active, .tog-key.down { transform: translateY(2px); box-shadow: 0 1px 0 var(--key-lip), inset 0 1px 0 var(--key-hi); }
+.tog-key svg { width: 16px; height: 16px; flex: none; }
+.tog-key.sm { height: 24px; padding: 0 9px; font-size: 9.5px; }
+.tog-key.big { height: 52px; padding: 0 20px; font-size: 12px; box-shadow: 0 4px 0 var(--key-lip), 0 8px 14px -8px rgba(0,0,0,.4), inset 0 1px 0 var(--key-hi); }
+.tog-key.big:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--key-lip), inset 0 1px 0 var(--key-hi); }
+.led { width: 7px; height: 7px; border-radius: 50%; background: var(--line-2); flex: none; transition: background-color .15s, box-shadow .15s; }
+.led.on, [aria-expanded="true"] > .led { background: var(--c-bash); box-shadow: 0 0 8px var(--c-bash); }
+
+/* the one orange key: primary action everywhere */
+.cta-key {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  height: 52px; padding: 0 24px 0 20px; border-radius: var(--r-2); text-decoration: none;
+  background: var(--orange); color: #fff; font: 700 17px/1 var(--f-ui); letter-spacing: -.01em; white-space: nowrap;
+  box-shadow: 0 4px 0 #B8380C, 0 10px 20px -10px rgba(184, 56, 12, .6), inset 0 1px 0 rgba(255,255,255,.35);
+  transition: transform .07s, box-shadow .07s;
+}
+.cta-key svg { width: 18px; height: 18px; fill: currentColor; }
+.cta-key:active { transform: translateY(3px); box-shadow: 0 1px 0 #B8380C, inset 0 1px 0 rgba(255,255,255,.35); }
+/* any "open in studio" key (.js-go-link) comes alive while the demo tape plays (cartridge.js toggles .playing): its
+   play mark turns into a little equalizer, and a soft shine sweeps across the key now and then. Orange, always. */
+.cta-key { position: relative; overflow: hidden; }
+.cta-key .eq { display: none; align-items: flex-end; gap: 2px; width: 14px; height: 14px; }
+.cta-key .eq b { flex: 1; height: 100%; border-radius: 1px; background: currentColor; transform-origin: bottom; animation: cta-eq .9s ease-in-out infinite; }
+.cta-key .eq b:nth-child(2) { animation-duration: .7s; animation-delay: -.3s; }
+.cta-key .eq b:nth-child(3) { animation-duration: 1.1s; animation-delay: -.6s; }
+@keyframes cta-eq { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+.cta-key.sm .eq { width: 11px; height: 11px; margin-right: -2px; }
+.cta-key.playing .eq { display: inline-flex; }
+.cta-key.playing svg { display: none; }
+.cta-key.sm:not(.playing) .eq { display: none; }
+.cta-key::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.38) 48%, rgba(255,255,255,.08) 54%, transparent 66%) no-repeat; background-size: 250% 100%; }
+.cta-key.playing::after { opacity: 1; animation: cta-shine 2.6s ease-in-out infinite; }
+@keyframes cta-shine { 0% { background-position: 130% 0; } 55%, 100% { background-position: -40% 0; } }
+@media (prefers-reduced-motion: reduce) { .cta-key .eq b, .cta-key.playing::after { animation: none; } .cta-key.playing::after { opacity: 0; } }
+.cta-key.sm { height: 36px; padding: 0 14px; font-size: 13.5px; box-shadow: 0 3px 0 #B8380C, inset 0 1px 0 rgba(255,255,255,.35); }
+
+/* ---------- top bar ---------- */
+.bar {
+  position: sticky; top: 10px; z-index: 50;
+  max-width: 1240px; margin: 10px auto 0; width: calc(100% - 40px);
+  display: flex; align-items: center; gap: 10px; height: 58px; padding: 0 10px 0 16px;
+  background: color-mix(in srgb, var(--body) 88%, transparent); backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  border-radius: var(--r-3); box-shadow: var(--shadow);
+}
+.brand { display: inline-flex; align-items: center; gap: .46em; font: 700 22px/1 var(--f-ui); letter-spacing: -.02em; text-decoration: none; color: var(--ink); }
+/* the logo, as on the root page: two drawn glyphs, the spool and the sticker, at 42% ink, then "vcr" */
+.brand .mk { display: inline-flex; align-items: center; gap: .16em; opacity: .42; }
+.brand .mk .sp, .brand .mk .st { width: .5em; height: .5em; background: currentColor; }
+.brand .mk .sp { border-radius: 50%; }
+.brand-sub { font: 700 9px/1 var(--f-mono); letter-spacing: .18em; color: var(--ink-3); padding: 4px 6px; border: 1px solid var(--line-2); border-radius: var(--r-1); }
+.nav { margin-left: 14px; }
+
+/* ---------- type ---------- */
+.eyebrow { display: flex; align-items: center; gap: 8px; margin: 0 0 18px; font: 700 11px/1 var(--f-mono); letter-spacing: .18em; color: var(--ink-3); }
+.eyebrow.err { color: var(--err); }
+.rec-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--err); box-shadow: 0 0 10px var(--err); animation: blink 1.4s steps(1) infinite; }
+@keyframes blink { 50% { opacity: .25; } }
+h1, h2, h3 { margin: 0; letter-spacing: -.03em; line-height: 1.02; }
+h1 { font-size: clamp(40px, 5.2vw, 70px); font-weight: 700; }
+h2 { font-size: clamp(32px, 4.2vw, 54px); font-weight: 700; }
+h3 { font-size: 20px; font-weight: 700; letter-spacing: -.015em; line-height: 1.2; }
+.sub, .lede { color: var(--ink-2); max-width: 60ch; line-height: 1.6; }
+.lede { font-size: 18.5px; margin: 28px 0 40px; }
+.sub { font-size: 17px; margin: 20px 0 0; }
+
+/* ---------- hero ---------- */
+/* the page breathes: generous rhythm between sections, scaled down on small screens */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 560px); gap: 80px; align-items: center; padding: clamp(56px, 8vw, 112px) 0 clamp(28px, 4vw, 56px); }
+/* the demo tape beside the headline, with room around it, and the deck that plays it under the hero (cartridge.css) */
+/* the headline in two lines, "Rewind the work behind / your [agent] agent.", wider than its column: it runs on over
+   the cartridge a little (the copy sits above the canvas). Two columns only; stacked, it wraps as usual. */
+.hero-title { font-size: clamp(40px, 5.2vw, 70px); }
+@media (min-width: 1101px) { .hero-title { width: max-content; white-space: nowrap; } }
+@media (max-width: 1100px) { .hero-title br { display: none; } }   /* stacked: let it wrap where it fits */
+.hero .hero-cart { height: 580px; margin: 0; }   /* .hero: outranks cartridge.css, which loads later */
+/* The canvas bleeds 140 px past the stage on every side, so the cartridge isn't cut off at the stage's edge, even
+   at its resting turn, whose near edge swings out toward the copy. It's painted the page's colour, so the bleed
+   doesn't show, and the copy and the deck sit above it, so it never covers their text or keys. The bleed is the
+   same on every side, so the cartridge stays centred on the stage; cartridge.js frames it to the stage box. */
+.hero .hero-cart canvas { position: absolute; inset: -140px; width: calc(100% + 280px); height: calc(100% + 280px); }
+.hero-copy, .hero-deck { position: relative; z-index: 2; }
+/* the drag hint only while the pointer is over the cartridge: one less line of small text in the hero */
+.hero .hero-cart .cart-hint { opacity: 0; transition: opacity .25s; }
+.hero .hero-cart:hover .cart-hint, .hero .hero-cart:focus-within .cart-hint { opacity: 1; }
+
+/* a foil sticker on the cartridge, like a holographic authenticity seal: a circular badge at rest, that
+   tilts and catches a rainbow shine + glare as the pointer crosses it — the same technique as the Pokémon
+   card effect at poke-holo.simey.me (simeydotme/pokemon-cards-css): a repeating rainbow gradient in
+   color-dodge for the "foil", a radial white glare in overlay for the glass, both positioned from pointer
+   coordinates landing.js writes to --holo-px/py/bx/by, plus a 3D tilt from --holo-rx/ry. Idle (no pointer,
+   or reduced motion) it still spins gently so it reads as holographic without needing to be touched.
+   Hover or focus also stretches the circle into a card with a link to the FAQ's OS paths. */
+@property --holo-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --holo-rx { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --holo-ry { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --holo-px { syntax: '<percentage>'; inherits: false; initial-value: 50%; }
+@property --holo-py { syntax: '<percentage>'; inherits: false; initial-value: 50%; }
+@property --holo-bx { syntax: '<percentage>'; inherits: false; initial-value: 50%; }
+@property --holo-by { syntax: '<percentage>'; inherits: false; initial-value: 50%; }
+.holo-sticker {
+  position: absolute; top: 20px; left: -30px; z-index: 5; width: 92px; height: 92px; padding: 0;
+  border-radius: 50%; cursor: pointer; perspective: 500px; transform: rotate(-6deg);
+  transition: width .32s var(--ease-out), height .32s var(--ease-out), border-radius .32s var(--ease-out), transform .32s var(--ease-out);
+  transition-property: width, height, border-radius, transform, --holo-rx, --holo-ry, --holo-px, --holo-py, --holo-bx, --holo-by;
+}
+.holo-sticker:hover, .holo-sticker:focus-within { width: 236px; height: 150px; border-radius: 20px; transform: rotate(0deg); }
+.holo-rotator {
+  position: absolute; inset: 0; overflow: hidden; border-radius: inherit;
+  transform: rotateX(var(--holo-ry)) rotateY(var(--holo-rx)); transform-style: preserve-3d;
+  background: conic-gradient(from var(--holo-a), #ff9a6b, #ffd36b, #8affc1, #6bc8ff, #c58bff, #ff6bb0, #ff9a6b);
+  box-shadow: 0 10px 24px -10px rgba(0,0,0,.5), inset 0 0 0 3px rgba(255,255,255,.55), inset 0 0 14px rgba(0,0,0,.15);
+  animation: holo-spin 5s linear infinite;
+}
+.holo-sticker:hover .holo-rotator, .holo-sticker:focus-within .holo-rotator { animation-play-state: paused; }
+.holo-shine {
+  position: absolute; inset: 0; opacity: .55; mix-blend-mode: color-dodge; filter: brightness(1.1) contrast(1.6) saturate(1.4);
+  background-image: repeating-linear-gradient(110deg, #ff5b1f 0%, #ffd36b 12%, #8affc1 24%, #6bc8ff 36%, #c58bff 48%, #ff6bb0 60%, #ff5b1f 72%, #ffd36b 84%, #8affc1 96%, #ff5b1f 100%);
+  background-size: 250% 250%; background-position: var(--holo-bx) var(--holo-by); transition: opacity .25s;
+}
+.holo-glare {
+  position: absolute; inset: 0; opacity: 0; mix-blend-mode: overlay; transition: opacity .25s;
+  background: radial-gradient(circle at var(--holo-px) var(--holo-py), rgba(255,255,255,.95) 0%, rgba(255,255,255,.3) 35%, rgba(255,255,255,0) 70%);
+}
+.holo-sticker:hover .holo-shine, .holo-sticker:focus-within .holo-shine { opacity: .85; }
+.holo-sticker:hover .holo-glare, .holo-sticker:focus-within .holo-glare { opacity: 1; }
+.holo-badge {
+  position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  color: #18181a; transition: opacity .2s; transform: translateZ(2px);
+}
+.holo-badge svg { width: 20px; height: 20px; }
+.holo-badge b { font: 700 10.5px/1 var(--f-mono); letter-spacing: .06em; }
+.holo-sticker:hover .holo-badge, .holo-sticker:focus-within .holo-badge { opacity: 0; }
+.holo-detail {
+  position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 18px 20px;
+  color: #18181a; text-align: left; opacity: 0; transition: opacity .2s;
+}
+.holo-detail b { font: 700 13px/1.3 var(--f-ui); }
+.holo-detail span { font: 500 11.5px/1.3 var(--f-mono); color: rgba(24,24,26,.75); }
+.holo-find { margin-top: 2px; font: 700 10.5px var(--f-mono); color: #18181a; text-decoration: underline; text-decoration-color: rgba(24,24,26,.4); text-underline-offset: 2px; }
+.holo-sticker:hover .holo-detail, .holo-sticker:focus-within .holo-detail { opacity: 1; transition-delay: .1s; }
+@keyframes holo-spin { to { --holo-a: 360deg; } }
+@media (prefers-reduced-motion: reduce) {
+  .holo-sticker { animation: none; transform: rotate(-6deg); }
+  .holo-sticker:hover, .holo-sticker:focus-within { transform: rotate(0deg); }
+  .holo-rotator { animation: none; }
+}
+html, body { overflow-x: clip; }   /* the bleed never adds a sideways scroll */
+.hero-deck { padding: 0 0 clamp(32px, 5vw, 64px); }
+.hero-deck .deck { margin: 0; max-width: none; }   /* as wide as the hero above it */
+.agent-slot {
+  /* a compact badge in the headline's line: the agent's mark, then its name; its width is fixed by landing.js
+     to the widest name, so the swap never reflows the line */
+  display: inline-flex; align-items: center; justify-content: flex-start; gap: .14em; vertical-align: .1em;   /* left: the mark stays put, only the name changes */
+  margin: 0 .04em; padding: .16em .24em; border-radius: var(--r-2);
+  background: var(--hw-bg); color: var(--c-bash); line-height: 1;
+  box-shadow: 0 0 0 3px var(--bezel), inset 0 6px 20px rgba(0,0,0,.6);
+  position: relative; overflow: hidden;
+}
+button.agent-slot { border: 0; font: inherit; letter-spacing: inherit; cursor: pointer; }
+.agent-slot:hover { box-shadow: 0 0 0 3px var(--bezel), 0 0 0 4px var(--line-2), inset 0 6px 20px rgba(0,0,0,.6); }
+.agent-caret { flex: none; font-size: .38em; width: .5em; height: .3em; margin-left: auto; opacity: .8; transition: transform .15s;   /* .38em: the name's size, so its dots match the name's */
+  /* a dot-matrix arrow, in the same dots as the Doto name (0.1em pitch): a grid of dots, cut to a triangle */
+  background: radial-gradient(circle, currentColor .042em, transparent .046em) 0 0 / .1em .1em; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.agent-slot[aria-expanded="true"] .agent-caret { transform: rotate(180deg); }
+/* the list: a dark screen under the slot, a row per agent with its mark, name and how far along support is */
+.agent-pick { position: relative; display: inline-block; }
+.agent-menu { position: absolute; left: 0; top: calc(100% + 10px); z-index: 30; display: grid; gap: 2px; min-width: 280px; padding: 6px; border-radius: var(--r-3);
+  background: var(--hw-bg); box-shadow: 0 0 0 3px var(--bezel), 0 24px 50px -18px rgba(0,0,0,.6); font: 500 14px/1.2 var(--f-ui); letter-spacing: 0; text-align: left; white-space: nowrap; }
+.agent-menu[hidden] { display: none; }
+.agent-menu button { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: var(--r-2); color: var(--hw-fg-2); }
+.agent-menu button:hover, .agent-menu button:focus-visible { background: var(--hw-panel-2); color: var(--hw-fg); outline: none; }
+.agent-menu button[aria-selected="true"] { background: var(--hw-panel); color: var(--hw-fg); }
+.agent-menu svg { flex: none; width: 18px; height: 18px; fill: currentColor; }
+.agent-menu .nm { font: 900 15px/1 var(--f-dot); letter-spacing: .02em; }
+.agent-menu .st { margin-left: auto; padding: 3px 7px; border-radius: var(--r-1); font: 700 9.5px/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--hw-fg-3); background: var(--hw-panel-2); }
+.agent-menu .st.ok { color: #111; background: var(--c-bash); }
+.agent-menu .st.exp { color: #111; background: var(--c-edit); }
+.agent-slot::after { content: ""; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.06) .6px, transparent .8px); background-size: 3px 3px; pointer-events: none; }
+.agent-slot .dot { font-size: .38em; letter-spacing: .02em; white-space: nowrap; transition: opacity .2s; }
+.agent-logo { flex: none; display: block; width: .4em; height: .4em; transition: opacity .2s; }   /* a canvas: landing.js draws the mark in dots */
+.agent-slot.swap .agent-logo { opacity: 0; }
+.agent-slot.soon { color: var(--hw-fg-2); }
+.agent-slot.exp { color: var(--c-edit); }
+.agent-slot.swap .dot { opacity: 0; }
+.cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.cta-row.center { justify-content: center; }
+
+/* the demo deck's transport and speed, small, beside "Select a file from disk" (the keys from cartridge.css, scaled down) */
+.cart-keys { display: inline-flex; align-items: center; gap: 6px; height: 52px; padding: 0 10px; border-radius: var(--r-3); background: var(--body); box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.45); }
+.cart-keys .t-sep { flex: none; width: 1px; height: 30px; background: var(--line-2); margin: 0 2px; }
+/* the same controls, docked at the bottom of the screen once the hero's own copy scrolls out of view */
+.bottom-bar {
+  position: fixed; left: 50%; bottom: 16px; z-index: 50; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+  transition: transform .2s var(--ease-out), opacity .2s;
+}
+.bottom-bar.on { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.bottom-bar .cart-keys { box-shadow: 0 10px 30px -10px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.45); }
+.cart-keys .keys { gap: 5px; }
+.cart-keys .pkey { width: 34px; height: 30px; border-radius: var(--r-1); box-shadow: 0 3px 0 var(--lip), inset 0 1px 0 var(--key-hi); }
+.cart-keys .pkey:active, .cart-keys .pkey.down { transform: translateY(2px); box-shadow: 0 1px 0 var(--lip), inset 0 1px 0 var(--key-hi); }
+.cart-keys .pkey svg { width: 14px; height: 14px; }
+.cart-keys .pkey.sm { width: 28px; }
+.cart-keys .pkey.sm svg { width: 13px; height: 13px; }
+/* speed: an actual dropdown (a native select, the list is every detent) and SKIP IDLE right beside it, inline
+   with the transport — no popover to open first, so it reads at a glance when it's followed into the bottom bar */
+/* − [4× ▾] + : one key, split by hairlines (each third its own button) */
+.spd-group { display: inline-flex; align-items: stretch; height: 30px; border-radius: var(--r-1); background: var(--key); box-shadow: 0 3px 0 var(--key-lip), inset 0 1px 0 var(--key-hi); }
+.spd-group > * { height: 100%; margin: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: transparent !important; transform: none !important; }
+.spd-group > * + * { border-left: 1px solid var(--line-2) !important; }
+.spd-group > :first-child { border-radius: var(--r-1) 0 0 var(--r-1) !important; } .spd-group > :last-child { border-radius: 0 var(--r-1) var(--r-1) 0 !important; }   /* (no overflow clip: the list opens out of it) */
+.spd-group .dd-btn { font: 700 13px/1 var(--f-ui); color: var(--key-ink); }
+.spd-group > :hover:not(:disabled) { background: color-mix(in srgb, var(--ink) 5%, transparent) !important; }
+.spd-group > :active:not(:disabled) { background: color-mix(in srgb, var(--ink) 10%, transparent) !important; }
+.speed-sel {
+  height: 30px; margin-left: 2px; padding: 0 8px; border: 0; border-radius: var(--r-1); cursor: pointer;
+  background: var(--key); color: var(--key-ink); font: 700 13px/1 var(--f-ui);
+  box-shadow: 0 3px 0 var(--key-lip), inset 0 1px 0 var(--key-hi);
+}
+.speed-sel:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--key-lip), inset 0 1px 0 var(--key-hi); }
+.cart-keys .tog-key { height: 30px; justify-content: center; white-space: nowrap; }
+.cart-keys .tog-key[aria-pressed="true"] .led { background: var(--c-bash); box-shadow: 0 0 8px var(--c-bash); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* the eyebrow follows the tape: red and blinking while it plays, orange and quick on FF / REW, grey when paused */
+.hero-status .rec-dot { transition: background-color .2s, box-shadow .2s; }
+.hero-status #heroState { color: var(--ink-2); }
+.hero-status[data-state="pause"] .rec-dot, .hero-status[data-state="end"] .rec-dot { background: var(--ink-3); box-shadow: none; animation: none; }
+.hero-status[data-state="pause"] #heroState, .hero-status[data-state="end"] #heroState { color: var(--ink-3); }
+.hero-status[data-state="ff"] .rec-dot, .hero-status[data-state="rew"] .rec-dot { background: var(--orange); box-shadow: 0 0 10px var(--orange); animation-duration: .45s; }
+.hero-status[data-state="scrub"] .rec-dot { background: var(--orange); box-shadow: 0 0 10px var(--orange); animation: none; }
+
+/* Track 01: the player's lanes and its tape, on dark hardware, following the tape in the hero (landing-deck.js) */
+/* Track 01: what's on the tape, as cards with live counts for the demo tape in the hero */
+.inv-note { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; margin: 0 0 20px; font: 500 12px/1.5 var(--f-mono); color: var(--ink-3); }
+.inv-note b { color: var(--ink); font-weight: 600; }
+.inv-note .led { display: inline-block; margin: 0 9px 1px 0; vertical-align: middle; }
+.inv-link { color: var(--ink); text-decoration-color: var(--orange); text-underline-offset: 3px; white-space: nowrap; }
+.inv { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+.inv-card { --k: var(--orange); position: relative; display: flex; flex-direction: column; padding: 20px 22px 18px; border-radius: var(--r-3); background: var(--panel); box-shadow: var(--shadow); min-width: 0; }
+.inv-lbl { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font: 700 10px/1 var(--f-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); }
+.inv-lbl::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--k); }   /* the lane's colour, as in the lane legend */
+/* the card's lane: when in the session it happened, one LED per 40th of it, lit in the lane's colour */
+.inv-strip { display: grid; grid-template-columns: repeat(40, minmax(0, 1fr)); gap: 2px; margin: auto 0 0; padding-top: 16px; }
+.inv-strip i { height: 6px; border-radius: 1px; background: var(--line); }
+.inv-strip i.on { background: color-mix(in srgb, var(--k) calc(var(--o) * 100%), var(--line)); }
+.inv-num { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 0 0 12px; }
+.inv-num b { font-size: 34px; line-height: 1; color: var(--ink); }
+.inv-num span { font-size: 13px; color: var(--ink-3); }
+.inv-card ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13px; color: var(--ink-2); }
+.inv-card li { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inv-card li b { font-weight: 600; color: var(--ink); }
+.inv-card li em { font-style: normal; color: var(--err); }
+.inv-card code { font: 500 11.5px var(--f-mono); padding: 1px 5px; }
+.inv-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+.inv-chips span { padding: 3px 7px; border-radius: var(--r-1); font: 600 11px/1.2 var(--f-mono); background: var(--body-2); box-shadow: inset 0 0 0 1px var(--line); }
+.inv-none { margin: 0; font-size: 13px; color: var(--ink-3); }
+/* a card's items, one at a time, in full: ‹ n / N › steps through them, the item itself jumps the tape there */
+.inv-item { display: block; width: 100%; padding: 0; text-align: left; font-size: 13px; line-height: 1.5; color: var(--ink-2); cursor: pointer; }
+.inv-item > :not(.tc) { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.inv-item .tc { display: block; margin-bottom: 4px; font: 600 10.5px/1 var(--f-mono); color: var(--ink-3); }
+.inv-item:hover .tc { color: var(--k); }
+.inv-item b { display: inline; color: var(--ink); font-weight: 600; margin-right: 6px; }
+.inv-item code { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-top: 4px; white-space: pre-wrap; word-break: break-all; }
+.inv-item em { display: block; margin-top: 4px; font: 500 11.5px/1.4 var(--f-mono); font-style: normal; color: var(--err); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inv-item .txt { color: var(--ink); }
+.inv-pg-nav { display: flex; align-items: center; gap: 8px; margin-top: 10px; font: 600 11px/1 var(--f-mono); color: var(--ink-3); }
+.inv-pg-nav button { width: 24px; height: 22px; border-radius: var(--r-1); background: var(--body-2); color: var(--ink); font: 700 14px/1 var(--f-ui); box-shadow: inset 0 0 0 1px var(--line); }
+.inv-pg-nav button:hover { box-shadow: inset 0 0 0 1px var(--line-2); }
+
+.lanes { margin: 0; }
+.lanes canvas { display: block; width: 100%; height: 360px; border-radius: 16px; background: var(--hw-bg); box-shadow: 0 0 0 5px var(--bezel), var(--shadow); cursor: pointer; touch-action: pan-y; }
+.lanes-screen { position: relative; }
+/* hover a clip in a lane: a small preview of it (landing-deck.js) */
+.lanes-tip { --k: var(--hw-fg-3); position: absolute; z-index: 2; width: max-content; max-width: min(340px, 80%); padding: 10px 12px; border-radius: var(--r-2); pointer-events: none;
+  background: var(--hw-panel); color: var(--hw-fg-2); box-shadow: 0 0 0 1px var(--hw-line-2), inset 3px 0 0 var(--k), 0 16px 34px -12px #000; font: 500 12px/1.45 var(--f-ui); }
+.lanes-tip[hidden] { display: none; }
+.lanes-tip .h { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; font: 700 10px/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--hw-fg); }
+.lanes-tip .h span { margin-left: auto; font-weight: 500; letter-spacing: .02em; text-transform: none; color: var(--hw-fg-4); }
+.lanes-tip .b { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; word-break: break-word; }
+.lanes-tip .b.mono { font: 500 11px/1.45 var(--f-mono); color: var(--hw-fg-2); }
+.lanes-tip .b.think { font-style: italic; color: var(--hw-fg-3); }
+.lanes-tip .e { margin-top: 6px; font: 500 11px/1.4 var(--f-mono); color: var(--err); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* the CTA over the lanes while the tape is stopped: a big play key and a line, on a dimmed, blurred screen */
+/* (the dim is a layer clicks pass through, so the eyes and seeking still work while it's stopped; only the pill plays) */
+.lanes-screen::after { content: ""; position: absolute; inset: 0; border-radius: 16px; pointer-events: none; background: color-mix(in srgb, var(--hw-bg) 45%, transparent); transition: opacity .25s; }
+.lanes-screen:has(.lanes-play[hidden])::after { opacity: 0; }
+.lanes-play { position: absolute; left: 50%; top: 50%; translate: -50% -60%; z-index: 1; display: flex; align-items: center; gap: 16px; padding: 14px 22px 14px 14px; border-radius: 14px;
+  background: color-mix(in srgb, var(--hw-panel) 92%, transparent); box-shadow: 0 0 0 1px var(--hw-line-2), 0 18px 40px -12px #000; color: var(--hw-fg); text-align: left; transition: opacity .25s, visibility .25s; }
+.lanes-play[hidden] { display: flex; opacity: 0; visibility: hidden; pointer-events: none; }
+.lp-key { flex: none; display: grid; place-items: center; width: 58px; height: 50px; border-radius: var(--r-2); background: var(--orange); color: #fff; box-shadow: 0 4px 0 #B8380C, 0 0 30px rgba(255, 91, 31, .45); transition: transform .08s, box-shadow .08s; }
+.lp-key svg { width: 24px; height: 24px; fill: currentColor; }
+.lanes-play:hover .lp-key { box-shadow: 0 4px 0 #B8380C, 0 0 44px rgba(255, 91, 31, .7); }
+.lanes-play:active .lp-key { transform: translateY(3px); box-shadow: 0 1px 0 #B8380C, 0 0 30px rgba(255, 91, 31, .45); }
+.lp-txt { display: flex; flex-direction: column; gap: 4px; }
+.lp-txt b { font-size: 20px; letter-spacing: -.01em; }
+.lp-txt small { font: 500 12px/1.3 var(--f-mono); color: var(--hw-fg-3); }
+.lanes canvas:focus-visible { outline: 2px solid var(--orange); outline-offset: 6px; }
+.lanes figcaption { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 20px; font: 500 11px var(--f-mono); color: var(--ink-3); }
+
+/* ---------- tracks ---------- */
+.track { padding: clamp(40px, 6vw, 84px) 0 clamp(12px, 2vw, 24px); }
+.track-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 36px; align-items: start; margin-bottom: clamp(36px, 5vw, 64px); }
+.track-no {
+  display: grid; place-items: center; width: 72px; height: 72px; border-radius: var(--r-3);
+  font-size: 38px; line-height: 1; color: var(--orange); background: var(--hw-bg);
+  box-shadow: 0 0 0 5px var(--bezel), inset 0 8px 24px rgba(0,0,0,.6);
+  position: relative; overflow: hidden;
+}
+.track-no::after { content: ""; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.05) .6px, transparent .8px); background-size: 3px 3px; }
+
+.dots { display: flex; gap: 6px; } .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--hw-line-3); }
+.dots i:first-child { background: var(--orange); }
+
+/* demo tapes: a heading over the small cartridges (cartridge.css) */
+.shelf-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin: 0 0 24px; }
+.track .mshelf, #top > .mshelf { margin-top: 0; gap: 28px; }   /* the heading above already spaces it */
+.shelf-head p { margin: 0; color: var(--ink-3); font-size: 14.5px; }
+.shelf-title { font-size: 26px; }
+
+/* ---------- features: a bento of what the tape holds ----------
+   Each card is a panel with an illustration on the deck's black hardware screen (the same in both themes),
+   keyed by --k, laid out on 12 columns by --span. */
+.bento { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-flow: dense; gap: 20px; }
+.bento-card { --k: var(--orange); grid-column: span var(--span, 4); display: flex; flex-direction: column; min-width: 0; border-radius: var(--r-3); background: var(--panel); box-shadow: var(--shadow); overflow: hidden; }
+.bento-art { position: relative; height: 190px; margin: 14px 14px 0; border-radius: var(--r-2); background: var(--hw-bg); box-shadow: inset 0 6px 18px rgba(0,0,0,.6); overflow: hidden; }
+.bento-art::after { content: ""; position: absolute; inset: 0; pointer-events: none; background-image: radial-gradient(rgba(255,255,255,.05) .6px, transparent .8px); background-size: 3px 3px; }
+.bento-art svg { display: block; width: 100%; height: 100%; }
+.bento-art text { font-family: var(--f-mono); font-weight: 500; }
+.bento-art text.dt { font-family: var(--f-dot); font-weight: 900; }
+.bento-copy { padding: 20px 22px 24px; }
+.bento-lbl { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font: 700 10px/1 var(--f-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); }
+.bento-lbl::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--ink-3); transition: background-color .4s var(--ease-out); }
+/* quiet by default: the illustrations sit in grey and take their colours on hover (or a tap, on touch screens: landing.js sets .on) */
+.bento-art svg { filter: grayscale(1) brightness(.9); transition: filter .5s var(--ease-out); }
+.bento-card.on .bento-art svg { filter: none; }
+.bento-card.on .bento-lbl::before { background: var(--k); }
+@media (hover: hover) {
+  .bento-card:hover .bento-art svg { filter: none; }
+  .bento-card:hover .bento-lbl::before { background: var(--k); }
+}
+@media (hover: none) { .bento-card { cursor: pointer; -webkit-tap-highlight-color: transparent; } }
+.bento-copy h3 { font-size: 22px; line-height: 1.15; letter-spacing: -.02em; }
+.bento-copy p:last-child { margin: 10px 0 0; max-width: 56ch; font-size: 15px; color: var(--ink-2); }
+
+.bento .led { fill: var(--c-bash); transition: fill .25s calc(var(--i, 0) * 22ms); }
+.bento .led.bad { fill: var(--err); animation: bento-pulse 1.6s ease-in-out infinite; }
+.bento .caret { animation: bento-blink 1s steps(1) infinite; }
+@keyframes bento-blink { 50% { opacity: 0; } }
+@keyframes bento-pulse { 50% { opacity: .45; } }
+/* played in as each card scrolls into view: only once landing.js has set .anim, so without it everything just shows */
+.bento .grow { transform-box: fill-box; transform-origin: left center; transition: transform .9s var(--ease-out) calc(var(--i, 0) * 60ms); }
+.bento.anim .bento-card:not(.in) .grow { transform: scaleX(0); }
+.bento.anim .bento-card:not(.in) .led { fill: var(--hw-line-2); animation: none; }
+
+/* ---------- terminal ---------- */
+.cli-grid { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 28px; align-items: start; }
+.cmd-list { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.cmd {
+  display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 12px 14px; border-radius: var(--r-2);
+  background: var(--panel); box-shadow: 0 3px 0 var(--key-lip), inset 0 0 0 1px var(--line);
+  transition: transform .07s, box-shadow .07s;
+}
+.cmd b { font: 700 14px var(--f-mono); }
+.cmd span { font-size: 13.5px; line-height: 1.4; color: var(--ink-2); }
+.cmd:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--key-lip), inset 0 0 0 1px var(--line); }
+.cmd.on { background: var(--key); box-shadow: 0 3px 0 var(--key-lip), inset 0 0 0 1.5px var(--orange); }
+.cmd.on b { color: var(--orange); }
+.cli-install { display: flex; align-items: center; gap: 8px; margin-top: 8px; padding: 10px; border-radius: var(--r-2); background: var(--body-2); box-shadow: inset 0 0 0 1px var(--line); }
+.cli-install code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: none; box-shadow: none; padding: 0; font-size: 11.5px; }
+.term { min-width: 0; border-radius: 14px; background: #070708; box-shadow: 0 0 0 5px var(--bezel), var(--shadow); overflow: hidden; }
+.term-bar { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 14px; font-size: 12px; color: var(--hw-fg-3); border-bottom: 1px solid var(--hw-line); }
+.pane { display: none; margin: 0; padding: 18px 20px 22px; min-height: 380px; overflow-x: auto; font: 500 13px/1.6 var(--f-mono); color: var(--hw-fg-2); }
+.pane.on { display: block; animation: typein .35s var(--ease-out); }
+@keyframes typein { from { opacity: 0; transform: translateY(4px); } }
+.pane b { color: var(--hw-fg); font-weight: 700; }
+.pane .pr { color: var(--orange); } .pane .h { color: var(--hw-fg-3); letter-spacing: .06em; }
+.pane .o { color: var(--orange); } .pane .g { color: var(--c-bash); } .pane .e { color: var(--err); } .pane .m { color: var(--hw-fg-4); }
+.pane .cur { color: var(--orange); animation: blink 1s steps(1) infinite; }
+
+/* ---------- FAQ ---------- */
+.faq { display: grid; gap: 14px; }   /* full width, like the other tracks */
+.faq details { border-radius: var(--r-3); background: var(--panel); box-shadow: var(--shadow); }
+.faq summary { list-style: none; display: flex; align-items: center; gap: 16px; padding: 24px 24px 24px 28px; cursor: pointer; font-weight: 600; font-size: 18px; letter-spacing: -.01em; }
+.faq summary::-webkit-details-marker { display: none; }
+.pm { margin-left: auto; flex: none; position: relative; width: 34px; height: 32px; border-radius: var(--r-2); background: var(--key); box-shadow: 0 3px 0 var(--key-lip), inset 0 1px 0 var(--key-hi); transition: transform .07s, box-shadow .07s; }
+.pm::before, .pm::after { content: ""; position: absolute; left: 50%; top: 50%; width: 12px; height: 2px; margin: -1px 0 0 -6px; border-radius: 1px; background: var(--key-ink); transition: transform .2s var(--ease-out); }
+.pm::after { transform: rotate(90deg); }
+details[open] .pm { transform: translateY(2px); box-shadow: 0 1px 0 var(--key-lip), inset 0 0 0 1.5px var(--orange); }
+details[open] .pm::after { transform: rotate(0); }
+details[open] .pm::before, details[open] .pm::after { background: var(--orange); }
+.ans { padding: 0 28px 26px; color: var(--ink-2); font-size: 15.5px; }
+.ans p { margin: 0 0 10px; } .ans p:last-child { margin: 0; }
+.ans a { color: var(--ink); text-decoration-color: var(--orange); text-underline-offset: 3px; }
+.os-paths { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
+.os-paths b { display: inline-block; min-width: 64px; color: var(--ink); font-weight: 600; }
+.ticks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 14px; margin: 4px 0 12px; padding: 0; list-style: none; font-size: 14px; }
+.ticks li::before { content: "■ "; color: var(--c-bash); filter: brightness(.8); }
+
+/* ---------- outro + footer ---------- */
+.outro { padding: clamp(96px, 12vw, 168px) 0 clamp(72px, 9vw, 120px); }
+.outro-screen {
+  position: relative; overflow: hidden; text-align: center; padding: clamp(64px, 8vw, 96px) 24px clamp(56px, 7vw, 88px); border-radius: 16px;
+  background: var(--hw-bg); color: var(--hw-fg-2); box-shadow: 0 0 0 6px var(--bezel), var(--shadow), inset 0 10px 40px rgba(0,0,0,.6);
+}
+.outro-screen::after { content: ""; position: absolute; inset: 0; pointer-events: none; background-image: radial-gradient(rgba(255,255,255,.05) .6px, transparent .8px); background-size: 3px 3px; }
+.outro-big { margin: 0; font-size: clamp(30px, 4.4vw, 54px); line-height: 1; color: var(--orange); text-shadow: 0 0 30px rgba(255, 91, 31, .35); }
+.outro-screen > p:not(.outro-big) { margin: 20px 0 40px; font-size: 18px; }
+.outro .tog-key { background: var(--hw-panel-2); color: var(--hw-fg); box-shadow: 0 4px 0 #000, inset 0 0 0 1px var(--hw-line-2); }
+/* the rig over the words: a slim VCR, front-loading like the real ones: a tape (the real 3D cartridge) lies flat in its
+   front slot, label toward you, half out and nudging in and out while it waits; .arm (pointer on the rig or the CTA)
+   slides it all the way in, the slot glows, the display says LOADING. How: the well starts at the slot's centre line
+   and clips there, and the tape slides up through that line, into the deck. */
+.rig { --deck-w: min(460px, 92%); position: relative; z-index: 1; width: var(--deck-w); margin: 0 auto 96px; }   /* room under it for the tape sticking out */
+.rig-deck { position: relative; z-index: 2; filter: drop-shadow(0 26px 22px rgba(0,0,0,.8)); }
+/* with WebGL the rig is one 3D scene (landing.js): the CSS deck and tape here are the fallback */
+.rig-cv { display: block; width: 100%; aspect-ratio: 460 / 300; cursor: pointer; }
+.rig-gl .rig-deck, .rig-gl .rig-well { display: none; }
+.rig.rig-gl { width: min(640px, 96%); margin-bottom: 20px; }
+.rig-deck::after { content: ""; position: absolute; left: 8%; right: 8%; top: 100%; height: 40px; pointer-events: none;   /* its reflection */
+  background: radial-gradient(60% 100% at 50% 0, rgba(255,255,255,.06), transparent 70%); }
+.rig-top { position: relative; height: 16px; clip-path: polygon(2.5% 0, 97.5% 0, 100% 100%, 0 100%);
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px), linear-gradient(#b9bbbf, #8d9095); }
+.rig-top::after { content: ""; position: absolute; left: 2.5%; right: 2.5%; top: 0; height: 1px; background: rgba(255,255,255,.6); }
+.rig-front { position: relative; height: 76px; border-radius: 0 0 12px 12px; overflow: hidden;
+  background: linear-gradient(#1d1d21, #0f0f11); box-shadow: inset 0 2px 0 #cfd1d4, inset 0 3px 0 rgba(0,0,0,.6), inset 0 -2px 0 rgba(255,255,255,.04); }
+.rig-front::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.05) 45%, transparent 58%); }
+/* the slot, on the left of the front, under a chrome lip; it glows while the tape goes in */
+.rig-mouth { position: absolute; left: 5%; width: 56%; top: 18px; height: 12px; border-radius: 3px; background: #050506;
+  box-shadow: inset 0 4px 5px #000, 0 0 0 2px #cfd1d4, 0 0 0 3px rgba(0,0,0,.4); transition: box-shadow .4s; }
+.outro.arm .rig-mouth { box-shadow: inset 0 4px 5px #000, inset 0 -6px 10px color-mix(in srgb, var(--c-bash) 55%, transparent), 0 0 0 2px #cfd1d4, 0 0 0 3px rgba(0,0,0,.4); }
+.rig-panel { position: absolute; right: 5%; top: 12px; display: flex; flex-direction: column; align-items: flex-end; gap: 9px; }
+.rig-row { display: flex; align-items: center; gap: 10px; }
+.rig-led { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 8px var(--orange); animation: blink 1.4s steps(1) infinite; transition: background-color .2s, box-shadow .2s; }
+.outro.arm .rig-led { background: var(--c-bash); box-shadow: 0 0 10px var(--c-bash); animation: none; }
+.rig-lcd { min-width: 104px; padding: 5px 9px; border-radius: 4px; background: #040405; font-size: 12px; letter-spacing: .08em; text-align: right; color: var(--orange); white-space: nowrap;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), inset 0 4px 10px rgba(0,0,0,.8); text-shadow: 0 0 10px rgba(255, 91, 31, .5); }
+.rig-lcd .b, .outro.arm .rig-lcd .a { display: none; }
+.outro.arm .rig-lcd .b { display: inline; color: var(--c-bash); text-shadow: 0 0 10px rgba(198, 244, 50, .45); }
+.rig-keys { display: flex; gap: 6px; }
+.rig-keys i { width: 18px; height: 6px; border-radius: 2px; background: linear-gradient(#2c2c31, #1a1a1d); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 1px 0 #000; }
+.rig-keys i.on { background: linear-gradient(#ff7a45, var(--orange)); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 0 8px rgba(255, 91, 31, .4); }
+/* the well: from the slot's centre line down, as wide as the slot; the tape lives in it, over the deck */
+.rig-well { position: absolute; z-index: 3; left: 6%; width: 54%; top: calc(16px + 24px); height: 130px; overflow: hidden; pointer-events: none; }
+.rig-tape { position: absolute; left: 8%; right: 8%; top: 0; }
+.rig-slide { transform: translateY(var(--rig-out, -42%)); transition: transform .9s var(--ease-out); }
+.outro.arm .rig-slide { transform: translateY(-100%); }   /* all the way in */
+.rig-bob { animation: rig-nudge 2.6s ease-in-out infinite; pointer-events: auto; cursor: pointer; }
+@keyframes rig-nudge { 50% { translate: 0 -5%; } }
+.outro.arm .rig-bob { animation-play-state: paused; }
+.rig-3d { display: block; width: 100%; aspect-ratio: 4 / 3; }
+.rig-tape .mc-pick { width: 100%; }   /* (the flat fallback, without WebGL) */
+.rig-tape .mc-foot { display: none; }
+.rig-tape .mc-pick:hover { transform: none; }
+@media (max-width: 640px) { .rig-front { height: 66px; } .rig-lcd { min-width: 84px; } .rig-keys { display: none; } .rig-panel { top: 50%; translate: 0 -50%; } }
+.outro-big .cur { display: inline-block; width: .42em; height: .72em; margin-left: .12em; vertical-align: -.02em; background: currentColor; box-shadow: 0 0 24px rgba(255, 91, 31, .5); animation: blink 1.1s steps(1) infinite; }
+.foot { max-width: 1240px; margin: 0 auto 32px; width: calc(100% - 40px); display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 16px 18px; border-radius: var(--r-3); background: var(--body); box-shadow: var(--shadow); font-size: 13.5px; color: var(--ink-2); }
+.foot a { text-decoration-color: var(--line-2); text-underline-offset: 3px; }
+.foot .brand { font-size: 17px; }
+.foot .dim { font: 500 11.5px var(--f-mono); }
+
+.toast { position: fixed; left: 50%; bottom: 24px; z-index: 70; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; padding: 10px 16px; border-radius: var(--r-2); background: var(--hw-bg); color: var(--c-bash); font-size: 15px; box-shadow: 0 0 0 3px var(--bezel), 0 16px 30px -10px rgba(0,0,0,.5); transition: opacity .2s, transform .2s var(--ease-out); }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* the full-page drop target: a dashed, holographic-rimmed frame with a bouncing arrow, not just a line of text */
+.drop-overlay {
+  position: fixed; inset: 0; z-index: 999; display: flex; align-items: center; justify-content: center; padding: 28px;
+  background: color-mix(in srgb, var(--body) 80%, transparent); backdrop-filter: blur(3px);
+  opacity: 0; pointer-events: none; transition: opacity .15s;
+}
+.drop-overlay.on { opacity: 1; }
+.drop-frame {
+  position: relative; width: 100%; height: 100%; max-width: 1100px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  border-radius: 28px; border: 3px dashed transparent;
+  background: linear-gradient(var(--body), var(--body)) padding-box,
+    conic-gradient(from var(--holo-a, 0deg), #ff9a6b, #ffd36b, #8affc1, #6bc8ff, #c58bff, #ff6bb0, #ff9a6b) border-box;
+  animation: holo-spin 5s linear infinite;
+}
+.drop-icon { width: 54px; height: 54px; fill: none; stroke: var(--orange); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; animation: drop-bounce 1.1s ease-in-out infinite; }
+.drop-frame b { font: 700 24px var(--f-ui); color: var(--ink); }
+.drop-frame span { font: 500 14px var(--f-mono); color: var(--ink-3); }
+@keyframes drop-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) { .drop-frame, .drop-icon { animation: none; } }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1100px) {
+  .hero { grid-template-columns: 1fr; gap: 36px; padding-top: 44px; }
+  .hero .hero-cart { height: 480px; }
+  .hero .hero-cart canvas { inset: -100px 0; width: 100%; height: calc(100% + 200px); }   /* stacked, it has the full width: bleed above and below only */
+}
+@media (max-width: 860px) {
+  .nav { display: none; }
+  .cli-grid { grid-template-columns: 1fr; }
+  .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bento-card { grid-column: span 1; }
+  .bento-card.wide { grid-column: span 2; }
+  .track-head { grid-template-columns: 1fr; gap: 18px; }
+  .track-no { width: 60px; height: 60px; font-size: 30px; }
+  .ticks { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  main { padding: 0 16px; }
+  .bar { width: calc(100% - 32px); padding-left: 12px; }
+  .brand-sub { display: none; }
+  .bar .cta-key.sm { padding: 0 12px; font-size: 13px; }
+  .hero .hero-cart { height: 340px; }
+  .lanes canvas { height: 300px; }
+  .bento { grid-template-columns: 1fr; gap: 16px; }
+  .bento-card, .bento-card.wide { grid-column: auto; }
+  .bento-art { height: 170px; }
+  .ticks { grid-template-columns: 1fr; }
+  .pane { font-size: 11.5px; padding: 14px; min-height: 300px; }
+  .faq summary { font-size: 16px; padding-left: 16px; }
+  .ans { padding: 0 16px 18px; }
+  .foot { width: calc(100% - 32px); }
+}

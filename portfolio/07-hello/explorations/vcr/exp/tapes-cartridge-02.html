@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Cartridge Specimen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@700;900&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  try { var th = localStorage.getItem('vcr-ds-theme'); document.documentElement.setAttribute('data-theme', th === 'light' ? 'light' : 'dark');   /* dark unless you chose light */ } catch (e) {}
+</script>
+<link rel="stylesheet" href="../css/landing.css">
+<link rel="stylesheet" href="../css/cartridge.css">
+<link rel="stylesheet" href="../css/shelf.css">
+<style>
+  /* Exploration 02: one big data cartridge, the look of tapes-cartridge.html,
+     built in 3D. A clear frosted shell with a window through both faces, so the
+     real spools inside read sharp from either side; drag to turn it over. The
+     tape on the spools is the session's length (as in -01). Below it, alt/5's
+     dot-matrix screen previews the event at the tape position, and REW / PLAY /
+     FF wind the tape: hold REW or FF to shuttle and watch the spools spin. */
+  .study { max-width: 1240px; margin: 0 auto; padding: 56px 20px 80px; }
+  .study h1 { font-size: clamp(28px, 4vw, 44px); margin: 0 0 8px; letter-spacing: -.02em; }
+  .study > p { margin: 0 0 8px; color: var(--ink-3); max-width: 64ch; }
+</style>
+</head>
+<body>
+<main class="study">
+  <h1>The demo tape, up close</h1>
+  <p>Exploration 02: one cartridge in 3D. A clear frosted shell with a window through both sides, and as much tape on the spools as the session ran, on a three-hour reel. Drag it to turn it over; hold ◀◀ or ▶▶ to shuttle.</p>
+
+  <div class="cart-stage" id="stage">
+    <canvas id="cv" aria-label="A 3D data cartridge. Drag to turn it."></canvas>
+    <p class="cart-hint">Drag to turn · double-click to face it</p>
+    <p class="cart-fallback"><span>This browser can&rsquo;t draw 3D. See the <a href="tapes-cartridge.html">flat version</a>.</span></p>
+  </div>
+
+  <div class="deck">
+    <div class="d5-screen" id="scr" data-kind="none" aria-live="off">
+      <div class="d5-top"><span class="d5-kind" id="scrKind">NO TAPE</span><span class="d5-idx dot" id="scrIdx">---/---</span><span class="d5-gap"></span><span class="d5-state dot" id="scrState">❚❚</span></div>
+      <div class="d5-clock dot"><span id="scrClock">00:00</span><span class="d5-total" id="scrTotal">/00:00</span></div>
+      <div class="d5-main" id="scrMain"><div class="d5-title" id="scrTitle">—</div><div class="d5-body" id="scrBody"></div><div class="d5-run"><i id="scrRun"></i></div></div>
+      <div class="d5-tapewrap">
+        <canvas class="d5-tape" id="tape" role="slider" tabindex="0" aria-label="Tape. Drag it, or use the arrow keys" aria-valuemin="0" aria-valuemax="100"></canvas>
+        <div class="d5-playhead" aria-hidden="true"></div>
+      </div>
+      <canvas class="d5-viz" id="viz" aria-label="Output tokens per 6 seconds. Hover a column for details."></canvas>
+      <div class="d5-tip" id="vizTip" role="tooltip" hidden></div>
+    </div>
+    <div class="controls">
+      <div class="keys">
+        <button class="pkey sm" id="startBtn" aria-label="Go to start" title="Go to start (Home)"><svg viewBox="0 0 24 24"><path d="M5 5h2.5v14H5zM19 5.5v13L9 12z"/></svg></button>
+        <button class="pkey" id="rewBtn" aria-label="Previous event, hold to rewind" title="Tap: previous event · hold: rewind (←)"><svg viewBox="0 0 24 24"><path d="M11 6 3 12l8 6V6zm10 0-8 6 8 6V6z"/></svg></button>
+        <button class="pkey play" id="playBtn" aria-label="Play" title="Play / pause (Space)">
+          <svg class="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg>
+          <svg class="i-pause" viewBox="0 0 24 24"><path d="M6 4.5h4.5v15H6zM13.5 4.5H18v15h-4.5z"/></svg>
+        </button>
+        <button class="pkey" id="ffBtn" aria-label="Next event, hold to fast-forward" title="Tap: next event · hold: fast-forward (→)"><svg viewBox="0 0 24 24"><path d="M13 6l8 6-8 6V6zM3 6l8 6-8 6V6z"/></svg></button>
+        <button class="pkey sm" id="endBtn" aria-label="Go to end" title="Go to end (End)"><svg viewBox="0 0 24 24"><path d="M16.5 5H19v14h-2.5zM5 5.5v13L15 12z"/></svg></button>
+      </div>
+      <div class="d5-knobwrap">
+        <div class="d5-knob" id="knob" role="slider" tabindex="0" aria-label="Playback speed" aria-valuemin="1" aria-valuemax="120" title="Speed: drag, scroll or click to turn">
+          <div class="d5-knobcap" id="knobCap"><i class="d5-notch"></i></div>
+        </div>
+        <div class="d5-knoblabels" id="knobLabels" aria-hidden="true"></div>
+      </div>
+      <a class="go js-go-link" id="go" href="deck-studio.html"><i class="led"></i>OPEN IN STUDIO</a>
+    </div>
+  </div>
+
+  <div class="mshelf" id="picker" role="group" aria-label="Demo tapes: load one into the big cartridge"></div>
+</main>
+<script src="../js/shared/parse-tape.js"></script>
+<script src="../js/shared/demo-tapes.js"></script>
+<script src="../vendor/three.min.js"></script>
+<script src="../js/cartridge/cart3d.js"></script>
+<script src="../js/cartridge/cartridge.js"></script>
+</body>
+</html>

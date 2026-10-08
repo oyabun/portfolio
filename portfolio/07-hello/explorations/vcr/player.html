@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>VCR — Play a tape</title>
+<meta name="description" content="Drop in the session log your coding agent already wrote and watch it play back as a data cartridge.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@700;900&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  // Same key as the studio, so the theme carries over when you open a tape there.
+  try { var th = localStorage.getItem('vcr-ds-theme'); document.documentElement.setAttribute('data-theme', th === 'light' ? 'light' : 'dark');   /* dark unless you chose light */ } catch (e) {}
+</script>
+<link rel="stylesheet" href="css/landing.css">
+<link rel="stylesheet" href="css/cartridge.css">
+<link rel="stylesheet" href="css/shelf.css">
+<style>
+  .study { max-width: 1240px; margin: 0 auto; padding: 24px 20px 80px; }
+  .study .cart-stage { height: clamp(260px, 38vw, 440px); }   /* a bit smaller than the hero's/exploration's, since this page is mostly the deck */
+  .pbar { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+  .pbar .grow { flex: 1; }
+  .inv-wrap { margin-top: 36px; }
+  .file-loc { margin: 14px 2px 0; max-width: 70ch; font: 500 11.5px/1.6 var(--f-mono); color: var(--ink-3); }
+  .file-loc code { color: var(--ink-2); }
+  .drop-over::after {
+    content: 'Drop a .jsonl session log to play it'; position: fixed; inset: 0; z-index: 999;
+    display: flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, var(--body) 85%, transparent); backdrop-filter: blur(2px);
+    font: 700 20px var(--f-mono); color: var(--ink); pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<header class="bar pbar" id="bar">
+  <a class="brand" href="index.html" aria-label="VCR home"><span class="mk" aria-hidden="true"><i class="sp"></i><i class="st"></i></span>vcr</a>
+  <span class="grow"></span>
+  <button class="tog-key sm" id="btnAutoStudio" aria-pressed="false" title="When on, opening a tape jumps straight to the studio instead of previewing it here">
+    <i class="led"></i>AUTO-STUDIO
+  </button>
+  <label class="cta-key sm" id="openTape" style="cursor:pointer">
+    <input type="file" id="pkFile" accept=".jsonl,.json,application/jsonl,application/x-ndjson,application/json" hidden>
+    <svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>Open a tape
+  </label>
+  <button class="mini-key theme-key" id="btnTheme" aria-label="Toggle theme" title="Toggle theme (T)">
+    <svg class="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
+    <svg class="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+  </button>
+</header>
+
+<main class="study">
+  <!-- a tape in 3D: drag to turn it (cartridge.js, cart3d.js) -->
+  <figure class="cart-stage" id="stage" data-fit="tight">
+    <canvas id="cv" aria-label="A 3D data cartridge holding the loaded session. Drag to turn it."></canvas>
+    <p class="cart-hint">Drag to turn · double-click to face it</p>
+    <p class="cart-fallback"><span>This browser can&rsquo;t draw 3D. <a id="goFallback" href="exp/deck-studio.html">Open the studio</a> instead.</span></p>
+  </figure>
+
+  <div class="deck">
+    <div class="d5-screen" id="scr" data-kind="none" aria-live="off">
+      <div class="d5-top"><span class="d5-kind" id="scrKind">NO TAPE</span><span class="d5-idx dot" id="scrIdx">---/---</span><span class="d5-gap"></span><span class="d5-state dot" id="scrState">❚❚</span></div>
+      <div class="d5-clock dot"><span id="scrClock">00:00</span><span class="d5-total" id="scrTotal">/00:00</span></div>
+      <div class="d5-main" id="scrMain"><div class="d5-title" id="scrTitle">—</div><div class="d5-body" id="scrBody"></div><div class="d5-run"><i id="scrRun"></i></div></div>
+      <div class="d5-tapewrap">
+        <canvas class="d5-tape" id="tape" role="slider" tabindex="0" aria-label="Tape. Drag it, or use the arrow keys" aria-valuemin="0" aria-valuemax="100"></canvas>
+        <div class="d5-playhead" aria-hidden="true"></div>
+      </div>
+      <canvas class="d5-viz" id="viz" aria-label="Output tokens per 6 seconds. Hover a column for details."></canvas>
+      <div class="d5-tip" id="vizTip" role="tooltip" hidden></div>
+    </div>
+    <div class="controls">
+      <div class="keys">
+        <button class="pkey sm" id="startBtn" aria-label="Go to start" title="Go to start (Home)"><svg viewBox="0 0 24 24"><path d="M5 5h2.5v14H5zM19 5.5v13L9 12z"/></svg></button>
+        <button class="pkey" id="rewBtn" aria-label="Previous event, hold to rewind" title="Tap: previous event · hold: rewind (←)"><svg viewBox="0 0 24 24"><path d="M11 6 3 12l8 6V6zm10 0-8 6 8 6V6z"/></svg></button>
+        <button class="pkey play" id="playBtn" aria-label="Play" title="Play / pause (Space)">
+          <svg class="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg>
+          <svg class="i-pause" viewBox="0 0 24 24"><path d="M6 4.5h4.5v15H6zM13.5 4.5H18v15h-4.5z"/></svg>
+        </button>
+        <button class="pkey" id="ffBtn" aria-label="Next event, hold to fast-forward" title="Tap: next event · hold: fast-forward (→)"><svg viewBox="0 0 24 24"><path d="M13 6l8 6-8 6V6zM3 6l8 6-8 6V6z"/></svg></button>
+        <button class="pkey sm" id="endBtn" aria-label="Go to end" title="Go to end (End)"><svg viewBox="0 0 24 24"><path d="M16.5 5H19v14h-2.5zM5 5.5v13L15 12z"/></svg></button>
+      </div>
+      <div class="d5-knobwrap">
+        <div class="d5-knob" id="knob" role="slider" tabindex="0" aria-label="Playback speed" aria-valuemin="1" aria-valuemax="120" title="Speed: drag, scroll or click to turn">
+          <div class="d5-knobcap" id="knobCap"><i class="d5-notch"></i></div>
+        </div>
+        <div class="d5-knoblabels" id="knobLabels" aria-hidden="true"></div>
+      </div>
+      <a class="go js-go-link" id="go" href="exp/deck-studio.html"><i class="led"></i>OPEN IN STUDIO</a>
+    </div>
+  </div>
+
+  <div class="mshelf" id="picker" role="group" aria-label="Demo tapes: load one into the cartridge"></div>
+
+  <p class="file-loc">Your own tapes: Claude Code keeps sessions under <code>.claude/projects/</code> in your home folder —
+    <code>/Users/you/.claude/projects/</code> on macOS, <code>/home/you/.claude/projects/</code> on Linux,
+    <code>C:\Users\you\.claude\projects\</code> on Windows.</p>
+
+  <!-- a preview of the loaded session: everything the log holds, as cards with live counts (js/shared/tape-report.js) -->
+  <section class="inv-wrap">
+    <p class="inv-note"><span>What's on this tape: <b id="invTitle">…</b></span><a class="inv-link" id="invLink" href="exp/deck-studio.html?view=report">See its full report in the studio ↗</a></p>
+    <div class="inv" id="inventory" aria-live="polite"></div>
+  </section>
+</main>
+
+<script src="js/shared/parse-tape.js"></script>
+<script src="js/shared/demo-tapes.js"></script>
+<script src="js/shared/tape-report.js"></script>
+<script src="vendor/three.min.js"></script>
+<script src="js/cartridge/cart3d.js"></script>
+<script src="js/cartridge/cartridge.js"></script>
+<script src="js/player/simple-player.js"></script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLI Design System — Case study · Javier Alonso</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <div class="brand"><a href="../index.html">Javier Alonso<span>.</span></a></div>
+    <div class="navlinks">
+      <a class="back" href="../index.html">← All projects</a>
+      <button class="toggle" data-toggle-theme><span class="dot"></span><span class="lbl">Dark</span></button>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Case study · 0 → 1 · org-wide standard</div>
+    <h1>Docker CLI Design System</h1>
+    <p class="lead">Created Docker's first CLI Design System (Figma + Notion). A systems-level contribution that changed how other teams design — now adopted across the organization.</p>
+    <div class="stats">
+      <div class="stat"><b>1st</b><span>CLI design system at Docker</span></div>
+      <div class="stat"><b>Org-wide</b><span>adoption (e.g. Docker Offload)</span></div>
+      <div class="stat"><b>2023</b><span>created from a research-led first draft</span></div>
+      <div class="stat"><b>Library</b><span>company-wide Figma + Notion</span></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="mock reveal">
+      <div class="cap"><b>Signature artifact — CLI patterns codified into a reusable system</b><span class="pill">theme-aware SVG</span></div>
+      <svg viewBox="0 0 960 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CLI design system">
+        <rect x="0" y="0" width="960" height="420" rx="16" fill="var(--svg-window)"/>
+        <!-- terminal -->
+        <rect x="28" y="28" width="520" height="364" rx="14" fill="#0b1220" stroke="var(--svg-line)"/>
+        <circle cx="52" cy="52" r="5" fill="#ff6b6f"/><circle cx="70" cy="52" r="5" fill="#ffca45"/><circle cx="88" cy="52" r="5" fill="#37d68a"/>
+        <text x="52" y="96" font-family="monospace" font-size="13" fill="#7ea8ff">$ docker build .</text>
+        <text x="52" y="122" font-family="monospace" font-size="13" fill="#cfe0ff">[+] Building 12.3s (10/10) FINISHED</text>
+        <text x="52" y="146" font-family="monospace" font-size="12" fill="#8aa0c8"> => [internal] load build definition</text>
+        <text x="52" y="166" font-family="monospace" font-size="12" fill="#8aa0c8"> => [1/5] FROM docker.io/library/node</text>
+        <rect x="52" y="182" width="360" height="8" rx="4" fill="#213b6b"/><rect x="52" y="182" width="250" height="8" rx="4" fill="#4f8bff"/>
+        <text x="52" y="214" font-family="monospace" font-size="13" fill="#8affc1">✓ Build complete</text>
+        <text x="52" y="244" font-family="monospace" font-size="12" fill="#ffca45">! 1 warning: use multi-stage build</text>
+        <text x="52" y="268" font-family="monospace" font-size="12" fill="#8aa0c8"># consistent status glyphs, spacing,</text>
+        <text x="52" y="286" font-family="monospace" font-size="12" fill="#8aa0c8"># progress bars &amp; color tokens</text>
+        <!-- pattern library -->
+        <rect x="572" y="28" width="360" height="364" rx="14" fill="var(--svg-bg)" stroke="var(--svg-line)"/>
+        <text x="596" y="64" font-size="15" font-weight="800" fill="var(--svg-text)">CLI pattern library</text>
+        <g font-size="12" fill="var(--svg-text)">
+          <rect x="596" y="82" width="312" height="40" rx="9" fill="var(--svg-chip)"/><text x="612" y="107" fill="var(--svg-accent)" font-weight="700">Status glyphs ✓ ! ✗ →</text>
+          <rect x="596" y="130" width="312" height="40" rx="9" fill="var(--svg-panel)" stroke="var(--svg-line)"/><text x="612" y="155">Progress &amp; spinners</text>
+          <rect x="596" y="178" width="312" height="40" rx="9" fill="var(--svg-panel)" stroke="var(--svg-line)"/><text x="612" y="203">Color tokens &amp; states</text>
+          <rect x="596" y="226" width="312" height="40" rx="9" fill="var(--svg-panel)" stroke="var(--svg-line)"/><text x="612" y="251">Tables &amp; key/value output</text>
+          <rect x="596" y="274" width="312" height="40" rx="9" fill="var(--svg-panel)" stroke="var(--svg-line)"/><text x="612" y="299">Prompts &amp; confirmations</text>
+        </g>
+        <text x="596" y="344" font-size="11" fill="var(--svg-subtle)">Adopted org-wide · e.g. Docker Offload</text>
+      </svg>
+    </div>
+
+    <div class="two" style="margin-top:34px">
+      <div>
+        <div class="sec-head"><div class="kicker">The problem</div><h2>An inconsistent CLI</h2></div>
+        <p style="color:var(--muted);font-size:16px">Docker's CLI had grown organically — inconsistent patterns, styles, and terminology across commands. There was no shared system, so every team reinvented conventions and users faced a hard-to-learn surface.</p>
+      </div>
+      <div>
+        <div class="sec-head"><div class="kicker">My role</div><h2>Creator &amp; owner</h2></div>
+        <p style="color:var(--muted);font-size:16px">Proposed, scoped, and built the system from scratch (Figma + Notion) and set the roadmap. Started from research — co-authored the DockerCon CLI Research Report (10 captains interviewed) — then codified recurring patterns into a company-wide library.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:color-mix(in srgb,var(--blue) 6%,var(--bg))">
+  <div class="wrap">
+    <div class="two">
+      <div class="uc">
+        <div class="sec-head"><div class="kicker">Jobs to be done</div><h2>What it enables</h2></div>
+        <ul>
+          <li>Design a new CLI command that feels consistent with the rest of Docker</li>
+          <li>Reuse proven CLI patterns instead of inventing them</li>
+          <li>Align on CLI terminology and structure across teams</li>
+        </ul>
+      </div>
+      <div class="uc">
+        <div class="sec-head"><div class="kicker">Who it serves</div><h2>Personas</h2></div>
+        <ul>
+          <li><b>Sam</b> — newcomer who needs a learnable, consistent CLI</li>
+          <li><b>Every internal team</b> designing CLI surfaces (the design-system's own users)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--ink-2)">
+  <div class="wrap">
+    <div class="sec-head"><div class="kicker" style="color:#7ea8ff">Impact</div><h2 style="color:#fff">Leverage beyond my own pixels</h2></div>
+    <p style="color:#c9d6f0;max-width:760px;font-size:16px">Adopted org-wide (products like Docker Offload build on it) and described internally as becoming "Docker's Organizational Standard" for the CLI. It raises consistency and speed for every team designing CLI experiences — the clearest principal/head-level signal in the portfolio.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div><a href="../index.html">← Back to all projects</a></div>
+    <div>Sources: Notion (DDS-CLI pages, "Start Docker CLI Design System"); Drive (CLI – Design System.fig); DockerCon CLI Research Report (2023).</div>
+  </div>
+</footer>
+<script src="../assets/theme.js"></script>
+</body>
+</html>

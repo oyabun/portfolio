@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Cartridges 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@700;900&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  try { var th = localStorage.getItem('vcr-ds-theme'); document.documentElement.setAttribute('data-theme', th === 'light' ? 'light' : 'dark');   /* dark unless you chose light */ } catch (e) {}
+</script>
+<link rel="stylesheet" href="../css/landing.css">
+<style>
+  /* Exploration 01: the data cartridges (tapes-cartridge.html) in real 3D.
+     The shell is a transmissive, rough MeshPhysicalMaterial, so the spool, roller
+     and tape inside are actually rendered and then frosted by the plastic. */
+  .study { max-width: 1240px; margin: 0 auto; padding: 56px 20px 80px; }
+  .study h1 { font-size: clamp(28px, 4vw, 44px); margin: 0 0 8px; letter-spacing: -.02em; }
+  .study > p { margin: 0 0 24px; color: var(--ink-3); max-width: 62ch; }
+  .stage { position: relative; width: 100%; }
+  .stage canvas { display: block; width: 100%; height: 100%; touch-action: pan-y; }
+  .stage canvas.hot { cursor: pointer; }
+  .tip {
+    position: absolute; left: 0; top: 0; translate: -50% 0; pointer-events: none; white-space: nowrap;
+    display: flex; gap: 12px; align-items: center; padding: 7px 10px; border-radius: var(--r-1, 6px);
+    background: var(--hw-bg); color: var(--hw-fg-2); font: 700 10.5px/1 var(--f-mono); letter-spacing: .12em;
+    box-shadow: 0 8px 20px -8px rgba(0,0,0,.5); opacity: 0; transition: opacity .15s;
+  }
+  .tip.on { opacity: 1; }
+  .tip b { color: var(--tip-c, var(--orange)); font-weight: 700; }
+  .fallback { display: none; padding: 80px 20px; text-align: center; color: var(--ink-3); border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line-2); }
+  .stage.no-gl canvas { display: none; } .stage.no-gl .fallback { display: block; }
+  .hint { margin-top: 10px; text-align: center; font: 500 11px var(--f-mono); color: var(--ink-3); }
+</style>
+</head>
+<body>
+<main class="study">
+  <h1>Demo tapes as data cartridges, in 3D</h1>
+  <p>Exploration 01: the same cartridges as the <a href="tapes-cartridge.html">CSS version</a>, built as real objects. Frosted clear shells; the tape on the spool is the session's length, on a three-hour reel. Hover one to play it across.</p>
+  <div class="stage" id="stage">
+    <canvas id="cv" aria-label="Five demo tapes as 3D data cartridges. Hover one to lift it; click to replay it."></canvas>
+    <div class="tip" id="tip"><span id="tipId"></span><b>▶ REPLAY</b></div>
+    <p class="fallback">This browser can&rsquo;t draw 3D. See the <a href="tapes-cartridge.html">flat version</a> instead.</p>
+  </div>
+  <p class="hint">Hover to lift a tape · click to replay it</p>
+</main>
+<script src="../vendor/three.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  const T = window.THREE, stage = document.getElementById('stage'), cv = document.getElementById('cv');
+  const tip = document.getElementById('tip'), tipId = document.getElementById('tipId');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  // [id, title, lines, size, label colour, session length in seconds, as the player measures it (js/shared/parse-tape.js)]
+  const DEMOS = [
+    ['platform-game', 'Retro platformer game', 487, '1.5MB', '--orange', 9302],
+    ['crush-game', 'Match-3 phone game', 520, '6.8MB', '--c-write', 2289],
+    ['git-visor', 'Git archaeology visualizer', 692, '4.7MB', '--c-bash', 1929],
+    ['marginalia-links', 'Link library & feed reader', 875, '1.4MB', '--c-read', 1962],
+    ['orbit-watch', 'Real-time ISS tracker', 982, '5.9MB', '--c-text', 2922],
+  ];
+  // A full cartridge holds three hours. Tape is wound by area, so a pack's radius
+  // is sqrt(hub^2 + k * seconds): double the session, double the tape on the spool.
+  const HUB_R = 0.46, FULL_R = 0.92, CAPACITY = 3 * 3600;
+  const K = (FULL_R * FULL_R - HUB_R * HUB_R) / CAPACITY;
+  const packR = (sec) => Math.sqrt(HUB_R * HUB_R + K * Math.max(0, sec));
+  const fmtDur = (sec) => { const m = Math.round(sec / 60); return m >= 60 ? Math.floor(m / 60) + 'h ' + String(m % 60).padStart(2, '0') + 'm' : m + ' min'; };
+
+  let renderer;
+  try { renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: true }); } catch (e) { renderer = null; }
+  if (!T || !renderer) { stage.classList.add('no-gl'); return; }
+  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+  renderer.outputColorSpace = T.SRGBColorSpace;
+  renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
+
+  const scene = new T.Scene();
+  const camera = new T.PerspectiveCamera(30, 1, 0.1, 200);
+
+  // a small studio to reflect in: without it the plastic has nothing to show
+  (function studio() {
+    const env = new T.Scene();
+    env.add(new T.Mesh(new T.BoxGeometry(20, 20, 20), new T.MeshBasicMaterial({ color: 0x8a8d90, side: T.BackSide })));
+    const panel = (w, h, x, y, z, ry, rx, k) => { const m = new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshBasicMaterial({ color: new T.Color(k, k, k), side: T.DoubleSide })); m.position.set(x, y, z); m.rotation.set(rx || 0, ry || 0, 0); env.add(m); };
+    panel(12, 3, 0, 9.5, 0, 0, Math.PI / 2, 4.5);     // softbox overhead
+    panel(4, 10, -9.5, 2, 0, Math.PI / 2, 0, 2.2);    // strip left
+    panel(4, 10, 9.5, 2, 0, -Math.PI / 2, 0, 1.4);    // strip right
+    panel(10, 4, 0, 1, -9.5, 0, 0, 1.2);
+    const pm = new T.PMREMGenerator(renderer);
+    scene.environment = pm.fromScene(env, 0.04).texture;
+  })();
+
+  scene.add(new T.HemisphereLight(0xffffff, 0x8f8a80, 0.6));
+  const sun = new T.DirectionalLight(0xffffff, 1.9);
+  sun.position.set(-6, 14, 8); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.radius = 5; sun.shadow.bias = -0.0004;
+  Object.assign(sun.shadow.camera, { left: -16, right: 16, top: 12, bottom: -12, near: 1, far: 50 });
+  scene.add(sun);
+  const desk = new T.Mesh(new T.PlaneGeometry(200, 200), new T.ShadowMaterial({ opacity: 0.18 }));
+  desk.rotation.x = -Math.PI / 2; desk.receiveShadow = true; scene.add(desk);
+
+  // ---------------------------------------------------------------- parts
+  const W = 4, H = 3, D = 0.5;     // the shell, in cartridge units (about 2 cm each)
+  function roundedRect(w, h, r) {
+    const s = new T.Shape(), x = -w / 2, y = -h / 2;
+    s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r);
+    s.lineTo(x + w, y + h - r); s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    s.lineTo(x + r, y + h); s.quadraticCurveTo(x, y + h, x, y + h - r); s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y);
+    return s;
+  }
+  function slab(w, h, d, r, bev) {
+    const g = new T.ExtrudeGeometry(roundedRect(w - 2 * bev, h - 2 * bev, Math.max(0.01, r - bev)),
+      { depth: d - 2 * bev, bevelEnabled: true, bevelThickness: bev, bevelSize: bev, bevelSegments: 4, curveSegments: 10 });
+    g.translate(0, 0, -(d - 2 * bev) / 2); return g;
+  }
+  // white hub: a disc with three kidney windows and a drive bore
+  function hubGeo() {
+    const s = new T.Shape(); s.absarc(0, 0, 0.46, 0, Math.PI * 2, false);
+    for (let i = 0; i < 3; i++) {
+      const a0 = i * (Math.PI * 2 / 3) + 0.35, a1 = a0 + 1.35, p = new T.Path();
+      p.absarc(0, 0, 0.39, a0, a1, false); p.absarc(0, 0, 0.18, a1, a0, true); s.holes.push(p);
+    }
+    const bore = new T.Path(); bore.absarc(0, 0, 0.07, 0, Math.PI * 2, true); s.holes.push(bore);
+    const g = new T.ExtrudeGeometry(s, { depth: 0.24, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.015, bevelSegments: 2, curveSegments: 40 });
+    g.translate(0, 0, -0.12); return g;
+  }
+  // wound tape: fine concentric rings with a little speckle, on the faces of the pack
+  const packTex = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 512; const g = c.getContext('2d');
+    g.fillStyle = '#34363a'; g.fillRect(0, 0, 512, 512);
+    for (let r = 256; r > 0; r -= 2) { g.strokeStyle = 'rgba(255,255,255,' + (0.015 + Math.random() * 0.035) + ')'; g.beginPath(); g.arc(256, 256, r, 0, Math.PI * 2); g.stroke(); }
+    for (let i = 0; i < 9000; i++) { g.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,.25)' : 'rgba(255,255,255,.06)'; g.fillRect(Math.random() * 512, Math.random() * 512, 1.2, 1.2); }
+    const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; return t;
+  })();
+
+  const M = {
+    shell: new T.MeshPhysicalMaterial({ color: 0xe6ecf1, roughness: 0.42, metalness: 0, transmission: 1, thickness: 0.6, ior: 1.52,
+      attenuationColor: new T.Color(0xb8c8d6), attenuationDistance: 2.2, clearcoat: 0.4, clearcoatRoughness: 0.5, specularIntensity: 0.6 }),
+    hub: new T.MeshStandardMaterial({ color: 0xf2f1ec, roughness: 0.45 }),
+    pack: new T.MeshStandardMaterial({ map: packTex, roughness: 0.55, metalness: 0.2 }),
+    packSide: new T.MeshStandardMaterial({ color: 0x2b2d30, roughness: 0.5, metalness: 0.25 }),
+    tape: new T.MeshStandardMaterial({ color: 0x2b2d30, roughness: 0.4, metalness: 0.3 }),
+    metal: new T.MeshStandardMaterial({ color: 0xc9ced4, roughness: 0.28, metalness: 1 }),
+    door: new T.MeshStandardMaterial({ color: 0x3a3e45, roughness: 0.38, metalness: 0.85 }),
+    slot: new T.MeshStandardMaterial({ color: 0x08090a, roughness: 0.6 }),
+    rubber: new T.MeshStandardMaterial({ color: 0xc2c9cf, roughness: 0.35 }),   // opaque: a transmissive part inside the shell would not show through it
+    dial: new T.MeshStandardMaterial({ color: 0x2a2d31, roughness: 0.5 }),
+    rib: new T.MeshStandardMaterial({ color: 0xaab6c2, roughness: 0.6 }),
+  };
+  const hubG = hubGeo(), shellG = slab(W, H, D, 0.1, 0.05);
+
+  // a strip label along the bottom edge, under the spools
+  function labelTexture(name, lines, size, color, sec) {
+    const c = document.createElement('canvas'); c.width = 1260; c.height = 268; const g = c.getContext('2d');
+    const grd = g.createLinearGradient(0, 0, 0, 268); grd.addColorStop(0, '#1a1b1d'); grd.addColorStop(1, '#0d0e0f');
+    g.fillStyle = grd; g.fillRect(0, 0, 1260, 268);
+    g.fillStyle = color; g.fillRect(0, 0, 20, 268);
+    g.font = '700 26px "JetBrains Mono"'; g.letterSpacing = '6px'; g.fillText('DATA CARTRIDGE', 60, 56);
+    g.letterSpacing = '0px'; g.textAlign = 'right'; g.font = '900 78px Doto'; g.fillText(fmtDur(sec).replace(' min', '′'), 1220, 84);
+    g.textAlign = 'left'; g.fillStyle = '#EDE6D3'; g.font = '600 64px "Space Grotesk"';
+    let t = name; while (g.measureText(t).width > 1140 && t.length > 4) t = t.slice(0, -2);
+    g.fillText(t === name ? t : t.trimEnd() + '…', 58, 160);
+    g.fillStyle = '#9C978C'; g.font = '500 26px "JetBrains Mono"'; g.fillText(fmtDur(sec) + ' · ' + lines + ' lines · ' + size + ' · sonnet 5', 60, 228);
+    const tx = new T.CanvasTexture(c); tx.colorSpace = T.SRGBColorSpace; tx.anisotropy = 8; return tx;
+  }
+
+  const add = (p, geo, m, x, y, z) => { const o = new T.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = true; o.receiveShadow = true; p.add(o); return o; };
+  const cyl = (r, h, seg) => { const g = new T.CylinderGeometry(r, r, h, seg || 48); g.rotateX(Math.PI / 2); return g; };
+
+  function cartridge([id, name, lines, size, cVar, sec]) {
+    const color = css(cVar) || '#FF5B1F';
+    const root = new T.Group(), body = new T.Group(); root.add(body);   // root sits on the desk, body lifts and tilts
+
+    // two spools side by side, both in view; the tape packs are unit cylinders scaled to their radius
+    const sL = new T.Vector2(-0.92, 0.4), sR = new T.Vector2(0.72, 0.4);
+    const spool = (c) => {
+      const g = new T.Group(); g.position.set(c.x, c.y, 0); body.add(g);
+      const pack = add(g, cyl(1, 0.24, 72), [M.packSide, M.pack, M.pack], 0, 0, 0);
+      add(g, hubG, M.hub, 0, 0, 0);
+      return { g, pack };
+    };
+    const L = spool(sL), R = spool(sR);
+    // roller and guides along the head edge; the tape runs reel, guide, head, guide, reel
+    add(body, cyl(0.24, 0.3), M.rubber, 1.3, -0.98, 0);
+    add(body, cyl(0.1, 0.05), M.metal, 1.3, -0.98, 0.16);
+    const pinA = new T.Vector2(1.62, 1.22), pinB = new T.Vector2(1.62, -0.42);
+    [pinA, pinB].forEach((p) => add(body, cyl(0.07, 0.36, 24), M.metal, p.x, p.y, 0));
+    const unitTape = new T.BoxGeometry(1, 0.012, 0.22);
+    const seg = () => add(body, unitTape, M.tape, 0, 0, 0);
+    const tapes = [seg(), seg(), seg()];
+    const place = (m, a, b) => { const d = b.clone().sub(a); m.scale.x = Math.max(0.001, d.length()); m.position.set((a.x + b.x) / 2, (a.y + b.y) / 2, 0); m.rotation.z = Math.atan2(d.y, d.x); };
+    const routeTape = (rL, rR) => {
+      place(tapes[0], new T.Vector2(sL.x, sL.y + rL), new T.Vector2(pinA.x, pinA.y + 0.07));
+      place(tapes[1], new T.Vector2(pinA.x + 0.07, pinA.y), new T.Vector2(pinB.x + 0.07, pinB.y));
+      const a = Math.atan2(pinB.y - sR.y, pinB.x - sR.x);
+      place(tapes[2], new T.Vector2(pinB.x, pinB.y - 0.07), new T.Vector2(sR.x + Math.cos(a) * rR, sR.y + Math.sin(a) * rR));
+    };
+    add(body, cyl(0.13, 0.1, 32), M.dial, -1.6, -0.98, 0.12);
+
+    // the shell, the head door, screws, a strip label along the bottom
+    const shell = add(body, shellG, M.shell, 0, 0, 0);
+    add(body, slab(0.3, 2.56, D + 0.06, 0.06, 0.02), M.door, W / 2 - 0.13, 0, 0);
+    add(body, new T.BoxGeometry(0.06, 0.6, D + 0.08), M.slot, W / 2 + 0.01, 0, 0);
+    [[-1.78, 1.29], [1.44, 1.29], [-1.78, -1.29], [1.44, -1.29]].forEach(([x, y]) => {
+      const sc = add(body, new T.CylinderGeometry(0.075, 0.08, 0.03, 24), M.metal, x, y, D / 2 + 0.005); sc.rotation.x = Math.PI / 2;
+    });
+    const label = add(body, new T.PlaneGeometry(2.62, 0.56), new T.MeshStandardMaterial({ map: labelTexture(name, lines, size, color, sec), roughness: 0.7 }), -0.18, -0.98, D / 2 + 0.003);
+    label.castShadow = false;
+
+    body.rotation.x = -Math.PI / 2;            // lie it face-up on the desk
+    body.position.y = D / 2;
+    // played: how much of the session has gone onto the right spool (0 = rewound)
+    root.userData = { id, color, shell, body, sec, L, R, routeTape, played: 0, hover: 0, baseRot: 0 };
+    shell.userData.cart = root; label.userData.cart = root;
+    wind(root, 0);
+    scene.add(root);
+    return root;
+  }
+  // set both packs from how far the tape has played; total tape (area) stays the same
+  function wind(c, dt) {
+    const u = c.userData, rL = packR(u.sec * (1 - u.played)), rR = packR(u.sec * u.played);
+    u.L.pack.scale.set(rL, rL, 1); u.R.pack.scale.set(rR, rR, 1);
+    // same tape speed past the head, so the emptier spool turns faster
+    const surf = dt * (u.hover > 0.5 ? 0.0011 : u.played > 0 ? -0.004 : 0);
+    u.L.g.rotation.z -= surf / rL; u.R.g.rotation.z -= surf / rR;
+    u.routeTape(rL, rR);
+  }
+
+  let carts = [];
+  const hits = [];
+  function build() {
+    carts = DEMOS.map(cartridge);
+    carts.forEach((c) => hits.push(c.userData.shell));
+    layout();
+  }
+
+  // ---------------------------------------------------------------- layout: a scattered row, or a grid on narrow screens
+  const camDir = new T.Vector3(0, 1, 0.78).normalize();
+  function layout() {
+    const w = stage.clientWidth, cols = w < 640 ? 2 : w < 1000 ? 3 : 5, rows = Math.ceil(carts.length / cols);
+    const gx = 4.9, gz = 4.3;
+    carts.forEach((c, i) => {
+      const col = i % cols, row = Math.floor(i / cols), inRow = Math.min(cols, carts.length - row * cols);
+      const jitter = Math.sin(i * 12.9898) * 0.5;
+      c.position.set((col - (inRow - 1) / 2) * gx, 0, (row - (rows - 1) / 2) * gz + jitter * 0.4);
+      c.userData.baseRot = jitter * 0.14;
+      c.rotation.y = c.userData.baseRot;
+    });
+    const spanX = cols * gx, spanZ = rows * gz;
+    const h = Math.round(w * (spanZ * 0.95 + 1.2) / (spanX + 0.6));
+    stage.style.height = Math.max(260, h) + 'px';
+    resize(spanX, spanZ);
+  }
+  let fit = { x: 20, z: 5 };
+  function resize(spanX, spanZ) {
+    if (spanX) fit = { x: spanX, z: spanZ };
+    const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return;
+    renderer.setSize(w, h, false); camera.aspect = w / h;
+    const vf = T.MathUtils.degToRad(camera.fov), hf = 2 * Math.atan(Math.tan(vf / 2) * camera.aspect);
+    const dist = Math.max((fit.x / 2 + 0.4) / Math.tan(hf / 2), (fit.z / 2 + 1.2) / Math.tan(vf / 2) / 0.8);
+    camera.position.copy(camDir).multiplyScalar(dist); camera.lookAt(0, 0, 0.2);
+    camera.updateProjectionMatrix();
+  }
+
+  // ---------------------------------------------------------------- interaction
+  const ray = new T.Raycaster(), ndc = new T.Vector2(), mouse = { x: 0, y: 0 };
+  let hot = null;
+  function pick(e) {
+    const r = cv.getBoundingClientRect();
+    ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const h = ray.intersectObjects(hits, false)[0];
+    return h ? h.object.userData.cart : null;
+  }
+  cv.addEventListener('pointermove', (e) => {
+    const r = cv.getBoundingClientRect();
+    mouse.x = ((e.clientX - r.left) / r.width) * 2 - 1; mouse.y = ((e.clientY - r.top) / r.height) * 2 - 1;
+    hot = pick(e); cv.classList.toggle('hot', !!hot);
+    if (hot) { tipId.textContent = hot.userData.id + '.jsonl'; tip.style.setProperty('--tip-c', hot.userData.color); }
+    tip.classList.toggle('on', !!hot);
+  });
+  cv.addEventListener('pointerleave', () => { hot = null; tip.classList.remove('on'); cv.classList.remove('hot'); mouse.x = mouse.y = 0; });
+  cv.addEventListener('click', (e) => { const c = pick(e); if (c) location.href = '../player.html?demo=' + c.userData.id; });
+
+  // ---------------------------------------------------------------- loop
+  const v = new T.Vector3();
+  let visible = true, last = 0;
+  function loop(ts) {
+    requestAnimationFrame(loop);
+    if (!visible) return;
+    const dt = last ? Math.min(50, ts - last) : 16; last = ts;
+    carts.forEach((c, i) => {
+      const u = c.userData, target = c === hot ? 1 : 0;
+      u.hover += (target - u.hover) * Math.min(1, dt * 0.012);
+      const idle = reduce ? 0 : Math.sin(ts / 1700 + i * 1.3) * 0.02;
+      // lift off the desk and tip up toward the viewer, leaning to follow the pointer
+      u.body.position.y = D / 2 + u.hover * 0.9 + (reduce ? 0 : idle * 0.5);
+      u.body.rotation.x = -Math.PI / 2 + u.hover * 0.55;
+      c.rotation.y = u.baseRot * (1 - u.hover) + u.hover * mouse.x * 0.18;
+      u.body.rotation.y = u.hover * -mouse.y * 0.1;
+      // hovered: play, about 20 s end to end; let go: rewind four times faster
+      if (!reduce) u.played = Math.min(1, Math.max(0, u.played + dt * (u.hover > 0.5 ? 1 / 20000 : -4 / 20000)));
+      wind(c, reduce ? 0 : dt);
+    });
+    if (hot) {
+      v.set(0, 0, 0); hot.userData.body.localToWorld(v); v.y -= 1.9; v.project(camera);
+      tip.style.left = ((v.x + 1) / 2 * cv.clientWidth) + 'px'; tip.style.top = ((1 - v.y) / 2 * cv.clientHeight + 8) + 'px';
+    }
+    renderer.render(scene, camera);
+  }
+  if ('IntersectionObserver' in window) new IntersectionObserver(([en]) => { visible = en.isIntersecting; last = 0; }).observe(stage);
+
+  // labels are drawn with the page fonts, so wait for them before building
+  const fonts = document.fonts ? Promise.all(['700 30px "JetBrains Mono"', '500 30px "JetBrains Mono"', '900 96px Doto', '600 74px "Space Grotesk"'].map((f) => document.fonts.load(f))).catch(() => {}) : Promise.resolve();
+  fonts.then(() => {
+    build();
+    new ResizeObserver(() => layout()).observe(stage.parentElement);
+    requestAnimationFrame(loop);
+  });
+})();
+</script>
+</body>
+</html>

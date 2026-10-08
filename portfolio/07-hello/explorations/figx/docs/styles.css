@@ -1,0 +1,953 @@
+:root {
+  --ink: #2e1a2b;
+  --body: #6d5560;
+  --muted: #8a7480;
+  --faint: #b09aa5;
+  --line: #eadfe4;
+  --hand: #9b7a8a;
+  --doodle: #c07878;
+  --plum: #5c2f47;
+  --plum-deep: #43213a;
+  --mauve: #a86078;
+  --rose: #c07878;
+  --blush: #d89090;
+  --peach: #f0a890;
+  --leaf: #6f8f4f;
+  --amber: #e8a83e;
+  --cream: #fdf8f4;
+  --serif: "Fraunces", Georgia, "Times New Roman", serif;
+  --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --script: "Caveat", "Segoe Script", cursive;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  color: var(--ink);
+  background:
+    radial-gradient(1100px 480px at 78% 6%, rgba(240, 168, 144, 0.14), transparent 65%),
+    radial-gradient(900px 420px at 8% 18%, rgba(168, 96, 120, 0.07), transparent 60%),
+    var(--cream);
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  max-width: 1008px;
+  margin: 0 auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+/* ================= Header ================= */
+.site-header {
+  border-bottom: 1px solid var(--line);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 62px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.brand-mark {
+  width: 36px;
+  height: 33px;
+  color: var(--plum);
+  flex: none;
+}
+
+.brand-name {
+  font-family: var(--serif);
+  font-size: 27px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.nav-link {
+  font-size: 14px;
+  color: #5c4653;
+  text-decoration: none;
+}
+
+.nav-link:hover { color: var(--plum); }
+
+/* ================= Buttons ================= */
+.btn {
+  display: inline-block;
+  border: none;
+  cursor: pointer;
+  font-family: var(--sans);
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* A color-only hover (plum -> plum-deep, both dark) reads as barely-there —
+   the lift + shadow is what actually registers as "this is interactive"
+   at a glance, the color shift becomes a secondary reinforcement rather
+   than the whole effect. */
+.btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(46, 26, 43, 0.16); }
+.btn:active { transform: translateY(0); box-shadow: none; }
+
+.btn-dark {
+  background: var(--plum);
+  color: #fff;
+  border-radius: 10px;
+  padding: 12px 30px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-dark:hover { background: var(--plum-deep); }
+
+.btn-sm {
+  padding: 9px 17px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+/* ================= "Get the CLI" install button ================= */
+.cli-install { position: relative; }
+
+.cli-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--plum);
+  border-radius: 10px;
+  padding: 9px 16px;
+  background: var(--plum);
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.cli-btn:hover { background: var(--plum-deep); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(46, 26, 43, 0.16); }
+.cli-btn:active { transform: translateY(0); box-shadow: none; }
+.cli-chevron { width: 15px; height: 15px; transition: transform 0.15s ease; }
+.cli-install.open .cli-chevron { transform: rotate(180deg); }
+
+.cli-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 340px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(92, 47, 71, 0.18);
+  padding: 10px;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 100;
+}
+.cli-install.open .cli-panel { display: flex; }
+
+.cli-cmd {
+  display: block;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 11px 13px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  color: var(--ink);
+  overflow-x: auto;
+  white-space: pre;
+  margin-bottom: 6px;
+}
+
+.cli-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 8px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 13.5px;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+.cli-action:hover { background: #f6ece6; }
+.cli-ic { width: 16px; height: 16px; flex: none; color: var(--muted); }
+
+/* ================= Hero ================= */
+.hero {
+  position: relative;
+  text-align: center;
+  padding-top: 56px;
+  padding-bottom: 40px;
+}
+
+.eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--mauve);
+}
+
+.hero-title {
+  font-family: var(--serif);
+  font-size: clamp(38px, 5.2vw, 58px);
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  margin: 16px 0 24px;
+}
+
+.hero-sub {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--body);
+}
+
+/* ---- Dropzone ---- */
+.drop-wrap {
+  position: relative;
+  max-width: 768px;
+  margin: 80px auto;
+}
+
+.dropzone {
+  position: relative;
+  z-index: 2;
+  border: 1.5px dashed #dcbccb;
+  border-radius: 16px;
+  background: rgba(255, 253, 251, 0.55);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+  padding: 56px 32px 44px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.dropzone.dragover {
+  border-color: var(--mauve);
+  background: rgba(240, 168, 144, 0.16);
+}
+
+.drop-icon {
+  width: 42px;
+  height: 42px;
+  color: var(--plum);
+}
+
+.drop-label {
+  font-size: 16px;
+  font-weight: 500;
+  margin-top: 16px;
+}
+
+.or {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 16px 0;
+  font-size: 12px;
+  color: var(--faint);
+}
+
+.or span {
+  width: 24px;
+  height: 1px;
+  background: var(--line);
+}
+
+.drop-note {
+  margin-top: 18px;
+  font-size: 12.5px;
+  color: var(--faint);
+}
+
+.drop-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-outline {
+  background: none;
+  border: 1.5px solid var(--mauve);
+  color: var(--plum);
+  border-radius: 10px;
+  padding: 10.5px 24px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-outline:hover { background: rgba(168, 96, 120, 0.1); border-color: var(--plum); }
+
+/* ================= Demo picker modal ================= */
+.demo-backdrop[hidden] { display: none; }
+
+.demo-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(46, 26, 43, 0.45);
+  backdrop-filter: blur(3px);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.demo-modal {
+  width: 100%;
+  max-width: 900px;
+  max-height: min(680px, 88vh);
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(46, 26, 43, 0.28);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.demo-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 26px;
+  border-bottom: 1px solid var(--line);
+  flex: 0 0 auto;
+}
+
+.demo-modal-head h3 {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.demo-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--muted);
+  position: relative;
+}
+.demo-close:hover { background: var(--line); color: var(--ink); }
+.demo-close::before, .demo-close::after {
+  content: ''; position: absolute; left: 50%; top: 50%; width: 14px; height: 1.5px;
+  background: currentColor;
+}
+.demo-close::before { transform: translate(-50%, -50%) rotate(45deg); }
+.demo-close::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+.demo-modal-body {
+  overflow-y: auto;
+  padding: 26px;
+  display: grid;
+  /* Two (or more, as demos grow) columns once there's room for a second
+     card at a readable width; one column below that — so with exactly two
+     demos, both are visible at a glance instead of the second needing a
+     scroll to even discover it exists. */
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  /* stretch (grid's default, stated explicitly): every card in a row
+     matches the row's tallest card, so two cards side by side always end
+     up the same height regardless of small content-length differences. */
+  align-items: stretch;
+  gap: 22px;
+}
+
+.demo-loading, .demo-error {
+  font-size: 13.5px;
+  color: var(--muted);
+  text-align: center;
+  padding: 24px 0;
+}
+
+.demo-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.demo-thumb {
+  display: block;
+  width: 100%;
+  /* A fixed height (not aspect-ratio, which grows with column width) keeps
+     this the same modest size in 1- or 2-column layouts — the dominant
+     element was eating most of a card's height budget. */
+  height: 168px;
+  object-fit: cover;
+  background: #0b0b0d;
+  border-radius: 11px 11px 0 0;
+}
+
+.demo-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 18px 20px 20px;
+}
+
+.demo-card-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.demo-title {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.demo-author { font-size: 12px; color: var(--muted); }
+
+.demo-license {
+  /* .demo-card-body is a flex column now (for the equal-card-height fix),
+     which blockifies + stretches direct children full-width by default
+     regardless of their own display — align-self opts this one out so
+     the badge stays content-sized instead of spanning the card. */
+  align-self: flex-start;
+  display: inline-block;
+  margin-top: 10px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(168, 96, 120, 0.12);
+  color: var(--mauve);
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.demo-license:hover { background: rgba(168, 96, 120, 0.2); }
+
+.demo-about {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--body);
+  /* Clamped (full text stays in the DOM/source) so a card's headline info
+     stays the dominant shape and every card fits inside the modal without
+     scrolling — the goal is "which of these do I want", not reading the
+     whole description here; the source link has the rest. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.demo-features {
+  /* margin-bottom matters here specifically: .demo-card-actions below
+     uses margin-top:auto to hug the card's bottom, which collapses to 0
+     (no gap at all above the divider line) whenever the card has no
+     surplus height to distribute — this guarantees a minimum gap either
+     way, auto or not. */
+  margin: 12px 0 18px;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--body);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.demo-card-actions {
+  /* Pushed to the bottom of the (now flex-column) card body regardless of
+     how much is above it, so the footer lines up across cards even when
+     one card's title/description happens to wrap differently. */
+  margin-top: auto;
+  padding-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.demo-links {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+}
+
+.demo-link-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: none;
+  min-width: 0; /* lets it shrink below content width, inside .demo-links */
+}
+.demo-link-line:hover { color: var(--plum-deep); }
+.demo-link-line span {
+  /* Ellipsis has to land on the text alone, not the icon+text box as a
+     unit — a flex container mixing a fixed-size <svg> with raw text
+     doesn't reliably truncate as one piece across browsers. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.demo-link-icon { width: 13px; height: 13px; flex: 0 0 13px; }
+
+.demo-load-btn {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 480px) {
+  .demo-backdrop { padding: 12px; }
+}
+
+/* ---- Hand-drawn notes ---- */
+.note {
+  font-family: var(--script);
+  font-size: 22px;
+  line-height: 1.25;
+  color: var(--hand);
+}
+
+.note-left {
+  position: absolute;
+  z-index: 3;
+  left: -100px;
+  top: 118px;
+  transform: rotate(-8deg);
+  text-align: left;
+}
+
+.note-left .heart-fill {
+  display: block;
+  width: 26px;
+  margin: 6px 0 0 66px;
+  color: var(--mauve);
+}
+
+.note-left .swash {
+  display: block;
+  width: 82px;
+  margin: 0 0 0 46px;
+  color: var(--doodle);
+}
+
+.fig-character {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  right: -250px;
+  width: 356px;
+}
+
+.fig-character > img,
+.mascot-base {
+  display: block;
+  width: 100%;
+}
+
+/* ---- Mascot compositing & animation ---- */
+.mascot {
+  position: relative;
+  transform: rotate(calc(var(--px, 0) * 1.2deg))
+             translate(calc(var(--px, 0) * 2px), calc(var(--py, 0) * 2px));
+  transform-origin: 50% 85%;
+  transition: transform 0.35s ease-out;
+}
+
+.mascot-inner {
+  transform-origin: 50% 80%;
+}
+
+.mascot-face {
+  position: absolute;
+  inset: 0;
+}
+
+.m-part { position: absolute; }
+
+.m-iris {
+  transform: translate(calc(var(--px, 0) * 13px), calc(var(--py, 0) * 9px));
+  transition: transform 0.35s ease-out;
+}
+
+.m-eye { width: 12.39%; height: auto; transition: opacity 0.25s ease; }
+.m-eye-l { left: 28.57%; top: 49.96%; }
+.m-eye-r { left: 54.77%; top: 53.21%; }
+
+.m-eye-happy { opacity: 0; transition: opacity 0.25s ease; }
+.m-eye-happy-l { left: 29.43%; top: 52.75%; width: 10.74%; }
+.m-eye-happy-r { left: 55.56%; top: 55.8%;  width: 10.96%; }
+
+.m-mouth {
+  left: 42.94%; top: 60.79%; width: 9.09%; height: auto;
+  transform-origin: 50% 26%;
+  opacity: 0;
+}
+
+.m-mouth-closed { left: 44.4%; top: 63.3%; width: 6%; }
+
+.m-blush {
+  opacity: 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(242, 132, 106, 0.9), rgba(242, 132, 106, 0));
+  filter: blur(7px);
+  transition: opacity 0.35s ease;
+}
+.m-blush-l { left: 23.4%; top: 58.9%; width: 11.5%; height: 11%; }
+.m-blush-r { left: 59.2%; top: 64.6%; width: 11.3%; height: 10.4%; }
+
+/* hover: happy eyes + coral blush appear, kawaii eyes step out */
+.drop-wrap:hover .m-eye        { opacity: 0; }
+.drop-wrap:hover .m-eye-happy  { opacity: 1; }
+.drop-wrap:hover .m-blush      { opacity: 1; }
+.drop-wrap:hover .m-mouth {
+  opacity: 1;
+  animation: giggle 2.4s ease-in-out infinite;
+}
+
+@keyframes giggle {
+  0%, 100% { transform: scale(var(--ms, 1), var(--ms, 1)); }
+  50%      { transform: scale(calc(var(--ms, 1) * 1.05), calc(var(--ms, 1) * 1.14)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot, .m-iris { transition: none; }
+  .m-eye, .m-mouth { animation: none !important; }
+  .m-mouth { opacity: 0 !important; }
+}
+
+.note-drop {
+  position: absolute;
+  z-index: 3;
+  top: -98px;
+  right: -96px;
+  transform: rotate(-4deg);
+  text-align: left;
+}
+
+.heart-drop {
+  position: absolute;
+  z-index: 3;
+  top: -52px;
+  right: -146px;
+  width: 26px;
+  transform: rotate(14deg);
+  color: var(--doodle);
+}
+
+.arrow { color: var(--doodle); }
+
+.arrow-down {
+  position: absolute;
+  z-index: 3;
+  top: -36px;
+  right: 16px;
+  width: 44px;
+}
+
+/* ================= Features ================= */
+.features {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  padding-bottom: 8px;
+}
+
+.feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 10px 30px;
+}
+
+.feature + .feature {
+  border-left: 1px solid var(--line);
+}
+
+.feature svg {
+  flex: none;
+  width: 27px;
+  height: 27px;
+  margin-top: 2px;
+  color: var(--plum);
+}
+
+.feature:nth-child(2) svg { color: var(--leaf); }
+.feature:nth-child(3) svg { color: var(--amber); }
+.feature:nth-child(4) svg { color: var(--mauve); }
+
+.feature h3 {
+  font-family: var(--serif);
+  font-size: 17.5px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.feature p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 180px;
+}
+
+/* ================= Code showcase ================= */
+.showcase {
+  position: relative;
+  z-index: 1;
+  padding-top: 52px;
+  padding-bottom: 84px;
+}
+
+.code-card {
+  position: relative;
+  max-width: 782px;
+  margin: 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  padding: 20px 26px 20px 22px;
+  overflow-x: auto;
+}
+
+.code-lang {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--faint);
+}
+
+.code-card pre {
+  font-family: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.75;
+  color: #334155;
+}
+
+.ln {
+  display: inline-block;
+  width: 20px;
+  text-align: right;
+  padding-right: 16px;
+  margin-right: 16px;
+  border-right: 1px solid #f2e6ec;
+  color: var(--faint);
+  user-select: none;
+}
+
+.k  { color: #b04060; }
+.s  { color: #5a68b8; }
+.g  { color: var(--leaf); }
+.pn { color: #4a3445; }
+
+.note-real {
+  position: absolute;
+  z-index: 2;
+  right: 48px;
+  top: 76px;
+  transform: rotate(-4deg);
+  text-align: left;
+}
+
+.note-real .arrow-left {
+  display: block;
+  width: 58px;
+  margin-top: 4px;
+}
+
+/* ================= Branch divider ================= */
+.branch {
+  position: relative;
+  z-index: 0;
+  display: block;
+  width: 760px;
+  max-width: 92%;
+  /* Was -120px: the branch's own bounding box (leaves included) reached low
+     enough to sit behind "Built for your agents" below it, and the eyebrow's
+     muted plum against a busy leaf illustration had nowhere near enough
+     contrast to stay legible there. Less overlap keeps the branch as a
+     visual divider without text landing on top of it. */
+  margin: -20px auto -45px;
+  pointer-events: none;
+}
+
+/* ================= CLI for agents ================= */
+.cli {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 60px;
+  align-items: center;
+  padding-bottom: 96px;
+}
+
+.eyebrow.left { text-align: left; }
+
+.cli-copy h2 {
+  font-family: var(--serif);
+  font-size: 34px;
+  font-weight: 500;
+  letter-spacing: -0.3px;
+  margin: 14px 0 16px;
+}
+
+.cli-copy p:last-child {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--muted);
+  max-width: 400px;
+}
+
+.terminal {
+  background: #2a1526;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 18px 40px -18px rgba(67, 33, 58, 0.5);
+}
+
+.term-bar {
+  display: flex;
+  gap: 7px;
+  padding: 13px 15px;
+}
+
+.term-bar span {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #4a2f44;
+}
+
+.term-bar span:nth-child(1) { background: var(--blush); }
+.term-bar span:nth-child(2) { background: var(--amber); }
+.term-bar span:nth-child(3) { background: var(--leaf); }
+
+.terminal pre {
+  padding: 2px 22px 24px;
+  font-family: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.85;
+  color: #d9c9d3;
+  overflow-x: auto;
+}
+
+.t-p  { color: var(--amber); }
+.t-o  { color: #b59cb0; }
+.t-ok { color: #8fb573; }
+
+/* ================= Footer ================= */
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding: 30px 0 40px;
+}
+
+.footer-inner {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #9c8290;
+}
+
+.footer-inner a {
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.footer-inner a:hover { color: var(--plum-deep); }
+
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--plum-deep);
+  text-decoration: none;
+}
+
+.footer-brand:hover { color: var(--plum-deep); }
+
+.footer-mark { width: 19px; height: 17px; }
+
+.foot-right {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.foot-src {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.foot-src svg { width: 14px; height: 14px; }
+
+.vline {
+  width: 1px;
+  height: 16px;
+  background: var(--line);
+}
+
+/* ================= Responsive ================= */
+@media (max-width: 1279px) {
+  .note-left, .fig-character, .note-real,
+  .note-drop, .heart-drop, .arrow-down { display: none; }
+}
+
+@media (max-width: 900px) {
+  .features { grid-template-columns: repeat(2, 1fr); row-gap: 28px; }
+  .feature + .feature { border-left: none; }
+  .feature:nth-child(even) { border-left: 1px solid var(--line); }
+  .hero-sub br { display: none; }
+  .cli { grid-template-columns: 1fr; gap: 28px; }
+  .cli-copy p:last-child { max-width: none; }
+}
+
+@media (max-width: 600px) {
+  .features { grid-template-columns: 1fr; }
+  .feature:nth-child(even) { border-left: none; }
+  .site-nav { gap: 16px; }
+  .nav-link { display: none; }
+  .footer-inner { flex-direction: column; align-items: flex-start; }
+}

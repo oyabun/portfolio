@@ -1,0 +1,20 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+# local test/example .fig files — never intended to be committed
+*.fig
+# generated previews
+preview.html
+preview.svg
+*.png
+*.json
+!package.json
+!package-lock.json
+# docs/ is the actual GitHub Pages site, not a generated preview
+!docs/**/*.png
+# docs/demos/ holds real, deliberately-committed sample .fig files (with
+# permission/license to redistribute) for the landing page's demo picker —
+# unlike every other *.fig, these are meant to ship.
+!docs/demos/*.fig
+!docs/demos/*.json

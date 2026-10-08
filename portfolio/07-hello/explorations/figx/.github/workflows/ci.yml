@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['18', '22']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm install
+      - run: npm test
+      - name: Sanity-check the CLI entry point parses
+        run: node --check src/cli/cli.js
+
+  docs-engine-in-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+      - name: Rebuild docs/libs/figx-engine.js and fail if it doesn't match what's committed
+        run: |
+          npm run build:docs-engine
+          git diff --exit-code docs/libs/figx-engine.js || {
+            echo "::error::docs/libs/figx-engine.js is stale — decode.js/render.js/tree.js/path.js/tokens.js changed without rebuilding it. Run 'npm run build:docs-engine' and commit the result.";
+            exit 1;
+          }

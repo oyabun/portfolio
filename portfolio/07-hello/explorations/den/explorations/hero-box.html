@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>den — inside-the-box hero explorer · v3 (glass + dispersion)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Zalando+Sans:wght@400;500;600;700;800&family=Geom:wght@400;500;700&family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Funnel+Sans:wght@400;500;600;700&family=Funnel+Display:wght@400;500;600;700;800&family=Special+Gothic:wght@400&family=Special+Gothic+Expanded+One:wght@400&family=Josefin+Sans:wght@400;500;600;700&family=Rubik:wght@400;500;600;700;800&family=Raleway:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=Work+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+  :root{
+    --ember:#FF7A18; --ember-soft:#FF9A3C;
+    --surface-0:#08080A; --text-hi:#F5F5F6; --text-lo:rgba(255,255,255,0.62);
+    --line:rgba(255,255,255,0.08);
+    /* type: swapped live by the pairing dropdown */
+    --font-head:'Figtree'; --font-head-weight:800; --font-head-spacing:-0.02em;
+    --font-body:'Figtree'; --font-body-weight:400;
+    --font-eyebrow-spacing:0.14em;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{font-family:var(--font-body),sans-serif;font-weight:var(--font-body-weight);
+    background:var(--surface-0);color:var(--text-hi);overflow:hidden;}
+
+  .hero{position:relative;width:100vw;height:100vh;}
+  .hero-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity 1.1s ease;}
+  .hero-canvas.lit{opacity:1;}
+
+  /* legibility scrim: dark at the bottom-left where copy sits */
+  .hero-scrim{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(120% 90% at 22% 78%, rgba(5,5,6,0.72) 0%, rgba(5,5,6,0.35) 40%, transparent 70%);}
+
+  .hero-copy{position:absolute;left:6vw;bottom:14vh;max-width:min(620px,86vw);z-index:2;}
+  .eyebrow{font-family:var(--font-body);display:inline-flex;align-items:center;gap:8px;font-size:13px;
+    letter-spacing:var(--font-eyebrow-spacing);text-transform:uppercase;color:var(--ember-soft);margin-bottom:20px;font-weight:600;}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--ember);box-shadow:0 0 12px var(--ember);}
+  h1{font-family:var(--font-head);font-size:clamp(38px,6vw,76px);line-height:1.02;
+    font-weight:var(--font-head-weight);letter-spacing:var(--font-head-spacing);}
+  h1 em{font-style:normal;color:var(--ember-soft);}
+  p.sub{font-family:var(--font-body);font-weight:var(--font-body-weight);
+    margin-top:22px;font-size:clamp(16px,1.5vw,20px);line-height:1.55;color:var(--text-lo);max-width:52ch;}
+
+  /* variant switcher */
+  .switch{position:absolute;top:24px;right:24px;z-index:5;display:flex;gap:8px;
+    background:rgba(12,12,16,0.6);backdrop-filter:blur(18px);border:1px solid var(--line);
+    padding:6px;border-radius:14px;}
+  .switch button{font-family:inherit;font-size:13px;font-weight:600;color:var(--text-lo);
+    background:transparent;border:0;padding:8px 14px;border-radius:9px;cursor:pointer;transition:.2s;letter-spacing:.01em;}
+  .switch button:hover{color:var(--text-hi);}
+  .switch button.active{color:#0b0503;background:linear-gradient(135deg,var(--ember-soft),var(--ember));}
+  .hint{position:absolute;top:70px;right:24px;z-index:5;font-size:12px;color:rgba(255,255,255,0.34);text-align:right;}
+
+  /* dispersion strength slider */
+  .disp{position:absolute;top:104px;right:24px;z-index:5;display:flex;align-items:center;gap:10px;
+    background:rgba(12,12,16,0.6);backdrop-filter:blur(18px);border:1px solid var(--line);
+    padding:9px 13px;border-radius:12px;}
+  .disp label{font-family:'Figtree',sans-serif;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+    color:rgba(255,255,255,0.42);font-weight:600;}
+  .disp input{accent-color:var(--ember);width:120px;}
+
+  /* font pairing dropdown (top-left) */
+  .fontpick{position:absolute;top:24px;left:24px;z-index:5;display:flex;flex-direction:column;gap:6px;
+    background:rgba(12,12,16,0.6);backdrop-filter:blur(18px);border:1px solid var(--line);
+    padding:12px 14px;border-radius:14px;min-width:230px;}
+  .fontpick label{font-family:'Figtree',sans-serif;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    color:rgba(255,255,255,0.4);font-weight:600;}
+  .fontpick select{font-family:'Figtree',sans-serif;font-size:14px;font-weight:600;color:var(--text-hi);
+    background:rgba(0,0,0,0.35);border:1px solid var(--line);border-radius:9px;padding:9px 11px;cursor:pointer;
+    appearance:none;-webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23FF9A3C' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 11px center;padding-right:30px;}
+  .fontpick select:focus{outline:none;border-color:var(--ember-soft);}
+  .fontpick select option{background:#121319;color:var(--text-hi);}
+  .fontpick .pairmeta{font-family:'Figtree',sans-serif;font-size:11px;color:rgba(255,255,255,0.42);line-height:1.4;}
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<section class="hero">
+  <canvas class="hero-canvas" id="c" aria-hidden="true"></canvas>
+  <div class="hero-scrim"></div>
+
+  <div class="fontpick">
+    <label for="pairing">Type pairing</label>
+    <select id="pairing"></select>
+    <div class="pairmeta" id="pairmeta"></div>
+  </div>
+
+  <div class="switch" id="switch">
+    <button data-v="0" class="active">Glass glow</button>
+    <button data-v="1">Grid walls</button>
+    <button data-v="2">Prism shafts</button>
+  </div>
+  <div class="hint">1 · 2 · 3 to switch · mouse to look · scroll to tilt · slider = dispersion</div>
+  <div class="disp">
+    <label for="dispersion">Dispersion</label>
+    <input id="dispersion" type="range" min="0" max="2" step="0.01" value="1">
+  </div>
+
+  <div class="hero-copy">
+    <span class="eyebrow"><span class="dot"></span>Isolated by design</span>
+    <h1>A box of your own for <em>every agent</em>.</h1>
+    <p class="sub">den drops each coding agent into its own sealed box. You look in from the inside; nothing looks back out.</p>
+  </div>
+</section>
+
+<script type="module">
+  import * as THREE from 'three';
+  import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+  import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+  import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+  import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+  import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+  const canvas = document.getElementById('c');
+  const hero   = document.querySelector('.hero');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let W = hero.clientWidth, H = hero.clientHeight;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, powerPreference:'high-performance' });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(W, H, false);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.06;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x050506);
+
+  // Camera lives INSIDE the box, near the centre, aimed at the far +++ corner.
+  const camera = new THREE.PerspectiveCamera(62, W/H, 0.1, 100);
+  const S = 5;                          // half-size of the box
+  const corner = new THREE.Vector3(S, S, S);
+  camera.position.set(-S*0.42, -S*0.30, -S*0.42);
+  camera.lookAt(corner);
+
+  // ── Glass inner-box shader ──────────────────────────────────────────────
+  // warm gradient into the corner + Fresnel glass sheen with a prismatic
+  // (chromatically-dispersed) rim. uDisp scales dispersion.
+  const uniforms = {
+    uTime:{value:0},
+    uVariant:{value:0},
+    uDisp:{value:1.0},
+    uCorner:{value:corner.clone()},
+    uHi:{value:new THREE.Color(0xffe0bc)},
+    uMid:{value:new THREE.Color(0xdd5a1c)},
+    uDark:{value:new THREE.Color(0x0a0503)},
+    uHalf:{value:S},
+  };
+
+  const boxMat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    uniforms,
+    vertexShader:/* glsl */`
+      varying vec3 vPos;
+      varying vec3 vN;
+      varying vec3 vWorld;
+      void main(){
+        vPos = position;
+        vN = normal;
+        vWorld = (modelMatrix * vec4(position,1.0)).xyz;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+      }
+    `,
+    fragmentShader:/* glsl */`
+      precision highp float;
+      varying vec3 vPos;
+      varying vec3 vN;
+      varying vec3 vWorld;
+      uniform float uTime, uHalf, uVariant, uDisp;
+      uniform vec3 uCorner, uHi, uMid, uDark;
+
+      vec3 ramp(float b){
+        return (b < 0.55)
+          ? mix(uDark, uMid, smoothstep(0.0, 0.55, b))
+          : mix(uMid, uHi, smoothstep(0.55, 1.2, b));
+      }
+
+      void main(){
+        vec3 p = vPos;
+        vec3 N = normalize(vN);
+        vec3 V = normalize(cameraPosition - vWorld);
+        float ndv = abs(dot(V, N));
+        float fres = pow(1.0 - ndv, 3.0);          // grazing-angle glass sheen
+
+        float dCorner = length(p - uCorner);
+        float maxD = length(vec3(2.0 * uHalf));
+        float t = 1.0 - clamp(dCorner / maxD, 0.0, 1.0);
+
+        float face = 0.5;
+        if (abs(vN.x) > 0.5) face = 0.62;
+        if (abs(vN.y) > 0.5) face = 1.00;
+        if (abs(vN.z) > 0.5) face = 0.44;
+
+        float glow = pow(t, 2.2);
+        float core = exp(-dCorner * 0.9);
+        float ex = length(p.yz - uCorner.yz);
+        float ey = length(p.xz - uCorner.xz);
+        float ez = length(p.xy - uCorner.xy);
+        float edge = min(ex, min(ey, ez));
+        float edgeGlow = exp(-edge * 1.5) * glow;
+
+        float b = face * (0.06 + 0.85 * glow) + 0.9 * core + 0.7 * edgeGlow;
+
+        if (uVariant > 0.5 && uVariant < 1.5){
+          vec2 g;
+          if (abs(vN.x) > 0.5) g = p.yz;
+          else if (abs(vN.y) > 0.5) g = p.xz;
+          else g = p.xy;
+          vec2 gl = abs(fract(g * 0.5) - 0.5);
+          float line = 1.0 - smoothstep(0.0, 0.06, min(gl.x, gl.y));
+          b += line * (0.10 + 0.9 * glow);
+        }
+        if (uVariant > 1.5){
+          float ang = atan(length(p.xy - uCorner.xy), (p.z - uCorner.z));
+          float shafts = 0.5 + 0.5 * sin(ang * 10.0 + uTime * 0.6 - dCorner * 0.8);
+          b += pow(shafts, 3.0) * glow * 0.9;
+        }
+
+        b *= 1.0 + 0.03 * sin(dCorner * 6.0 - uTime * 0.4);
+        b = clamp(b, 0.0, 1.5);
+
+        vec3 col = ramp(b);
+
+        // prismatic Fresnel rim: rainbow split scaled by dispersion
+        vec3 spec = 0.5 + 0.5 * cos(6.2831 * (fres * 1.15 + vec3(0.0, 0.33, 0.67)));
+        col += pow(fres, 2.4) * spec * (0.30 + 0.55 * glow) * (0.5 + 0.5 * uDisp);
+        // warm reflective sheen along the glass
+        col += fres * uMid * 0.16;
+
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `,
+  });
+
+  const box = new THREE.Mesh(new THREE.BoxGeometry(S*2, S*2, S*2), boxMat);
+  scene.add(box);
+
+  // ── Post: bloom + strong chromatic aberration + vignette/grain ──
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  const bloom = new UnrealBloomPass(new THREE.Vector2(W,H), 0.72, 0.72, 0.66);
+  composer.addPass(bloom);
+
+  const Grade = {
+    uniforms:{ tDiffuse:{value:null}, uTime:{value:0}, uRes:{value:new THREE.Vector2(W,H)}, uDisp:{value:1.0} },
+    vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
+    fragmentShader:/* glsl */`
+      varying vec2 vUv; uniform sampler2D tDiffuse; uniform float uTime, uDisp; uniform vec2 uRes;
+      void main(){
+        vec2 c = vUv - 0.5;
+        float d = dot(c, c);
+        // radial dispersion: grows toward the edges, scaled by the slider
+        vec2 off = c * (0.004 + d * 0.09) * uDisp;
+        // 6-tap spectral sampling for a smoother rainbow fringe
+        float r  = texture2D(tDiffuse, vUv - off).r;
+        float rg = texture2D(tDiffuse, vUv - off * 0.5).r;
+        float g  = texture2D(tDiffuse, vUv).g;
+        float bg = texture2D(tDiffuse, vUv + off * 0.5).b;
+        float b  = texture2D(tDiffuse, vUv + off).b;
+        vec3 col = vec3(r * 0.6 + rg * 0.4, g, b * 0.6 + bg * 0.4);
+        col *= smoothstep(1.32, 0.18, d * 1.7);      // vignette
+        float grain = fract(sin(dot(vUv * uRes + uTime, vec2(12.9898, 78.233))) * 43758.5453);
+        col += (grain - 0.5) * 0.014;
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `,
+  };
+  const grade = new ShaderPass(Grade);
+  composer.addPass(grade);
+  composer.addPass(new OutputPass());
+
+  // ── Look-around + tilt parallax ──
+  const target = {x:0,y:0}, ease = {x:0,y:0};
+  addEventListener('pointermove', e=>{
+    target.x = (e.clientX/innerWidth - 0.5)*2;
+    target.y = (e.clientY/innerHeight - 0.5)*2;
+  }, {passive:true});
+
+  let scrollT = 0, easeS = 0;
+  const clampS = v => Math.max(-1, Math.min(1, v));
+  addEventListener('wheel', e=>{ scrollT = clampS(scrollT + e.deltaY * 0.0011); }, {passive:true});
+  let touchY = null;
+  addEventListener('touchstart', e=>{ touchY = e.touches[0].clientY; }, {passive:true});
+  addEventListener('touchmove', e=>{
+    if(touchY===null) return;
+    const dy = touchY - e.touches[0].clientY; touchY = e.touches[0].clientY;
+    scrollT = clampS(scrollT + dy * 0.004);
+  }, {passive:true});
+
+  function resize(){
+    W = hero.clientWidth; H = hero.clientHeight;
+    renderer.setSize(W,H,false); composer.setSize(W,H); bloom.setSize(W,H);
+    camera.aspect = W/H; camera.updateProjectionMatrix();
+    grade.uniforms.uRes.value.set(W,H);
+  }
+  addEventListener('resize', resize, {passive:true});
+
+  // variant switcher
+  const btns = [...document.querySelectorAll('.switch button')];
+  function setVariant(v){
+    uniforms.uVariant.value = v;
+    btns.forEach(b=>b.classList.toggle('active', +b.dataset.v === v));
+  }
+  btns.forEach(b=>b.addEventListener('click', ()=>setVariant(+b.dataset.v)));
+  addEventListener('keydown', e=>{ if(['1','2','3'].includes(e.key)) setVariant(+e.key-1); });
+
+  // dispersion slider drives both the in-shader split and the post fringe
+  const dispEl = document.getElementById('dispersion');
+  dispEl.addEventListener('input', ()=>{
+    const v = +dispEl.value;
+    uniforms.uDisp.value = v;
+    grade.uniforms.uDisp.value = v;
+  });
+
+  // ── Type-pairing dropdown ──
+  const pairings = [
+    { name:'Syne × Zalando Sans',        head:'Syne',            hw:800, hs:'-0.02em', body:'Zalando Sans',  eb:'0.14em',
+      note:'Geometric display + clean grotesque. Artful, confident.' },
+    { name:'Funnel Display × Funnel Sans', head:'Funnel Display', hw:700, hs:'-0.015em', body:'Funnel Sans', eb:'0.14em',
+      note:'One superfamily. Cohesive, modern, low-risk.' },
+    { name:'Special Gothic Exp. × Space Mono', head:'Special Gothic Expanded One', hw:400, hs:'0em', body:'Space Mono', eb:'0.2em',
+      note:'Bold condensed + mono. Techy, editorial.' },
+    { name:'Geom × Funnel Sans',         head:'Geom',            hw:700, hs:'-0.02em', body:'Funnel Sans',   eb:'0.14em',
+      note:'Geometric sans, engineered feel.' },
+    { name:'Special Gothic × Zalando Sans', head:'Special Gothic', hw:400, hs:'-0.01em', body:'Zalando Sans', eb:'0.14em',
+      note:'Punchy display headline, neutral body.' },
+    { name:'Zalando Sans × Space Mono',  head:'Zalando Sans',    hw:800, hs:'-0.02em', body:'Space Mono',    eb:'0.16em',
+      note:'Grotesque headline, mono support text.' },
+    { name:'— Zalando Sans (solo)',      head:'Zalando Sans',    hw:800, hs:'-0.02em', body:'Zalando Sans',  eb:'0.14em', note:'' },
+    { name:'— Geom (solo)',              head:'Geom',            hw:700, hs:'-0.02em', body:'Geom',          eb:'0.14em', note:'' },
+    { name:'— Syne (solo)',              head:'Syne',            hw:800, hs:'-0.02em', body:'Syne',          eb:'0.14em', note:'' },
+    { name:'— Funnel Sans (solo)',       head:'Funnel Sans',     hw:700, hs:'-0.015em', body:'Funnel Sans',  eb:'0.14em', note:'' },
+    { name:'— Special Gothic (solo)',    head:'Special Gothic',  hw:400, hs:'-0.01em', body:'Special Gothic', eb:'0.14em', note:'' },
+    { name:'Bricolage Grotesque × Work Sans', head:'Bricolage Grotesque', hw:800, hs:'-0.02em', body:'Work Sans', eb:'0.14em',
+      note:'Characterful display grotesque + neutral workhorse. Editorial but grounded.' },
+    { name:'Sora × Rubik',               head:'Sora',            hw:700, hs:'-0.02em', body:'Rubik',         eb:'0.14em',
+      note:'Techy geometric headline + friendly rounded body.' },
+    { name:'Outfit × Work Sans',         head:'Outfit',          hw:700, hs:'-0.02em', body:'Work Sans',     eb:'0.14em',
+      note:'Clean geometric + humanist. Product-UI safe.' },
+    { name:'Raleway × Rubik',            head:'Raleway',         hw:700, hs:'-0.01em', body:'Rubik',         eb:'0.16em',
+      note:'Elegant thin-contrast display + solid body.' },
+    { name:'Josefin Sans × Work Sans',   head:'Josefin Sans',    hw:700, hs:'0.01em',  body:'Work Sans',     eb:'0.18em',
+      note:'Tall geometric art-deco headline, neutral body.' },
+    { name:'Bricolage Grotesque × Sora', head:'Bricolage Grotesque', hw:700, hs:'-0.02em', body:'Sora',      eb:'0.14em',
+      note:'Both a touch technical. Confident, engineered.' },
+    { name:'— Josefin Sans (solo)',      head:'Josefin Sans',    hw:700, hs:'0.01em',  body:'Josefin Sans',  eb:'0.16em', note:'' },
+    { name:'— Rubik (solo)',             head:'Rubik',           hw:800, hs:'-0.02em', body:'Rubik',         eb:'0.14em', note:'' },
+    { name:'— Raleway (solo)',           head:'Raleway',         hw:800, hs:'-0.01em', body:'Raleway',       eb:'0.14em', note:'' },
+    { name:'— Outfit (solo)',            head:'Outfit',          hw:800, hs:'-0.02em', body:'Outfit',        eb:'0.14em', note:'' },
+    { name:'— Bricolage Grotesque (solo)', head:'Bricolage Grotesque', hw:800, hs:'-0.02em', body:'Bricolage Grotesque', eb:'0.14em', note:'' },
+    { name:'— Sora (solo)',              head:'Sora',            hw:700, hs:'-0.02em', body:'Sora',          eb:'0.14em', note:'' },
+    { name:'— Work Sans (solo)',         head:'Work Sans',       hw:800, hs:'-0.02em', body:'Work Sans',     eb:'0.14em', note:'' },
+    { name:'— Figtree (current site)',   head:'Figtree',         hw:800, hs:'-0.02em', body:'Figtree',       eb:'0.14em', note:'What the live site uses today.' },
+  ];
+
+  const sel = document.getElementById('pairing');
+  const meta = document.getElementById('pairmeta');
+  pairings.forEach((p,i)=>{
+    const o = document.createElement('option');
+    o.value = i; o.textContent = p.name; sel.appendChild(o);
+  });
+  const root = document.documentElement.style;
+  function applyPairing(i){
+    const p = pairings[i];
+    root.setProperty('--font-head', `'${p.head}'`);
+    root.setProperty('--font-head-weight', p.hw);
+    root.setProperty('--font-head-spacing', p.hs);
+    root.setProperty('--font-body', `'${p.body}'`);
+    root.setProperty('--font-eyebrow-spacing', p.eb);
+    meta.textContent = p.note || '';
+  }
+  sel.addEventListener('change', ()=>applyPairing(+sel.value));
+  const defaultPairing = Math.max(0, pairings.findIndex(p=>p.name==='Sora × Rubik'));
+  sel.value = defaultPairing;
+  applyPairing(defaultPairing);
+
+  const clock = new THREE.Clock();
+  const lerp = (a,b,k)=>a+(b-a)*k;
+  const AZ0 = Math.PI * 1.25, EL0 = -0.42;
+  const camPos = new THREE.Vector3();
+
+  function tick(){
+    const t = clock.getElapsedTime();
+    uniforms.uTime.value = t;
+    grade.uniforms.uTime.value = t;
+
+    if(!reduceMotion){
+      ease.x += (target.x - ease.x)*0.05;
+      ease.y += (target.y - ease.y)*0.05;
+    }
+    easeS += (scrollT - easeS)*0.06;
+
+    const idle   = reduceMotion ? 0 : Math.sin(t*0.18)*0.04;
+    const az     = AZ0 + ease.x*0.32 + idle;
+    const el     = EL0 - ease.y*0.28 - easeS*0.85;
+    const dist   = S*0.6;
+    camera.fov   = 62;
+    camera.updateProjectionMatrix();
+
+    camPos.set(
+      Math.cos(el)*Math.cos(az)*dist,
+      Math.sin(el)*dist,
+      Math.cos(el)*Math.sin(az)*dist
+    );
+    camera.position.copy(camPos);
+
+    const look = corner.clone().multiplyScalar(0.9);
+    look.y += Math.sin(t*0.3)*0.12;
+    camera.lookAt(look);
+
+    composer.render();
+    requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(()=>{ resize(); composer.render(); canvas.classList.add('lit'); tick(); });
+</script>
+</body>
+</html>

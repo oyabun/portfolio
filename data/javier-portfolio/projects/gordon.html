@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gordon — Case study · Javier Alonso</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <div class="brand"><a href="../index.html">Javier Alonso<span>.</span></a></div>
+    <div class="navlinks">
+      <a class="back" href="../index.html">← All projects</a>
+      <button class="toggle" data-toggle-theme><span class="dot"></span><span class="lbl">Dark</span></button>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Case study · 0 → 1 · GA May 2026</div>
+    <h1>Gordon — Docker's AI agent</h1>
+    <p class="lead">Design lead from early interaction patterns through GA and monetization. Grew from a 69-user prototype to ~119,700 monthly active users on an interaction model, onboarding, and safety UX I owned.</p>
+    <div class="stats">
+      <div class="stat"><b data-count="119700" data-suffix="+">0</b><span>monthly active users (from 69)</span></div>
+      <div class="stat"><b data-count="4.3" data-suffix="M">0</b><span>requests / month (peak)</span></div>
+      <div class="stat"><b data-count="9" data-suffix="×">0</b><span>WAU jump (Docker, public)</span></div>
+      <div class="stat"><b>cagent</b><span>runs on Docker's OSS runtime</span></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="mock reveal">
+      <div class="cap"><b>Signature screen — Gordon in Docker Desktop with an approve/deny permission step</b><span class="pill">theme-aware SVG</span></div>
+      <svg viewBox="0 0 960 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gordon chat with permission dialog">
+        <rect x="0" y="0" width="960" height="460" rx="16" fill="var(--svg-window)"/>
+        <!-- app window -->
+        <rect x="24" y="24" width="912" height="412" rx="14" fill="var(--svg-bg)" stroke="var(--svg-line)"/>
+        <circle cx="48" cy="48" r="5" fill="var(--svg-danger)"/><circle cx="66" cy="48" r="5" fill="var(--svg-warn)"/><circle cx="84" cy="48" r="5" fill="var(--svg-good)"/>
+        <!-- sidebar -->
+        <rect x="24" y="70" width="150" height="366" fill="var(--svg-panel)"/>
+        <rect x="42" y="92" width="110" height="12" rx="6" fill="var(--svg-line)"/>
+        <rect x="42" y="118" width="90" height="10" rx="5" fill="var(--svg-line)"/>
+        <rect x="34" y="150" width="130" height="30" rx="8" fill="var(--svg-chip)"/>
+        <circle cx="52" cy="165" r="7" fill="var(--svg-accent)"/><text x="66" y="169" font-size="12" fill="var(--svg-accent)" font-weight="700">Gordon</text>
+        <rect x="42" y="196" width="100" height="10" rx="5" fill="var(--svg-line)"/>
+        <rect x="42" y="220" width="112" height="10" rx="5" fill="var(--svg-line)"/>
+        <!-- chat area -->
+        <text x="196" y="100" font-size="15" font-weight="800" fill="var(--svg-text)">Ask Gordon</text>
+        <rect x="196" y="118" width="470" height="46" rx="10" fill="var(--svg-panel)"/>
+        <text x="212" y="138" font-size="12" fill="var(--svg-subtle)">Why did my container exit with code 137?</text>
+        <text x="212" y="156" font-size="11" fill="var(--svg-subtle)">you</text>
+        <rect x="196" y="176" width="560" height="120" rx="10" fill="var(--svg-bg)" stroke="var(--svg-line)"/>
+        <text x="212" y="200" font-size="12" fill="var(--svg-text)">It was OOM-killed. Memory limit is 256MB but the</text>
+        <text x="212" y="218" font-size="12" fill="var(--svg-text)">node process peaks near 480MB. I can raise the limit</text>
+        <text x="212" y="236" font-size="12" fill="var(--svg-text)">and restart the service for you.</text>
+        <rect x="212" y="252" width="150" height="30" rx="8" fill="var(--svg-accent)"/><text x="236" y="272" font-size="12" fill="#fff" font-weight="700">Apply fix</text>
+        <!-- permission dialog -->
+        <rect x="620" y="200" width="292" height="196" rx="12" fill="var(--svg-bg)" stroke="var(--svg-accent)" stroke-width="1.5"/>
+        <rect x="620" y="200" width="292" height="40" rx="12" fill="var(--svg-chip)"/>
+        <text x="640" y="225" font-size="13" font-weight="800" fill="var(--svg-accent)">Gordon wants to run a command</text>
+        <rect x="640" y="256" width="252" height="60" rx="8" fill="#0b1220"/>
+        <text x="654" y="280" font-family="monospace" font-size="11" fill="#8affc1">$ docker update --memory 512m</text>
+        <text x="654" y="300" font-family="monospace" font-size="11" fill="#cfe0ff">$ docker restart api</text>
+        <g font-size="11"><rect x="640" y="326" width="80" height="18" rx="6" fill="var(--svg-warn)" opacity=".25"/><text x="650" y="339" fill="var(--svg-warn)">cautious</text></g>
+        <rect x="640" y="356" width="120" height="28" rx="8" fill="var(--svg-good)"/><text x="668" y="375" font-size="12" fill="#fff" font-weight="700">Approve</text>
+        <rect x="772" y="356" width="120" height="28" rx="8" fill="var(--svg-panel)" stroke="var(--svg-line)"/><text x="800" y="375" font-size="12" fill="var(--svg-text)">Deny</text>
+      </svg>
+    </div>
+
+    <div class="mock reveal" style="background:color-mix(in srgb,var(--blue) 6%,var(--card))">
+      <div class="cap"><b>Origin — the FGPT hackathon (2023)</b><span class="pill">where Gordon began</span></div>
+      <p style="color:var(--muted);font-size:15.5px;padding:4px 4px 2px">Gordon traces back to <b>FGPT — "Fellowship of the GPT"</b>, a Docker internal hackathon project Javier designed in the <b>first half of 2023</b> (referenced as completed by Aug 2023). FGPT prototyped an AI assistant inside Docker Desktop — an "Ask our assistant for help" panel that turned plain English ("Stop all the containers", "Pull latest NGINX for x86") into Docker commands to <b>review or run</b>, with an <b>"✦ Assistant"</b> entry point in the toolbar. Its sibling concepts (Docker Ask, Docker WTF) already used Gordon's core trick — sending container/image/volume context to reduce hallucinations. It's the earliest UX ancestor of Ask Gordon.</p>
+      <p style="font-size:15.5px;padding:2px 4px 4px;color:var(--ink)"><b>It didn't win the hackathon — but it was early and right.</b> The overlap with today's Gordon is unmistakable: an in-Desktop assistant entry point → the Gordon sidebar; natural language → Docker commands; a "View command / Run" step → Gordon's approve/deny permission model; and environment context to reduce hallucinations. Javier prototyped the pattern in 2023; that pattern is what Gordon became — now ~119,700 MAU. Conviction ahead of the curve.</p>
+    </div>
+
+    <div class="two" style="margin-top:34px">
+      <div>
+        <div class="sec-head"><div class="kicker">The problem</div><h2>An agent that acts — safely</h2></div>
+        <p style="color:var(--muted);font-size:16px">Docker needed an AI assistant embedded where developers already work (Desktop + CLI), without letting an agent take unsafe actions on their machine. A 0→1 bet: no established pattern, no users. The design challenge was trust — making "let the agent act" feel safe enough to ship.</p>
+      </div>
+      <div>
+        <div class="sec-head"><div class="kicker">My role</div><h2>End-to-end design lead</h2></div>
+        <p style="color:var(--muted);font-size:16px">Interaction model, onboarding, permission/safety UX, billing &amp; GA flows, support integration, and the feedback research pipeline (Qualtrics → Slack). Partnered with the AI-agent engineering team, PM, and design leadership. Authored the "Ask Gordon Continuous Research Plan."</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:color-mix(in srgb,var(--blue) 6%,var(--bg))">
+  <div class="wrap">
+    <div class="sec-head"><div class="kicker">Who it serves</div><h2>Personas</h2></div>
+    <div class="cards">
+      <div class="card"><div class="em">🧑‍💻</div><h4>Ana — AI-curious dev</h4><p>Wants help in-context without leaving Docker.</p></div>
+      <div class="card"><div class="em">🛡️</div><h4>Marco — platform/DevOps</h4><p>Needs the agent to never act destructively unapproved.</p></div>
+      <div class="card"><div class="em">🏢</div><h4>Dana — enterprise admin</h4><p>Needs clear plans, pricing, and cost visibility.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="two">
+      <div class="uc">
+        <div class="sec-head"><div class="kicker">Jobs to be done</div><h2>Use cases designed</h2></div>
+        <ul>
+          <li>Ask about containers/images/compose without leaving Docker (embedded in global search &amp; tabs)</li>
+          <li>Let the agent act — but approve every destructive step (danger tiers + allow/deny dialog + CLI hook)</li>
+          <li>Understand cost, plans, and token usage (budget views, billing portal)</li>
+          <li>Get started without docs (onboarding, login nudge, plan mode)</li>
+          <li>Report failures via an in-product feedback loop I built</li>
+        </ul>
+      </div>
+      <div>
+        <div class="sec-head"><div class="kicker">Process &amp; delivery</div><h2>How it shipped</h2></div>
+        <p style="color:var(--muted);font-size:16px">Research-led and iterative: stood up a continuous feedback loop, explored many variants (free/blocked states, JIT nudges), and shipped the selected directions. Delivered the interaction model, onboarding, the safety UX (reused as the reference pattern for other agent dialogs), budget/token views, Gordon-in-Support, and the billing/GA flows — beta in Desktop 4.38, GA with 4.74 (May 2026), shipped again in 4.80.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--ink-2)">
+  <div class="wrap">
+    <div class="sec-head"><div class="kicker" style="color:#7ea8ff">Impact</div><h2 style="color:#fff">The numbers moved</h2></div>
+    <div class="metrics" style="color:#fff">
+      <div class="metric"><b style="color:#fff">69 → 119.7K</b><span style="color:#9db9f0">monthly active users (Nov 24 → Jun 26)</span></div>
+      <div class="metric"><b style="color:#fff">~193K → 4.3M</b><span style="color:#9db9f0">requests / month</span></div>
+      <div class="metric"><b style="color:#fff">9×</b><span style="color:#9db9f0">weekly active users (Docker, public)</span></div>
+      <div class="metric"><b style="color:#fff">~$260</b><span style="color:#9db9f0">MRR shortly after monetization</span></div>
+    </div>
+    <p style="color:#c9d6f0;margin-top:14px;max-width:760px">Docker's own blog describes the permission model exactly as designed: <em>"Gordon shows you what it wants to do, you approve or reject, then it executes."</em> — the safety UX became the product's headline trust feature.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div><a href="../index.html">← Back to all projects</a></div>
+    <div>Sources: Docker Sigma (L3_GORDON__DAILY_USAGE); Docker blog (Meet Gordon GA; Gordon update). Metrics approximate, Jul 2026. Impact deltas are correlations tied to releases led.</div>
+  </div>
+</footer>
+<script src="../assets/theme.js"></script>
+</body>
+</html>

@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>VCR Deck Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@700;900&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  // Apply a saved theme before first paint; otherwise CSS follows the OS.
+  try { var th = localStorage.getItem('vcr-ds-theme'); document.documentElement.setAttribute('data-theme', th === 'light' ? 'light' : 'dark');   /* dark unless you chose light */ } catch (e) {}
+</script>
+<link rel="stylesheet" href="../css/studio.css">
+<link rel="stylesheet" href="../css/dropdown.css">
+<link rel="stylesheet" href="../css/shelf.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- ───────────── Top bar ───────────── -->
+  <header class="topbar">
+    <a class="brand" href="../player.html" aria-label="Back to the player"><span class="mk" aria-hidden="true"><i class="sp"></i><i class="st"></i></span>vcr<span class="brand-sub">DECK STUDIO</span></a>
+    <div class="tape-label">
+      <span class="tape-title" id="tapeTitle">—</span>
+      <span class="tape-meta" id="tapeMeta"></span>
+    </div>
+    <div class="seg mode-seg" role="radiogroup" aria-label="Layout">
+      <button class="seg-btn" data-mode="studio" role="radio" data-tip="The studio: monitor, inspector, timeline" data-kbd="B">Studio</button>
+      <button class="seg-btn" data-mode="book" role="radio" data-tip="The session as a book: read it as it plays" data-kbd="B">Book</button>
+    </div>
+    <button class="mini-key" id="btnBay" aria-pressed="true" data-tip="Show / hide the tape bay" data-kbd="P" aria-label="Show or hide the tape bay">
+      <svg viewBox="0 0 20 20"><rect x="2.5" y="4.5" width="15" height="11" rx="2"/><circle cx="7" cy="9" r="1.8"/><circle cx="13" cy="9" r="1.8"/><path d="M6 15.5l1-2.5h6l1 2.5"/></svg>
+    </button>
+    <button class="mini-key" id="btnCustom" aria-pressed="false" data-tip="Customize layout" data-kbd="C" aria-label="Customize layout">
+      <svg viewBox="0 0 20 20"><path d="M4 5h7M15 5h1M4 10h2M10 10h6M4 15h9M17 15h-1"/><circle cx="13" cy="5" r="1.8"/><circle cx="8" cy="10" r="1.8"/><circle cx="15" cy="15" r="1.8"/></svg>
+    </button>
+    <button class="mini-key" id="btnHelp" data-tip="Keyboard shortcuts" data-kbd="?" aria-label="Keyboard shortcuts">?</button>
+    <button class="mini-key theme-key" id="btnTheme" data-tip="Toggle theme" data-kbd="T" aria-label="Toggle theme">
+      <svg class="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
+      <svg class="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+    </button>
+  </header>
+
+  <!-- ───────────── Book: the session as a document that follows the playhead (book.js) ───────────── -->
+  <div class="book" id="book" hidden></div>
+
+  <!-- ───────────── Workspace ───────────── -->
+  <main class="workspace" id="workspace">
+
+    <!-- Centre: program monitor (the Deck screen) -->
+    <section class="panel monitor" id="monitorPanel">
+      <div class="panel-head">
+        <span class="mon-label">Program</span>
+        <span class="badge" id="monBadge">—</span>
+        <span class="grow"></span>
+        <div class="view-menu" id="viewMenu">
+          <button class="view-btn" id="viewBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="viewPop" data-tip="Program view" data-kbd="V">
+            <span class="view-lbl">VIEW</span><b id="viewName">Transcript</b><i class="caret" aria-hidden="true"></i>
+          </button>
+          <div class="view-pop" id="viewPop" role="menu" aria-label="Program view" hidden>
+            <button role="menuitemradio" data-view="transcript"><b>Transcript</b><small>Every event as a list that follows the playhead</small></button>
+            <button role="menuitemradio" data-view="event"><b>Event</b><small>One event at a time, on the screen</small></button>
+            <button role="menuitemradio" data-view="clips"><b>Session clips</b><small>Every event as a clip, grouped by kind</small></button>
+            <button role="menuitemradio" data-view="report"><b>Report</b><small>Tools, slow calls, errors, URLs, files, cost</small></button>
+          </div>
+        </div>
+        <button class="nano-key" id="monPrev" data-tip="Previous event" data-kbd="←" aria-label="Previous event">‹</button>
+        <span class="dot mon-idx" id="monIndex">—</span>
+        <button class="nano-key" id="monNext" data-tip="Next event" data-kbd="→" aria-label="Next event">›</button>
+      </div>
+      <div class="bin-tools">
+        <label class="search">
+          <svg viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.5"/><path d="M13 13l4 4"/></svg>
+          <input id="search" type="search" placeholder="Filter events…" autocomplete="off" spellcheck="false">
+        </label>
+        <button class="tog-key" id="btnFollowList" aria-pressed="true" data-tip="The list follows the playhead"><i class="led"></i>FOLLOW</button>
+        <span class="count" id="binCount"></span>
+        <div class="chips" id="chips" role="group" aria-label="Filter by event type"></div>
+      </div>
+      <div class="panel-body scroll" id="transcript" tabindex="-1"></div>
+      <div class="panel-body scroll" id="mediaBin"></div>
+      <div class="panel-body scroll report" id="report"></div>
+      <!-- shown when the list has left the playhead (you scrolled away, or pinned another event): one click goes back -->
+      <button class="bk-return to-ph" id="toPlayhead" hidden><span>Return to the playhead</span><b class="dot" id="toPlayheadT">00:00</b></button>
+      <div class="screen" id="stage">
+        <div class="burn tl dot"><span class="rec"></span><span id="burnState">PAUSED</span></div>
+        <div class="burn tr dot" id="burnTC">00:00:00:00</div>
+        <div class="stage-inner" id="monContent"></div>
+        <div class="lower-third" id="lowerThird" title="Current event: start → end, and how far through it the playhead is"></div>
+        <div class="osd dot" id="osd" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <div class="splitter v" data-split="right" aria-hidden="true"></div>
+
+    <!-- Right: the tape bay (bay.js) above the inspector / scopes -->
+    <div class="rcol" id="rcol">
+    <section class="panel bay" id="bayPanel" aria-label="Tape bay">
+      <div class="bay-stage" id="bayStage">
+        <canvas id="bayCv" aria-label="The tape in 3D. Its reels follow the playhead; drag to turn it."></canvas>
+        <div class="bay-flat mshelf" id="bayFlat" aria-hidden="true"></div>
+      </div>
+      <div class="bay-bar">
+        <span class="bay-lab">TAPE</span>
+        <span class="dot bay-pos" id="bayPos">00:00</span>
+        <span class="grow"></span>
+        <button class="nano-key bay-hide" id="bayHide" data-tip="Hide the tape bay" data-kbd="P" aria-label="Hide the tape bay"><svg viewBox="0 0 20 20"><path d="M5 12.5 10 7.5l5 5"/></svg></button>
+        <button class="tog-key" id="bayEject" data-tip="Eject the tape" data-kbd="E"><svg viewBox="0 0 20 20"><path d="M10 4.5 4.5 11h11z" fill="currentColor" stroke="none"/><path d="M4.5 14.5h11"/></svg>EJECT</button>
+      </div>
+    </section>
+    <section class="panel inspector" id="inspPanel">
+      <div class="panel-head">
+        <div class="seg" role="tablist">
+          <button class="seg-btn on" data-insptab="inspector" role="tab">Inspector</button>
+          <button class="seg-btn" data-insptab="scopes" role="tab">Scopes</button>
+        </div>
+        <span class="grow"></span>
+        <button class="pin-state" id="pinState" data-tip="Showing the event at the playhead" disabled>Following</button>
+      </div>
+      <div class="panel-body scroll" id="inspector"></div>
+      <div class="panel-body scroll hidden" id="scopes">
+        <div class="scope-card">
+          <div class="scope-title">Spend <span class="dim" id="burnRate"></span></div>
+          <div class="big-num dot"><span id="scCost">$0.00</span><span class="of">/ <span id="scCostTotal">$0.00</span></span></div>
+          <div class="meter"><i id="scCostBar"></i></div>
+          <div class="chart-screen"><span class="chart-lab">Cumulative spend over the session</span><canvas id="costChart" class="chart"></canvas></div>
+        </div>
+        <div class="scope-card">
+          <div class="scope-title">Tokens <span class="dim">so far / total</span></div>
+          <div id="scTokens"></div>
+        </div>
+        <div class="scope-card">
+          <div class="scope-title">Context window <span class="dim">at the last response</span></div>
+          <div class="big-num dot"><span id="scCtx">0</span><span class="of">tokens</span></div>
+          <div class="meter ctx"><i id="scCtxBar"></i></div>
+        </div>
+        <div class="scope-card">
+          <div class="scope-title">Tool time <span class="dim">calls · wall time · errors</span></div>
+          <div id="scTools"></div>
+        </div>
+      </div>
+    </section>
+    </div>
+  </main>
+
+  <div class="splitter h" data-split="timeline" aria-hidden="true"></div>
+
+  <!-- ───────────── Transport (Deck keys) ───────────── -->
+  <section class="transport" id="transport">
+   <div class="tp">
+    <div class="lcd" title="Playhead timecode (hours:minutes:seconds:frames) and progress through the session">
+      <div class="tc dot" id="tc"><span>00</span>:<span>00</span>:<span>00</span>:<span>00</span></div>
+      <div class="lcd-foot">
+        <span class="lcd-prog"><i id="lcdProg"></i></span>
+        <span class="shuttle dot" id="shuttleInd"></span>
+        <span class="lcd-tot dot" id="lcdTot"></span>
+      </div>
+    </div>
+
+    <span class="t-sep" aria-hidden="true"></span>
+
+    <div class="keys">
+      <button class="key k-sm" id="btnStart" data-tip="Go to start" data-kbd="Home" aria-label="Go to start"><svg viewBox="0 0 24 24"><path d="M5 5h2.5v14H5zM19 5.5v13L9 12z"/></svg></button>
+      <button class="key k-rew" id="btnPrev" data-tip="Previous event · hold to rewind" data-kbd="←" aria-label="Previous event, hold to rewind"><svg viewBox="0 0 24 24"><path d="M11 6 3 12l8 6V6zm10 0-8 6 8 6V6z"/></svg></button>
+      <button class="key k-play" id="btnPlay" data-tip="Play / pause" data-kbd="Space" aria-label="Play">
+        <svg class="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg>
+        <svg class="i-pause" viewBox="0 0 24 24"><path d="M6 4.5h4.5v15H6zM13.5 4.5H18v15h-4.5z"/></svg>
+      </button>
+      <button class="key k-ff" id="btnNext" data-tip="Next event · hold to fast-forward" data-kbd="→" aria-label="Next event, hold to fast-forward"><svg viewBox="0 0 24 24"><path d="M13 6l8 6-8 6V6zM3 6l8 6-8 6V6z"/></svg></button>
+      <button class="key k-sm" id="btnEnd" data-tip="Go to end" data-kbd="End" aria-label="Go to end"><svg viewBox="0 0 24 24"><path d="M16.5 5H19v14h-2.5zM5 5.5v13L15 12z"/></svg></button>
+    </div>
+
+    <span class="t-sep" aria-hidden="true"></span>
+
+    <div class="loop-mod" id="loopMod" role="group" aria-label="Loop">
+      <div class="loop-head"><span>Loop</span><span class="dot" id="loopLen">—</span></div>
+      <div class="loop-row">
+        <button class="tog-key mark" id="btnIn" data-tip="Mark loop in at the playhead" data-kbd="I"><b>IN</b><span class="dot" id="inTC">--:--:--</span></button>
+        <button class="tog-key mark" id="btnOut" data-tip="Mark loop out at the playhead" data-kbd="O"><b>OUT</b><span class="dot" id="outTC">--:--:--</span></button>
+        <!-- one key for the loop: lit while IN and OUT make one (they turn it on), and a click clears it -->
+        <button class="tog-key loop-x" id="btnClearMarks" aria-pressed="false" data-tip="Loop between IN and OUT · click to clear" data-kbd="X" aria-label="Loop: clear the IN and OUT marks" disabled><i class="led"></i>LOOP<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9"/></svg></button>
+      </div>
+    </div>
+
+    <span class="t-sep" aria-hidden="true"></span>
+
+    <!-- speed: − [10× ▾] + | SKIP IDLE, the same control as the book's (app.js builds it: speedControl) -->
+    <div class="speed" id="speedMount"></div>
+
+    <div class="gauges" role="group" aria-label="Live totals at the playhead">
+      <div class="gauge g-cost" data-tip="Money spent up to the playhead"><span class="g-lab">Spent<span class="g-sub" id="gCostSub"></span></span><span class="odo dot" id="gCost"></span><span class="g-bar"><i id="gCostBar"></i></span></div>
+      <div class="gauge g-in" data-tip="Input tokens read so far (fresh + cache read + cache write)"><span class="g-lab">In<span class="g-sub" id="gInSub"></span></span><span class="odo dot" id="gIn"></span><span class="g-bar"><i id="gInBar"></i></span></div>
+      <div class="gauge g-out" data-tip="Output tokens generated so far"><span class="g-lab">Out<span class="g-sub" id="gOutSub"></span></span><span class="odo dot" id="gOut"></span><span class="g-bar"><i id="gOutBar"></i></span></div>
+      <div class="gauge g-err" data-tip="Tool errors so far"><span class="g-lab">Errors<span class="g-sub" id="gErrSub"></span></span><span class="odo dot" id="gErr"></span><span class="g-bar"><i id="gErrBar"></i></span></div>
+    </div>
+   </div>
+  </section>
+
+  <!-- ───────────── Timeline ───────────── -->
+  <section class="timeline" id="timeline">
+    <div class="tl-toolbar">
+      <span class="tl-name">Timeline</span>
+      <span class="dot tl-info" id="tlInfo"></span>
+      <span class="grow"></span>
+      <button class="tog-key" id="btnTlShow" aria-pressed="false" data-tip="Choose what the timeline shows">SHOW ▾</button>
+      <button class="tog-key" id="btnSnap" aria-pressed="true" data-tip="Snap scrubbing to event edges" data-kbd="N"><i class="led"></i>SNAP</button>
+      <button class="tog-key" id="btnFollow" aria-pressed="true" data-tip="Timeline pages with the playhead" data-kbd="F"><i class="led"></i>FOLLOW</button>
+      <span class="vr"></span>
+      <button class="nano-key" id="btnZoomOut" data-tip="Zoom out" data-kbd="−" aria-label="Zoom out">−</button>
+      <input type="range" class="zoom" id="zoom" min="0" max="1000" value="0" aria-label="Timeline zoom">
+      <button class="nano-key" id="btnZoomIn" data-tip="Zoom in" data-kbd="+" aria-label="Zoom in">+</button>
+      <button class="tog-key" id="btnFit" data-tip="Zoom to fit the whole session" data-kbd="Z">FIT</button>
+    </div>
+    <div class="tape-row" id="tapeRow">
+      <div class="side-lab">
+        <b>Tape</b><small>drag · it coasts</small>
+        <span class="tape-zoom">
+          <button class="nano-key" id="tapeZoomOut" aria-label="Zoom tape out" data-tip="Tape zoom out">−</button>
+          <span class="dot" id="tapeZoomLab">10px/s</span>
+          <button class="nano-key" id="tapeZoomIn" aria-label="Zoom tape in" data-tip="Tape zoom in">+</button>
+        </span>
+      </div>
+      <div class="tape-wrap" id="tapeWrap">
+        <canvas id="tape" role="slider" tabindex="0" aria-label="Tape scrubber: drag, or arrow keys" aria-valuemin="0"></canvas>
+        <div class="playhead" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="tl-overview">
+      <div class="side-lab"><b>Overview</b><small>whole session</small></div>
+      <div class="ov-wrap" id="ovWrap"><canvas id="ovCanvas"></canvas></div>
+    </div>
+    <div class="tl-body">
+      <div class="tl-heads" id="tlHeads">
+        <div class="tl-heads-ruler dot" id="tlHeadsTC">00:00:00:00</div>
+        <div class="tl-heads-inner" id="tlHeadsInner"></div>
+      </div>
+      <div class="tl-wrap" id="tlWrap"><canvas id="tlCanvas"></canvas></div>
+    </div>
+  </section>
+</div>
+
+<div class="tip" id="tip" role="tooltip"></div>
+<div class="cliptip" id="clipTip"></div>
+
+<div class="help" id="help" hidden>
+  <div class="help-card" role="dialog" aria-label="Keyboard shortcuts">
+    <div class="help-head"><b>KEYS</b><button class="mini-key" id="helpClose" aria-label="Close">✕</button></div>
+    <div class="help-grid" id="helpGrid"></div>
+    <p class="help-foot">Hold ◀◀ / ▶▶ to shuttle. Drag the tape: it coasts when you let go. Change speed with − / + or the list between them; SKIP IDLE jumps over the silences.</p>
+  </div>
+</div>
+
+<div class="pop" id="custom" hidden role="dialog" aria-label="Customize layout">
+  <div class="pop-head"><b>CUSTOMIZE</b><button class="tog-key" id="customReset" data-tip="Default views, panels and sizes">RESET</button></div>
+  <div class="pop-sec">
+    <div class="pop-h">Panels</div>
+    <label class="opt"><input type="checkbox" data-opt="bay"> Tape bay</label>
+    <label class="opt"><input type="checkbox" data-opt="right"> Inspector / Scopes</label>
+    <label class="opt"><input type="checkbox" data-opt="gauges"> Gauges</label>
+    <label class="opt"><input type="checkbox" data-opt="overlays"> Event screen overlays</label>
+  </div>
+  <div class="pop-sec price-sec" id="priceSec">
+    <div class="pop-h">Pricing <span class="price-src" id="priceSrc"></span></div>
+    <div class="price-model dot" id="priceModel"></div>
+    <div class="price-grid">
+      <label>Input<input type="number" min="0" step="0.01" data-rate="in"></label>
+      <label>Output<input type="number" min="0" step="0.01" data-rate="out"></label>
+      <label>Cache read<input type="number" min="0" step="0.01" data-rate="cr"></label>
+      <label>Cache write<input type="number" min="0" step="0.01" data-rate="cw"></label>
+    </div>
+    <p class="price-note">$ per million tokens. Spend is worked out from these.</p>
+    <div class="price-keys">
+      <button class="tog-key" id="priceApply" disabled>APPLY</button>
+      <button class="tog-key" id="priceFetch" data-tip="Fetch current prices from LiteLLM’s public price list">FETCH LATEST</button>
+      <button class="tog-key" id="priceReset" data-tip="Back to the built-in list prices">RESET</button>
+    </div>
+    <p class="price-msg" id="priceMsg" role="status" hidden></p>
+  </div>
+</div>
+
+<div class="pop tl-pop" id="tlShow" hidden role="dialog" aria-label="Timeline display">
+  <div class="pop-head"><b>SHOW IN TIMELINE</b></div>
+  <div class="pop-sec">
+    <label class="opt"><input type="checkbox" data-opt="overview"> Overview strip</label>
+    <label class="opt"><input type="checkbox" data-opt="tokens"> Tokens track</label>
+    <label class="opt"><input type="checkbox" data-opt="tape"> Tape scrubber</label>
+  </div>
+</div>
+
+<script src="../js/shared/sample-tape.js"></script>
+<script src="../js/shared/parse-tape.js"></script>
+<script src="../js/shared/dropdown.js"></script>
+<script src="../js/shared/demo-tapes.js"></script>
+<script src="../vendor/three.min.js"></script>
+<script src="../js/cartridge/cart3d.js"></script>
+<script src="../js/shared/tape-report.js"></script>
+<script src="../js/studio/report.js"></script>
+<!-- picks the tape (?demo=, an ejected-to tape, or the sample), then loads app.js, book.js and bay.js;
+     with no tape, the empty deck and its drive (drive.js) -->
+<script src="../js/studio/drive.js"></script>
+<script src="../js/studio/eject.js"></script>
+</body>
+</html>

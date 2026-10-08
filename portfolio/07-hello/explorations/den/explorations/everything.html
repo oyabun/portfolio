@@ -1,0 +1,307 @@
+<!doctype html>
+<!--
+  "Everything in the den" bento — moved out of index4.html (2026-07-13).
+
+  This is the full-capability grid that used to sit below the three product
+  sections (Sandboxes / Network / Full YOLO). It was removed from the main
+  landing because it restated those same three pillars; the pillars now carry
+  the story with their own enlarged screenshots. This page keeps the bento
+  standalone so it can be linked as an "everything" / features page or dropped
+  back into index4.html later.
+
+  The markup is verbatim; the matching CSS is copied below. It reuses index4's
+  resources/ folder, so preview it from the repo root.
+
+  To restore into index4.html: paste the <section class="bento-sec"> back in
+  and, if the styles were pruned there, the bento CSS block too.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>den — everything in the den</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,50;1,9..144,300..700,50&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF7ED;
+    --bg-alt:#F3ECDA;
+    --card:#F0E8D4;
+    --ink:#2B2013;
+    --ink-soft:rgba(43,32,19,.72);
+    --ink-faint:rgba(43,32,19,.5);
+    --bark:#4C331C;
+    --umber:#241A0F;
+    --dusk:#D69760;
+    --fox:#C0702E;
+    --fox-deep:#AD6226;
+    --moss:#6F6E3E;
+    --moss-deep:#4E4E2B;
+    --hairline:rgba(43,32,19,.13);
+    --hairline-2:rgba(43,32,19,.08);
+    --mono:'IBM Plex Mono', ui-monospace, monospace;
+    --serif:'Fraunces', serif;
+    --sans:'Instrument Sans', system-ui, sans-serif;
+    --shadow-sm:0 2px 8px -4px rgba(36,26,15,.25);
+    --shadow-md:0 18px 40px -26px rgba(36,26,15,.4);
+    --shadow-lg:0 40px 90px -50px rgba(36,26,15,.6);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:var(--sans);font-size:16.5px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+  a{color:inherit;}
+  ::selection{background:var(--fox);color:var(--bg);}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 28px;}
+  .eyebrow{
+    font-family:var(--mono);font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--fox);display:inline-flex;align-items:center;gap:9px;
+  }
+  .eyebrow::before{content:"";width:16px;height:1px;background:var(--fox);opacity:.6;}
+
+  /* thin back bar so the parked page is navigable */
+  .backbar{border-bottom:1px solid var(--hairline);}
+  .backbar .wrap{display:flex;align-items:center;justify-content:space-between;padding-top:18px;padding-bottom:18px;}
+  .backbar a{font-family:var(--mono);font-size:13px;text-decoration:none;color:var(--ink);
+    display:inline-flex;align-items:center;gap:8px;opacity:.8;transition:opacity .2s;}
+  .backbar a:hover{opacity:1;}
+  .backbar .tag{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);}
+
+  .prod-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:52px;flex-wrap:wrap;}
+  .prod-head .eyebrow{display:inline-flex;margin-bottom:16px;}
+  .prod-head h2{
+    font-family:var(--serif);font-weight:420;font-variation-settings:"SOFT" 50;
+    font-size:clamp(28px,3.4vw,42px);line-height:1.06;letter-spacing:-.016em;max-width:16ch;
+  }
+  .prod-head .sub{margin-top:16px;color:var(--ink-soft);font-size:15.5px;max-width:44ch;line-height:1.6;}
+  .explore{
+    font-family:var(--mono);font-size:13px;text-decoration:none;color:var(--ink);
+    border:1px solid var(--hairline);border-radius:999px;padding:10px 18px;white-space:nowrap;
+    transition:background .2s, border-color .2s;display:inline-flex;align-items:center;gap:7px;
+  }
+  .explore:hover{background:var(--card);border-color:rgba(43,32,19,.22);}
+  .explore .arw{transition:transform .2s;}
+  .explore:hover .arw{transform:translateX(3px);}
+
+  /* ---------- bento capabilities ---------- */
+  .bento-sec{padding:96px 0 120px;}
+  .bento-sec .prod-head{margin-bottom:46px;}
+  .bento{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    grid-auto-rows:minmax(184px,auto);gap:18px;
+  }
+  .tile{
+    position:relative;overflow:hidden;border-radius:22px;
+    padding:28px 26px;border:1px solid var(--hairline);
+    background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(240,232,212,.25));
+    display:flex;flex-direction:column;
+    transition:transform .25s cubic-bezier(.2,.7,.2,1), box-shadow .25s, border-color .25s;
+  }
+  .tile:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);border-color:rgba(43,32,19,.2);}
+  .tile .ico{
+    width:44px;height:44px;border-radius:13px;margin-bottom:18px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(120% 120% at 30% 20%, #FBF3E2, #EBDFC4);
+    border:1px solid var(--hairline);box-shadow:var(--shadow-sm);
+  }
+  .tile h3{font-family:var(--serif);font-weight:500;font-variation-settings:"SOFT" 50;
+    font-size:22px;letter-spacing:-.012em;line-height:1.14;margin-bottom:10px;}
+  .tile p{font-size:14px;color:var(--ink-soft);line-height:1.58;}
+
+  /* spans mirror the index.html bento rhythm */
+  .t-a{grid-column:span 2;grid-row:span 2;justify-content:space-between;}
+  .t-b{grid-column:span 2;}
+  .t-e{grid-column:span 2;}
+  .t-f{grid-column:span 2;}
+  .t-g{grid-column:span 4;}
+
+  /* fox-lit centrepiece */
+  .t-a{
+    color:#F7EEDC;
+    background:
+      radial-gradient(120% 90% at 12% 0%, rgba(214,151,96,.42) 0%, transparent 52%),
+      linear-gradient(165deg,#7A4420 0%,#3A2411 100%);
+    border-color:rgba(214,151,96,.34);
+  }
+  .t-a h3{font-size:30px;color:#FBF3E2;}
+  .t-a p{color:rgba(247,238,220,.78);font-size:15px;}
+  .t-a .ico{background:rgba(214,151,96,.2);border-color:rgba(214,151,96,.4);box-shadow:none;}
+  .t-a-mock{margin-top:24px;}
+  .t-a-mock .ui{max-width:none;box-shadow:0 24px 50px -30px rgba(0,0,0,.6);}
+
+  /* pillar illustrations carried into the bento */
+  .tile-art{
+    position:relative;overflow:hidden;border-radius:14px;height:210px;flex-shrink:0;
+    border:1px solid var(--hairline);
+  }
+  .tile-art img{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    transform:scale(var(--z,1));transform-origin:var(--zo,center);
+    transition:transform .3s cubic-bezier(.2,.7,.2,1);
+  }
+  .tile:hover .tile-art img{transform:scale(calc(var(--z,1) + .04));}
+  .t-a .tile-art{flex:1;height:auto;min-height:210px;margin-top:24px;border:none;--zo:center 42%;}
+  .t-a .tile-art img{object-fit:contain;filter:drop-shadow(0 22px 30px rgba(0,0,0,.4));}
+  .t-c .tile-art{margin-top:auto;padding-top:18px;height:158px;border:none;}
+  .t-c .tile-art img{object-fit:contain;filter:drop-shadow(0 14px 18px rgba(36,26,15,.22));}
+
+  /* agent-logo cluster */
+  .blogos{display:grid;grid-template-columns:repeat(3,1fr);gap:22px 8px;margin-top:auto;padding-top:18px;}
+  .blogo{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;color:var(--ink);}
+  .blogo svg{height:27px;width:auto;fill:currentColor;opacity:.7;transition:opacity .2s, transform .2s;}
+  .blogo:hover svg{opacity:1;transform:translateY(-2px);}
+  .blogo span{font-family:var(--mono);font-size:12px;color:var(--ink-faint);letter-spacing:-.01em;}
+
+  /* git full-width tile */
+  .t-g{flex-direction:row;align-items:center;gap:30px;}
+  .t-g .ico{margin-bottom:0;}
+  .t-g .g-copy{max-width:600px;}
+  .t-g .g-copy h3{margin-bottom:8px;}
+  .g-chips{margin-left:auto;display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;max-width:360px;}
+  .g-chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;
+    color:var(--ink);background:rgba(43,32,19,.04);border:1px solid var(--hairline);
+    border-radius:999px;padding:6px 12px;white-space:nowrap;}
+  .g-add{color:var(--moss-deep);} .g-del{color:#B0502A;}
+
+  /* ---------- reveal ---------- */
+  .reveal{opacity:0;transform:translateY(20px);transition:opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1);}
+  .reveal.in{opacity:1;transform:none;}
+  .stagger > *{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1);}
+  .stagger.in > *{opacity:1;transform:none;}
+  .stagger.in > *:nth-child(2){transition-delay:.08s;}
+  .stagger.in > *:nth-child(3){transition-delay:.16s;}
+  .stagger.in > *:nth-child(4){transition-delay:.24s;}
+  .stagger.in > *:nth-child(5){transition-delay:.32s;}
+  .stagger.in > *:nth-child(6){transition-delay:.4s;}
+
+  @media (prefers-reduced-motion: reduce){
+    .reveal,.stagger > *{opacity:1;transform:none;}
+    html{scroll-behavior:auto;}
+  }
+  @media (max-width:920px){
+    .bento{grid-template-columns:1fr 1fr;}
+    .t-a,.t-b,.t-e,.t-f,.t-g{grid-column:span 2;}
+    .t-a{grid-row:auto;}
+    .t-g{flex-direction:column;align-items:flex-start;gap:22px;}
+    .t-g .g-chips{margin-left:0;justify-content:flex-start;max-width:none;}
+  }
+  @media (max-width:560px){
+    .bento{grid-template-columns:1fr;}
+    .t-a,.t-b,.t-e,.t-f,.t-g{grid-column:span 1;}
+    .blogos{grid-template-columns:repeat(3,1fr);}
+  }
+</style>
+</head>
+<body>
+
+<div class="backbar">
+  <div class="wrap">
+    <a href="index4.html"><span class="arw">&larr;</span> Back to den</a>
+    <span class="tag">[ EVERYTHING_IN_THE_DEN ]</span>
+  </div>
+</div>
+
+<!-- ============ BENTO: EVERYTHING IN THE DEN ============ -->
+<section class="bento-sec" id="everything">
+  <div class="wrap">
+    <div class="prod-head reveal">
+      <div>
+        <span class="eyebrow">Everything in the den</span>
+        <h2>One burrow, fully equipped</h2>
+        <p class="sub">Every comfort an agent needs to work alone, and every guardrail that keeps it from reaching your machine.</p>
+      </div>
+      <a class="explore" href="#">Download <span class="arw">→</span></a>
+    </div>
+
+    <div class="bento stagger">
+
+      <!-- Centrepiece: full YOLO -->
+      <div class="tile t-a">
+        <div>
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F7EEDC" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg></div>
+          <h3>No more babysitting</h3>
+          <p>Flip off the guardrails and stop approving every step. The agent installs, runs and rewrites anything it likes, sealed in a burrow it can't leave. A wrong move never reaches your machine.</p>
+        </div>
+        <div class="tile-art">
+          <img src="../resources/pad.png" alt="Retro keyboard keys labelled Allow once, Allow always and Reject." loading="lazy">
+        </div>
+      </div>
+
+      <!-- Every agent -->
+      <div class="tile t-b">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4C331C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div>
+        <h3>Every agent moves in</h3>
+        <p>Full agent TUIs over a real PTY. Bring the one you already use.</p>
+        <div class="blogos">
+          <div class="blogo"><svg viewBox="12 15 40 28"><path d="M34.8926 16L45.2953 42.0924H51L40.5973 16H34.8926Z"/><path d="M22.824 31.7672L26.3835 22.5976L29.943 31.7672H22.824ZM23.4011 16L13 42.0924H18.8157L20.9429 36.6129H31.8245L33.9513 42.0924H39.767L29.3659 16H23.4011Z"/></svg><span>Claude Code</span></div>
+          <div class="blogo"><svg viewBox="30 30 40 40"><path d="m65.6261 46.7346c.8277-2.4514.5427-5.1369-.781-7.3667-1.9907-3.42-5.9926-5.1796-9.9009-4.3515-1.7388-1.9328-4.2368-3.032-6.8557-3.0162-3.995-.009-7.5397 2.529-8.7688 6.2799-2.5664.5186-4.7817 2.1037-6.0781 4.3504-2.0055 3.4111-1.5483 7.7109 1.131 10.636-.8277 2.4514-.5427 5.1369.781 7.3667 1.9907 3.42 5.9926 5.1796 9.901 4.3515 1.7376 1.9328 4.2367 3.032 6.8556 3.0151 3.9974.0101 7.5432-2.5302 8.7723-6.2844 2.5664-.5186 4.7817-2.1038 6.078-4.3504 2.0033-3.4111 1.5449-7.7076-1.1333-10.6326zm-13.7136 18.9128c-1.5996.0022-3.149-.5501-4.377-1.5615.0559-.0293.1528-.0822.2155-.1204l7.265-4.1401c.3717-.2081.5997-.5985.5974-1.0204v-10.1061l3.0704 1.7494c.0331.0158.0547.0473.0593.0833v8.369c-.0046 3.7216-3.059 6.7389-6.8306 6.7468zm-14.6895-6.191c-.8015-1.3658-1.09-2.9667-.8152-4.5204.0536.0315.1482.0889.2155.1272l7.2649 4.14c.3683.2127.8244.2127 1.1938 0l8.8691-5.0536v3.4989c.0023.036-.0148.0708-.0433.0933l-7.3437 4.184c-3.271 1.8585-7.4485.7538-9.34-2.4694zm-1.912-15.648c.7981-1.368 2.0579-2.4143 3.5584-2.9577 0 .0619-.0035.171-.0035.2475v8.2813c-.0022.4208.2258.8112.5963 1.0193l8.8692 5.0525-3.0704 1.7494c-.0308.0203-.0696.0236-.1038.009l-7.3448-4.1873c-3.2642-1.8653-4.3838-5.9863-2.5026-9.2129zm25.2267 5.7928-8.8692-5.0536 3.0704-1.7483c.0308-.0203.0696-.0237.1038-.009l7.3447 4.1839c3.27 1.8642 4.3907 5.9919 2.5015 9.2185-.7992 1.3658-2.0579 2.412-3.5572 2.9565v-8.5288c.0034-.4207-.2235-.81-.5929-1.0192zm3.0555-4.5384c-.0536-.0326-.1482-.0889-.2155-.1271l-7.2649-4.1401c-.3683-.2126-.8243-.2126-1.1937 0l-8.8692 5.0536v-3.4988c-.0022-.036.0149-.0709.0434-.0934l7.3436-4.1806c3.271-1.8619 7.4531-.7537 9.3389 2.4751.7969 1.3635 1.0854 2.9599.8152 4.5113zm-19.2124 6.236-3.0716-1.7494c-.033-.0157-.0547-.0472-.0592-.0832v-8.3691c.0022-3.7261 3.0658-6.7456 6.8419-6.7434 1.5974 0 3.1434.5535 4.3713 1.5616-.0559.0292-.1516.0821-.2155.1203l-7.2649 4.1401c-.3717.2081-.5997.5974-.5975 1.0193l-.0045 10.1016zm1.668-3.5483 3.9506-2.2512 3.9506 2.2501v4.5012l-3.9506 2.25-3.9506-2.25z"/></svg><span>Codex</span></div>
+          <div class="blogo"><svg viewBox="32 32 36 36"><path d="m48.56 60.9807c.96 2.19 1.44 4.53 1.44 7.02 0-2.49.465-4.83 1.395-7.02.96-2.19 2.25-4.095 3.87-5.715s3.525-2.895 5.715-3.825c2.19-.96 4.53-1.44 7.02-1.44-2.49 0-4.83-.465-7.02-1.395-2.1315-.919-4.0704-2.232-5.715-3.87-1.638-1.6446-2.951-3.5835-3.87-5.715-.93-2.19-1.395-4.53-1.395-7.02 0 2.49-.48 4.83-1.44 7.02-.93 2.19-2.205 4.095-3.825 5.715-1.6446 1.638-3.5835 2.951-5.715 3.87-2.19.93-4.53 1.395-7.02 1.395 2.49 0 4.83.48 7.02 1.44 2.19.93 4.095 2.205 5.715 3.825s2.895 3.525 3.825 5.715z"/></svg><span>Gemini CLI</span></div>
+          <div class="blogo"><svg viewBox="34 32 32 36"><path d="m57.2 60.2007h-14.4v-13.6h14.4z"/><path d="m57.2 39.8007h-14.4v20.4h14.4zm7.2 27.2h-28.8v-34h28.8z"/></svg><span>OpenCode</span></div>
+          <div class="blogo"><svg viewBox="34 32 32 36"><path d="m64.4023 41.0481-13.6917-7.8583c-.4396-.2524-.9821-.2524-1.4218 0l-13.691 7.8583c-.3696.2121-.5977.6045-.5977 1.0294v15.8463c0 .4249.2281.8173.5977 1.0294l13.6917 7.8583c.4396.2524.9821.2524 1.4218 0l13.6916-7.8583c.3696-.2121.5978-.6045.5978-1.0294v-15.8463c0-.4249-.2282-.8173-.5978-1.0294zm-.86 1.6646-13.2173 22.7582c-.0894.1534-.3253.0907-.3253-.0869v-14.9019c0-.2977-.16-.5731-.4197-.7227l-12.9814-7.4506c-.1542-.0888-.0912-.3233.0874-.3233h26.4346c.3754 0 .61.4045.4223.7278h-.0006z"/></svg><span>Cursor</span></div>
+          <div class="blogo"><svg viewBox="32 32 36 35"><path d="m64.6269 65.828c2.0099 1.5075 5.0248.5025 2.2611-2.2611-8.2908-8.0397-6.5322-30.1486-16.8329-30.1486-10.3008 0-8.5422 22.1089-16.833 30.1486-3.0149 3.0148.2512 3.7686 2.2611 2.2611 7.7884-5.276 7.2859-14.5718 14.5719-14.5718 7.2859 0 6.7834 9.2958 14.5718 14.5718z"/></svg><span>Antigravity</span></div>
+        </div>
+      </div>
+
+      <!-- Isolated -->
+      <div class="tile t-c">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 26 26" fill="none"><path d="M13 3C7.5 3 3 7.6 3 13.3 3 18 6.6 22 13 22.5c6.4-.5 10-4.5 10-9.2C23 7.6 18.5 3 13 3Z" stroke="#4C331C" stroke-width="1.7"/><circle cx="13" cy="15" r="4" fill="#C0702E"/></svg></div>
+        <h3>A burrow apiece</h3>
+        <p>Each den is its own microVM: filesystem, Docker daemon and kernel. Your host stays untouched.</p>
+        <div class="tile-art">
+          <img src="../resources/computer.png" alt="A retro personal computer showing the den logo, a machine of its own." loading="lazy">
+        </div>
+      </div>
+
+      <!-- Network -->
+      <div class="tile t-d">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4C331C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></svg></div>
+        <h3>A guarded doorway</h3>
+        <p>Name the domains that may pass. Everything else is turned away at the door, and logged.</p>
+      </div>
+
+      <!-- Ephemeral -->
+      <div class="tile t-e">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4C331C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/><path d="M3 9l9 5 9-5"/></svg></div>
+        <h3>Ephemeral, and yours to shape</h3>
+        <p>Dig a fresh den in seconds, then layer in your own tools, credentials and policy with kits and mixins. Collapse it when the work is done.</p>
+      </div>
+
+      <!-- Fleet -->
+      <div class="tile t-f">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4C331C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></div>
+        <h3>Watch the whole warren</h3>
+        <p>Every den, its agent, status and uptime on one quiet map. Run a whole fleet at once without losing track.</p>
+      </div>
+
+      <!-- Git -->
+      <div class="tile t-g">
+        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4C331C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></div>
+        <div class="g-copy">
+          <h3>A branch per den</h3>
+          <p>Clone-isolate your repo and the agent commits freely on its own branch, your working tree untouched. Review the full diff and merge back when it's ready.</p>
+        </div>
+        <div class="g-chips">
+          <span class="g-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>feat/oauth-pkce</span>
+          <span class="g-chip">--clone</span>
+          <span class="g-chip"><span class="g-add">+312</span> <span class="g-del">−87</span></span>
+          <span class="g-chip">Review &amp; merge</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<script>
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+  }), {threshold:.14});
+  document.querySelectorAll('.reveal, .stagger').forEach(el => io.observe(el));
+</script>
+</body>
+</html>

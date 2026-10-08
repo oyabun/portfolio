@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TUIStudio — Design Terminal UIs. Visually.</title>
+  <meta name="description" content="A Figma-like visual editor for TUI applications. Drag-and-drop components, edit properties in real-time, and export to 6 frameworks with one click." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet" />
+  <link rel="icon" href="assets/favicon_white.svg" media="(prefers-color-scheme: light)" />
+  <link rel="icon" href="assets/favicon_dark.svg" media="(prefers-color-scheme: dark)" />
+  <link rel="icon" href="assets/favicon_dark.svg" />
+  <link rel="stylesheet" href="neon-glass.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #13151f;
+      --bg-mid:    #0e1018;
+      --bg-card:   #1a1d2a;
+      --border:    rgba(255,255,255,0.06);
+      --border-hi: rgba(74,222,128,0.40);
+      --green:     #4ade80;
+      --green-dim: #4a8a58;
+      --green-mid: #7dd99a;
+      --text-hi:   #eaeef6;
+      --text-mid:  #a0aab8;
+      --text-dim:  #6b7585;
+      --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+      --font-vt:   'VT323', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: #13151f;
+      color: var(--text-mid);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.7;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* dot-grid canvas background */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: radial-gradient(circle, rgba(140,155,200,0.22) 1px, transparent 1px);
+      background-size: 24px 24px;
+      pointer-events: none;
+    }
+
+    /* CRT scanline overlay */
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background: repeating-linear-gradient(0deg,
+        transparent, transparent 3px,
+        rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 6px
+      );
+      pointer-events: none;
+    }
+
+    /* ── Helpers ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 32px; position: relative; z-index: 1; }
+    .eyebrow {
+      font-family: var(--font-vt);
+      font-size: 16px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--green-dim);
+      margin-bottom: 16px;
+    }
+    .eyebrow::before { content: '// '; }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ══════════════════════════════════════════
+       NAV
+    ══════════════════════════════════════════ */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      height: 58px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px;
+      background: rgba(13,15,24,0.90);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo img { height: 24px; filter: drop-shadow(0 0 6px rgba(74,222,128,0.3)); }
+    .alpha-tag {
+      font-family: var(--font-vt);
+      font-size: 13px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--green-mid);
+      background: rgba(74,222,128,0.08);
+      border: 1px solid rgba(74,222,128,0.35);
+      padding: 2px 7px 0;
+      line-height: 1.6;
+    }
+    .hero-glass {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column;
+      align-items: center;
+      gap: 0;
+      padding: 36px 48px 40px;
+      background: rgba(19,21,31,0.04);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.06),
+        0 0 0 1px rgba(255,255,255,0.03),
+        0 0 40px rgba(74,222,128,0.06),
+        0 24px 64px rgba(0,0,0,0.60);
+    }
+    .hero-computer {
+      width: 100%;
+      max-width: 280px;
+      height: auto;
+      display: block;
+    }
+
+    .nav-links {
+      display: flex; align-items: center; gap: 24px;
+    }
+    .nav-link {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text-mid);
+      transition: color 0.15s;
+    }
+    .nav-link:hover { color: var(--text-hi); }
+
+    /* Apple logo glyph */
+    .apple-logo {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 1.1em;
+      line-height: 1;
+      vertical-align: middle;
+      margin-right: 2px;
+    }
+    .apple-logo::before { content: '\F8FF'; }
+
+    .win-logo {
+      font-size: 1em;
+      line-height: 1;
+      vertical-align: middle;
+      margin-right: 3px;
+      opacity: 0.9;
+    }
+
+    /* ── OS selector ── */
+    .os-selector {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 3px;
+      background: rgba(14, 16, 24, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 8px;
+    }
+    .os-tab {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 13px;
+      border-radius: 5px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.07em;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s, border-color 0.15s, box-shadow 0.15s;
+      white-space: nowrap;
+      line-height: 1;
+      user-select: none;
+    }
+    .os-tab:hover:not(.active) {
+      color: var(--text-mid);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .os-tab.active {
+      color: var(--green);
+      background: rgba(74, 222, 128, 0.08);
+      border-color: rgba(74, 222, 128, 0.22);
+      box-shadow: 0 0 10px rgba(74, 222, 128, 0.12), inset 0 1px 0 rgba(74, 222, 128, 0.08);
+    }
+    .os-tab[data-os="docker"].active {
+      color: #38bdf8;
+      background: rgba(36, 150, 237, 0.08);
+      border-color: rgba(36, 150, 237, 0.25);
+      box-shadow: 0 0 10px rgba(36, 150, 237, 0.15), inset 0 1px 0 rgba(36, 150, 237, 0.08);
+    }
+
+    /* small button variant */
+    .ng-platform--sm {
+      padding: 2px 2px 8px;
+      border-radius: 7px;
+    }
+    .ng-btn--sm {
+      font-size: 14px;
+      padding: 6px 18px 4px;
+      border-radius: 5px;
+    }
+
+    /* primary platform — subtle green border glow on nav */
+    .ng-platform--primary {
+      border-color: rgba(74,222,128,0.40);
+      box-shadow:
+        inset 0 2px 6px rgba(0,0,0,0.70),
+        inset 0 0  2px rgba(0,0,0,0.40),
+        0 0 12px rgba(74,222,128,0.20),
+        0 0 24px rgba(74,222,128,0.10);
+    }
+
+    /* ══════════════════════════════════════════
+       HERO
+    ══════════════════════════════════════════ */
+    .hero {
+      min-height: calc(100vh - 58px);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 80px 32px 64px;
+      position: relative; z-index: 1;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 5px 14px 4px;
+      border: 1px solid rgba(255,255,255,0.70);
+      background: rgba(10,12,20,0.72);
+      font-family: var(--font-vt);
+      font-size: 15px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #ffffff;
+      margin-bottom: 36px;
+    }
+    .hero-badge-dot {
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 6px rgba(74,222,128,0.8);
+      animation: blink-dot 1.8s ease-in-out infinite;
+    }
+    @keyframes blink-dot {
+      0%, 100% { opacity: 1; } 50% { opacity: 0.2; }
+    }
+
+    .whats-new-badge {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 14px 3px;
+      border: 1px solid rgba(74,222,128,0.25);
+      background: rgba(74,222,128,0.05);
+      font-family: var(--font-vt);
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      color: var(--text-mid);
+      margin-bottom: 20px;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+      border-radius: 3px;
+      max-width: 100%;
+    }
+    .whats-new-badge:hover {
+      border-color: rgba(74,222,128,0.45);
+      background: rgba(74,222,128,0.09);
+    }
+    .whats-new-ver { color: var(--green); }
+    .whats-new-sep { color: var(--text-dim); }
+    .whats-new-change {
+      color: var(--text-mid);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 300px;
+    }
+    .whats-new-arrow { color: var(--green-dim); margin-left: 2px; }
+
+    .hero h1 {
+      font-family: var(--font-vt);
+      font-size: 32px;
+      line-height: 1.0;
+      color: var(--text-hi);
+      letter-spacing: 0.02em;
+      margin-bottom: 28px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--green);
+      text-shadow: 0 0 30px rgba(74,222,128,0.5), 0 0 60px rgba(74,222,128,0.2);
+    }
+    .cursor {
+      display: inline-block;
+      width: 0.55em; height: 0.85em;
+      background: var(--green);
+      vertical-align: baseline;
+      margin-left: 4px;
+      animation: blink-cursor 1s steps(1) infinite;
+      box-shadow: 0 0 12px rgba(74,222,128,0.8);
+    }
+    @keyframes blink-cursor { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+
+    .hero-sub {
+      max-width: 560px;
+      font-family: var(--font-mono);
+      font-size: 15px;
+      color: var(--text-mid);
+      line-height: 1.8;
+      margin: 0 auto 48px;
+    }
+
+    .hero-ctas {
+      display: flex; align-items: center; gap: 24px; flex-wrap: wrap; justify-content: center;
+    }
+    .hero-cta-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-vt);
+      font-size: 20px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--green-dim);
+      padding: 8px 4px;
+      border-bottom: 1px solid var(--border);
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .hero-cta-ghost:hover { color: var(--green-mid); border-color: var(--border-hi); }
+    .hero-cta-ghost svg { width: 16px; height: 16px; }
+
+    /* ══════════════════════════════════════════
+       EDITOR WINDOW
+    ══════════════════════════════════════════ */
+    .editor-section {
+      padding: 0 32px 100px;
+      position: relative; z-index: 1;
+    }
+
+    .editor-window {
+      max-width: 980px;
+      margin: 0 auto;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04),
+        0 0 60px rgba(74,222,128,0.08),
+        0 32px 80px rgba(0,0,0,0.8);
+    }
+
+    .editor-chrome {
+      height: 36px;
+      background: rgba(10,12,18,0.99);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      display: flex; align-items: center;
+      padding: 0 14px;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .chrome-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+    }
+    .chrome-dot--red    { background: #ff5f57; }
+    .chrome-dot--yellow { background: #febc2e; }
+    .chrome-dot--green  { background: #28c840; }
+    .chrome-title {
+      flex: 1; text-align: center;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: rgba(180,190,210,0.25);
+      letter-spacing: 0.1em;
+    }
+
+    .editor-video {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: var(--bg-mid);
+    }
+
+    /* ══════════════════════════════════════════
+       SECTION SHARED
+    ══════════════════════════════════════════ */
+    section {
+      padding: 100px 0;
+      position: relative; z-index: 1;
+    }
+    section .container > .eyebrow { margin-bottom: 12px; }
+    .section-heading {
+      font-family: var(--font-vt);
+      font-size: clamp(36px, 5vw, 56px);
+      color: var(--text-hi);
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      font-size: 14px;
+      color: var(--text-dim);
+      max-width: 480px;
+      margin-bottom: 60px;
+    }
+
+    /* ══════════════════════════════════════════
+       FEATURES
+    ══════════════════════════════════════════ */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      padding: 32px 28px;
+      transition: background 0.2s;
+    }
+    .feature-card:hover { background: #1e2130; }
+
+    .feature-icon {
+      font-family: var(--font-vt);
+      font-size: 32px;
+      color: var(--green);
+      line-height: 1;
+      margin-bottom: 18px;
+      display: block;
+      text-shadow: 0 0 12px rgba(74,222,128,0.5);
+    }
+
+    .feature-title {
+      font-family: var(--font-vt);
+      font-size: 22px;
+      color: var(--text-hi);
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+
+    .feature-desc {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: var(--text-mid);
+      line-height: 1.75;
+    }
+
+    /* ══════════════════════════════════════════
+       SCREENSHOTS STRIP
+    ══════════════════════════════════════════ */
+    .screenshots-section {
+      padding: 0 0 100px;
+      overflow: hidden;
+      position: relative; z-index: 1;
+    }
+    .screenshots-track {
+      display: flex;
+      gap: 16px;
+      padding: 0 32px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .screenshot-card {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .screenshot-card img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    .screenshot-label {
+      padding: 10px 14px 9px;
+      background: rgba(10,12,20,0.9);
+      font-family: var(--font-vt);
+      font-size: 14px;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ══════════════════════════════════════════
+       EXPORT
+    ══════════════════════════════════════════ */
+    .export-section { background: #0e1018; }
+    .export-section .container {
+      display: flex; gap: 80px; align-items: flex-start;
+    }
+    .export-left { flex: 1; }
+    .export-right { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+
+    .framework-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px 12px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      transition: border-color 0.15s, background 0.15s;
+      cursor: default;
+    }
+    .framework-row:hover {
+      border-color: var(--border-hi);
+      background: #1e2130;
+    }
+
+    .fw-name {
+      font-family: var(--font-vt);
+      font-size: 22px;
+      color: var(--text-hi);
+      letter-spacing: 0.06em;
+    }
+    .fw-lang {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 3px 10px 2px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border: 1px solid;
+    }
+    .fw-lang--ts  { color: #67e8f9; border-color: rgba(103,232,249,0.35); background: rgba(103,232,249,0.06); }
+    .fw-lang--go  { color: #86efac; border-color: rgba(134,239,172,0.35); background: rgba(134,239,172,0.06); }
+    .fw-lang--js  { color: #fde68a; border-color: rgba(253,230,138,0.35); background: rgba(253,230,138,0.06); }
+    .fw-lang--py  { color: #c4b5fd; border-color: rgba(196,181,253,0.35); background: rgba(196,181,253,0.06); }
+
+    /* ══════════════════════════════════════════
+       COMPONENTS
+    ══════════════════════════════════════════ */
+    .components-terminal {
+      border: 1px solid rgba(255,255,255,0.10);
+      background: var(--bg-card);
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    .term-titlebar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px 9px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(10,12,20,0.6);
+      font-family: var(--font-vt);
+      font-size: 15px;
+      letter-spacing: 0.18em;
+      color: var(--green-dim);
+    }
+    .term-titlebar-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px rgba(74,222,128,0.8);
+      animation: blink-dot 2s ease-in-out infinite;
+    }
+    .components-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+    }
+    .comp-item {
+      padding: 11px 16px 10px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-vt);
+      font-size: 18px;
+      color: var(--text-mid);
+      letter-spacing: 0.08em;
+      transition: color 0.12s, background 0.12s;
+      display: flex; align-items: center; gap: 8px;
+      cursor: default;
+    }
+    .comp-item:hover { color: var(--text-hi); background: rgba(255,255,255,0.04); }
+    .comp-item::before { content: '›'; color: var(--text-dim); flex-shrink: 0; }
+    .comp-item:nth-child(4n) { border-right: none; }
+
+    /* ══════════════════════════════════════════
+       FINAL CTA
+    ══════════════════════════════════════════ */
+    .cta-section {
+      text-align: center;
+      padding: 120px 32px;
+      position: relative; z-index: 1;
+    }
+    .cta-section .section-heading {
+      margin-bottom: 12px;
+    }
+    .cta-section .section-sub {
+      margin: 0 auto 48px;
+      text-align: center;
+    }
+
+    /* ══════════════════════════════════════════
+       ANSI CANVAS LOGO
+    ══════════════════════════════════════════ */
+    .ansi-logo-wrap {
+      max-width: 790px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    #ansiCanvas {
+      width: 100%;
+      height: auto;
+      image-rendering: pixelated;
+      display: block;
+      filter: drop-shadow(0 0 4px rgba(255,255,255,0.55)) drop-shadow(0 0 14px rgba(74,222,128,0.30));
+      animation: ansi-pulse 4s ease-in-out infinite;
+    }
+    @keyframes ansi-pulse {
+      0%,100% { filter: drop-shadow(0 0 4px rgba(255,255,255,0.55)) drop-shadow(0 0 14px rgba(74,222,128,0.30)); }
+      50%      { filter: drop-shadow(0 0 7px rgba(255,255,255,0.80)) drop-shadow(0 0 22px rgba(74,222,128,0.50)); }
+    }
+
+    /* ══════════════════════════════════════════
+       FAQ
+    ══════════════════════════════════════════ */
+    .faq-list {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .faq-item {
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+    .faq-item.is-open {
+      border-color: rgba(74,222,128,0.25);
+    }
+
+    .faq-trigger {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 20px 14px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.15s;
+    }
+    .faq-trigger:hover { background: rgba(255,255,255,0.04); }
+    .faq-trigger:hover .faq-question { color: #ffffff; }
+    .faq-trigger:hover .faq-icon { color: var(--green-mid); }
+
+    .faq-question {
+      font-family: var(--font-vt);
+      font-size: 20px;
+      color: var(--text-hi);
+      letter-spacing: 0.05em;
+      line-height: 1.2;
+      transition: color 0.15s;
+    }
+
+    .faq-icon {
+      font-family: var(--font-vt);
+      font-size: 20px;
+      color: var(--green-dim);
+      flex-shrink: 0;
+      white-space: nowrap;
+      transition: color 0.15s;
+      min-width: 48px;
+      text-align: right;
+    }
+    .faq-item.is-open .faq-icon { color: var(--green); }
+
+    .faq-body {
+      display: none;
+      padding: 0 20px 18px;
+      border-top: 1px solid var(--border);
+    }
+    .faq-item.is-open .faq-body { display: block; }
+
+    .faq-answer {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text-mid);
+      line-height: 1.8;
+      padding-top: 14px;
+    }
+
+    .faq-answer p { margin-bottom: 10px; }
+    .faq-answer p:last-child { margin-bottom: 0; }
+
+    .faq-platform {
+      display: inline-block;
+      font-family: var(--font-vt);
+      font-size: 15px;
+      letter-spacing: 0.12em;
+      padding: 1px 8px 0;
+      margin-bottom: 4px;
+      border: 1px solid;
+    }
+    .faq-platform--mac  { color: #67e8f9; border-color: rgba(103,232,249,0.30); background: rgba(103,232,249,0.05); }
+    .faq-platform--win  { color: #86efac; border-color: rgba(134,239,172,0.30); background: rgba(134,239,172,0.05); }
+    .faq-platform--linux{ color: #c4b5fd; border-color: rgba(196,181,253,0.30); background: rgba(196,181,253,0.05); }
+
+    .faq-answer ul {
+      list-style: none;
+      padding: 0;
+      margin: 4px 0 10px 0;
+    }
+    .faq-answer ul li::before { content: '- '; color: var(--text-dim); }
+
+    /* ══════════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════════ */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 36px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative; z-index: 1;
+    }
+    .footer-logo img { height: 36px; opacity: 0.75; }
+    .footer-copy {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-mid);
+    }
+    .footer-links {
+      display: flex; gap: 24px;
+    }
+    .footer-links a {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-mid);
+      transition: color 0.15s;
+    }
+    .footer-links a:hover { color: var(--text-hi); }
+    /* ══════════════════════════════════════════
+       LIGHTBOX
+    ══════════════════════════════════════════ */
+    .screenshot-card img { cursor: zoom-in; }
+
+    .lightbox {
+      display: none;
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(6, 8, 14, 0.82);
+      backdrop-filter: blur(16px);
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+    }
+    .lightbox.is-open { display: flex; }
+
+    .lightbox-inner {
+      position: relative;
+      max-width: min(90vw, 1100px);
+      max-height: 90vh;
+      border: 1px solid rgba(74,222,128,0.40);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(74,222,128,0.10),
+        0 0 40px rgba(74,222,128,0.22),
+        0 0 80px rgba(74,222,128,0.10),
+        0 40px 100px rgba(0,0,0,0.90);
+      animation: lb-in 0.18s ease;
+    }
+    @keyframes lb-in {
+      from { transform: scale(0.94); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
+
+    .lightbox-img {
+      display: block;
+      max-width: 100%;
+      max-height: 90vh;
+      object-fit: contain;
+    }
+
+    .lightbox-caption {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 10px 16px 9px;
+      background: rgba(10,12,20,0.92);
+      font-family: var(--font-vt);
+      font-size: 16px;
+      letter-spacing: 0.14em;
+      color: var(--green-mid);
+      border-top: 1px solid rgba(74,222,128,0.20);
+      text-shadow: 0 0 10px rgba(74,222,128,0.4);
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 12px; right: 14px;
+      background: none; border: none;
+      color: var(--text-hi);
+      font-family: var(--font-vt);
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 6px;
+      transition: color 0.12s, text-shadow 0.12s;
+      z-index: 1;
+    }
+    .lightbox-close:hover { color: var(--green); text-shadow: 0 0 8px rgba(74,222,128,0.6); }
+
+    /* ══════════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════════ */
+    @media (max-width: 900px) {
+      nav { padding: 0 20px; }
+      .nav-links { gap: 16px; }
+      .container { padding: 0 20px; }
+
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+
+      .export-section .container { flex-direction: column; gap: 40px; }
+      .export-left { max-width: 100%; }
+
+      .components-grid { grid-template-columns: repeat(3, 1fr); }
+      .comp-item:nth-child(4n) { border-right: 1px solid var(--border); }
+      .comp-item:nth-child(3n) { border-right: none; }
+
+      .screenshots-track { flex-direction: column; }
+    }
+
+    @media (max-width: 600px) {
+      nav { padding: 0 16px; }
+      .nav-link { display: none; }
+
+      .hero { padding: 60px 20px 48px; }
+      .hero h1 { font-size: 52px; }
+
+      .features-grid { grid-template-columns: 1fr; }
+
+      .components-grid { grid-template-columns: repeat(2, 1fr); }
+      .comp-item:nth-child(3n) { border-right: 1px solid var(--border); }
+      .comp-item:nth-child(2n) { border-right: none; }
+
+      .hero-ctas { flex-direction: column; align-items: center; gap: 16px; }
+      .hero-cta-ghost { border-bottom: none; }
+
+      section { padding: 64px 0; }
+
+      footer { flex-direction: column; gap: 16px; text-align: center; }
+      .footer-logo { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── NAV ── -->
+  <nav>
+    <a class="nav-logo" href="#">
+      <img src="assets/logo-tui-studio_dark.svg" alt="TUIStudio" style="height:30px;filter:drop-shadow(0 0 6px rgba(74,222,128,0.35));" />
+      <span class="alpha-tag">Alpha</span>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" href="#features">Features</a>
+      <a class="nav-link" href="#export">Export</a>
+      <a class="nav-link" href="https://github.com/jalonsogo/tui-studio">GitHub</a>
+      <div class="ng-platform ng-platform--sm ng-platform--primary">
+        <button class="ng-btn ng-btn--sm" id="navBtn">
+          <span class="ng-btn-scan"></span>
+          <span class="ng-btn-shine"></span>
+          <span class="ng-btn-label"><span class="apple-logo"></span> Download for Mac</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <div class="hero">
+    <canvas id="ascii-bg" style="position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
+
+    <div class="ansi-logo-wrap" style="position:relative;z-index:1;margin-bottom:36px;">
+      <canvas id="ansiCanvas"></canvas>
+    </div>
+
+    <div class="hero-glass">
+      <img class="hero-computer" src="assets/Computer.png" alt="TUIStudio Editor" />
+
+      <a id="whats-new-badge" class="whats-new-badge"
+         href="https://github.com/jalonsogo/tui-studio/blob/main/CHANGELOG.md"
+         target="_blank" rel="noopener">
+        <span class="hero-badge-dot"></span>
+        <span class="whats-new-ver" id="whats-new-ver"></span>
+        <span class="whats-new-sep">·</span>
+        <span class="whats-new-change" id="whats-new-change"></span>
+        <span class="whats-new-arrow">↗</span>
+      </a>
+
+      <h1>
+        Design Terminal UIs. <em>Visually</em><span class="cursor"></span>
+      </h1>
+
+      <p class="hero-sub">
+        A Figma-like visual editor for TUI applications. Drag-and-drop
+        components, edit properties in real-time, and <s style="color:var(--text-dim)">export to 6 frameworks
+        with one click</s>. <span style="font-family:var(--font-mono);font-size:11px;color:var(--green);background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);border-radius:4px;padding:2px 6px;vertical-align:middle;letter-spacing:0.08em;">SOON</span>
+      </p>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <div class="ng-platform">
+          <button class="ng-btn" id="heroBtn">
+            <span class="ng-btn-scan"></span>
+            <span class="ng-btn-shine"></span>
+            <span class="ng-btn-label"><span class="apple-logo"></span> Download for Mac</span>
+          </button>
+        </div>
+        <div class="os-selector">
+          <button class="os-tab" data-os="mac"><span class="apple-logo"></span>macOS</button>
+          <button class="os-tab" data-os="win"><span class="win-logo">⊞</span>Windows</button>
+          <button class="os-tab" data-os="docker">🐳 Docker</button>
+        </div>
+        <span id="heroHint" style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);letter-spacing:0.12em;">
+           Apple Silicon
+        </span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--text-mid);letter-spacing:0.05em;">
+          Can't run it? It's safe —&nbsp;<a href="#faq" style="color:var(--green);text-decoration:underline;text-underline-offset:3px;">see how to open it ↓</a>
+        </span>
+      </div>
+
+      <a class="hero-cta-ghost" href="https://github.com/jalonsogo/tui-studio">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        View on GitHub
+      </a>
+    </div>
+  </div>
+
+  <!-- ── FEATURES ── -->
+  <section id="features">
+    <div class="container">
+      <p class="eyebrow">Features</p>
+      <h2 class="section-heading">Everything you need<br>to design TUIs like a pro</h2>
+      <p class="section-sub">All the tools a terminal app designer needs — in one visual environment.</p>
+
+      <div class="editor-window" style="margin-bottom:60px;">
+        <video class="editor-video" autoplay muted loop playsinline
+          poster="screenshots/button.png">
+          <source src="screenshots/video.mp4" type="video/mp4" />
+          <img src="screenshots/button.png" alt="TUIStudio Editor" />
+        </video>
+      </div>
+
+      <div class="features-grid">
+
+        <div class="feature-card">
+          <span class="feature-icon">▦</span>
+          <div class="feature-title">Visual Canvas</div>
+          <p class="feature-desc">Drag-and-drop components onto a live canvas with real-time ANSI preview at configurable zoom levels.</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">⊕</span>
+          <div class="feature-title">20+ TUI Components</div>
+          <p class="feature-desc">Screen, Box, Button, TextInput, Table, List, Tree, Tabs, Modal, Spinner, ProgressBar, and more.</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">⊞</span>
+          <div class="feature-title">Layout Engine</div>
+          <p class="feature-desc">Absolute, Flexbox, and Grid layout modes with full property control — just like CSS in the browser.</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">◑</span>
+          <div class="feature-title">8 Color Themes</div>
+          <p class="feature-desc">Dracula, Nord, Solarized, Monokai, Gruvbox, Tokyo Night, Nightfox, Sonokai — updating the canvas live.</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">→</span>
+          <div class="feature-title">Multi-Framework Export</div>
+          <p class="feature-desc">Generate production-ready code for Ink, BubbleTea, Blessed, Textual, OpenTUI, and Tview.</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">⊡</span>
+          <div class="feature-title">Save / Load</div>
+          <p class="feature-desc">Projects saved as portable .tui JSON files. Open from anywhere, share with your team.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SCREENSHOT STRIP ── -->
+  <div class="screenshots-section">
+    <div class="screenshots-track">
+      <div class="screenshot-card">
+        <img src="screenshots/command-palette.png" alt="Command Palette" />
+        <div class="screenshot-label">// Command Palette</div>
+      </div>
+      <div class="screenshot-card">
+        <img src="screenshots/theming-support.png" alt="Theming" />
+        <div class="screenshot-label">// Theme Switcher</div>
+      </div>
+      <div class="screenshot-card">
+        <img src="screenshots/toolbar.png" alt="Toolbar" />
+        <div class="screenshot-label">// Component Toolbar</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── EXPORT ── -->
+  <section id="export" class="export-section">
+    <div class="container">
+      <div class="export-left">
+        <p class="eyebrow">Export</p>
+        <h2 class="section-heading">Export to<br>6 frameworks</h2>
+        <p class="section-sub" style="margin-bottom:16px">
+          Design once, generate production-ready code for your framework of choice.
+          Switch targets without touching your design.
+        </p>
+        <div style="display:flex;align-items:flex-start;gap:10px;background:#1a1408;border:1px solid #a16207;border-radius:6px;padding:12px 14px;font-family:var(--font-mono);font-size:12px;color:#fbbf24;line-height:1.5;">
+          <span style="flex-shrink:0;margin-top:1px;">⚠</span>
+          <span><strong>Alpha notice:</strong> Code export is not functional yet. We're actively working on it — check back soon.</span>
+        </div>
+      </div>
+      <div class="export-right">
+        <div class="framework-row">
+          <span class="fw-name">Ink</span>
+          <span class="fw-lang fw-lang--ts">TypeScript</span>
+        </div>
+        <div class="framework-row">
+          <span class="fw-name">BubbleTea</span>
+          <span class="fw-lang fw-lang--go">Go</span>
+        </div>
+        <div class="framework-row">
+          <span class="fw-name">Blessed</span>
+          <span class="fw-lang fw-lang--js">JavaScript</span>
+        </div>
+        <div class="framework-row">
+          <span class="fw-name">Textual</span>
+          <span class="fw-lang fw-lang--py">Python</span>
+        </div>
+        <div class="framework-row">
+          <span class="fw-name">OpenTUI</span>
+          <span class="fw-lang fw-lang--ts">TypeScript</span>
+        </div>
+        <div class="framework-row">
+          <span class="fw-name">Tview</span>
+          <span class="fw-lang fw-lang--go">Go</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── COMPONENTS ── -->
+  <section>
+    <div class="container">
+      <p class="eyebrow">Components</p>
+      <h2 class="section-heading">21 built-in components</h2>
+      <p class="section-sub" style="margin-bottom:40px">All the building blocks for a full terminal application.</p>
+
+      <div class="components-terminal">
+        <div class="term-titlebar">
+          <span class="term-titlebar-dot"></span>
+          components — 21 items
+        </div>
+        <div class="components-grid">
+          <div class="comp-item">Screen</div>
+          <div class="comp-item">Box</div>
+          <div class="comp-item">Button</div>
+          <div class="comp-item">TextInput</div>
+          <div class="comp-item">Checkbox</div>
+          <div class="comp-item">Radio</div>
+          <div class="comp-item">Select</div>
+          <div class="comp-item">Toggle</div>
+          <div class="comp-item">Text</div>
+          <div class="comp-item">Spinner</div>
+          <div class="comp-item">ProgressBar</div>
+          <div class="comp-item">Table</div>
+          <div class="comp-item">List</div>
+          <div class="comp-item">Tree</div>
+          <div class="comp-item">Menu</div>
+          <div class="comp-item">Tabs</div>
+          <div class="comp-item">Breadcrumb</div>
+          <div class="comp-item">Modal</div>
+          <div class="comp-item">Popover</div>
+          <div class="comp-item">Tooltip</div>
+          <div class="comp-item">Spacer</div>
+          <!-- 21st item fills the last cell cleanly -->
+          <div class="comp-item" style="border-right:none;color:var(--text-dim);pointer-events:none;">
+            <span style="opacity:0.3">+ more soon</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FAQ ── -->
+  <section id="faq">
+    <div class="container">
+      <p class="eyebrow">FAQ</p>
+      <h2 class="section-heading">Common questions</h2>
+      <p class="section-sub" style="margin-bottom:48px">Everything you need to know before hitting download.</p>
+
+      <div class="faq-list">
+
+        <div class="faq-item">
+          <button class="faq-trigger">
+            <span class="faq-question">What is a TUI?</span>
+            <span class="faq-icon">[ + ]</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-answer">
+              <p>A TUI (Text User Interface) is an interactive application that runs entirely in the terminal — like <code>htop</code>, <code>lazygit</code>, or <code>k9s</code>. Instead of a web browser or native window, the UI is built from characters, colors, and ANSI escape codes. TUIStudio lets you design these visually instead of hand-coding every layout.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-trigger">
+            <span class="faq-question">Will macOS or Windows block the app?</span>
+            <span class="faq-icon">[ + ]</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-answer">
+              <p>With no code-signing configured, each platform behaves differently:</p>
+              <p><span class="faq-platform faq-platform--mac">macOS</span><br>
+              Gatekeeper blocks the app immediately. You'll see either <em>"TUIStudio cannot be opened because it is from an unidentified developer"</em> or <em>"TUIStudio is damaged and can't be opened"</em> on newer macOS after quarantine flags the binary.<br>
+              To get past it: right-click the .app → Open → Open anyway — or go to System Settings → Privacy &amp; Security → "Open Anyway".</p>
+              <p><span class="faq-platform faq-platform--win">Windows</span><br>
+              SmartScreen shows "Windows protected your PC". Click More info → Run anyway. Less fatal than macOS, but still alarming to non-technical users.</p>
+              <p><span class="faq-platform faq-platform--linux">Linux</span><br>
+              No such gate. <code>dpkg -i TUIStudio-amd64.deb</code> or double-click in a file manager — just works.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-trigger">
+            <span class="faq-question">Why are exports not working?</span>
+            <span class="faq-icon">[ + ]</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-answer">
+              <p>TUIStudio is currently in <strong>Alpha</strong> — exports are not functional yet. We're actively working on it.</p>
+              <p>When ready, the following 6 frameworks will be supported:</p>
+              <ul>
+                <li>Ink — TypeScript / React for the terminal</li>
+                <li>BubbleTea — Go, Elm-architecture TUIs</li>
+                <li>Blessed — JavaScript, Node.js</li>
+                <li>Textual — Python, modern TUI framework</li>
+                <li>OpenTUI — TypeScript</li>
+                <li>Tview — Go, widget-based</li>
+              </ul>
+              <p>Switch export targets at any time without touching your design.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-trigger">
+            <span class="faq-question">Is TUIStudio free?</span>
+            <span class="faq-icon">[ + ]</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-answer">
+              <p>TUIStudio is currently in early access. The core editor is free to download and use. A pro tier with team features, cloud sync, and priority support is planned for later.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-trigger">
+            <span class="faq-question">Can I save and reopen my designs?</span>
+            <span class="faq-icon">[ + ]</span>
+          </button>
+          <div class="faq-body">
+            <div class="faq-answer">
+              <p>Yes. Projects are saved as portable <code>.tui</code> JSON files you can open from anywhere, commit to git, or share with your team. No account or cloud required.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FINAL CTA ── -->
+  <section class="cta-section">
+    <p class="eyebrow" style="justify-content:center;display:flex">Get Started</p>
+    <h2 class="section-heading">Ready to build<br>your TUI?</h2>
+    <p id="ctaSub" class="section-sub">
+      Native Mac app for Apple Silicon.<br>No install fuss — download and start designing immediately.
+    </p>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+      <div class="ng-platform">
+        <button class="ng-btn" id="ctaBtn">
+          <span class="ng-btn-scan"></span>
+          <span class="ng-btn-shine"></span>
+          <span class="ng-btn-label"><span class="apple-logo"></span> Download for Mac</span>
+        </button>
+      </div>
+      <div class="os-selector">
+        <button class="os-tab" data-os="mac"><span class="apple-logo"></span>macOS</button>
+        <button class="os-tab" data-os="win"><span class="win-logo">⊞</span>Windows</button>
+        <button class="os-tab" data-os="docker">🐳 Docker</button>
+      </div>
+      <span id="ctaHint" style="font-family:var(--font-mono);font-size:11px;color:var(--text-mid);letter-spacing:0.12em;">
+         Apple Silicon
+      </span>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer>
+    <a class="footer-logo" href="#">
+      <img src="assets/tui-studio_dark.svg" alt="TUIStudio" />
+    </a>
+    <span class="footer-copy">// TUIStudio — Visual Terminal UI Designer</span>
+    <div class="footer-links">
+      <a href="#">GitHub</a>
+      <a href="#">Docs</a>
+      <a href="#">Editor</a>
+    </div>
+  </footer>
+
+  <!-- ── LIGHTBOX ── -->
+  <div class="lightbox" id="lightbox">
+    <div class="lightbox-inner" id="lightboxInner">
+      <button class="lightbox-close" id="lightboxClose">✕</button>
+      <img class="lightbox-img" id="lightboxImg" src="" alt="" />
+      <div class="lightbox-caption" id="lightboxCaption"></div>
+    </div>
+  </div>
+
+  <script src="neon-glass.js"></script>
+  <script>
+    /* ── FAQ accordion ── */
+    document.querySelectorAll('.faq-trigger').forEach(trigger => {
+      trigger.addEventListener('click', () => {
+        const item = trigger.closest('.faq-item');
+        const isOpen = item.classList.contains('is-open');
+        document.querySelectorAll('.faq-item').forEach(i => {
+          i.classList.remove('is-open');
+          i.querySelector('.faq-icon').textContent = '[ + ]';
+        });
+        if (!isOpen) {
+          item.classList.add('is-open');
+          trigger.querySelector('.faq-icon').textContent = '[ - ]';
+        }
+      });
+    });
+  </script>
+
+  <script>
+    /* ── Changelog: live version + What's New badge ── */
+    (async function () {
+      try {
+        const res = await fetch(
+          'https://raw.githubusercontent.com/jalonsogo/tui-studio/main/CHANGELOG.md',
+          { cache: 'no-cache' }
+        );
+        if (!res.ok) return;
+        const text = await res.text();
+
+        // Parse latest version header: ## [0.3.6] - 2026-02-22
+        const verMatch = text.match(/^##\s+\[([0-9][^\]]*)\]/m);
+        if (!verMatch) return;
+        const version = verMatch[1];
+
+        // Extract the latest version's block (up to the next ## heading)
+        const blockStart = text.indexOf(verMatch[0]);
+        const blockEnd = text.indexOf('\n## ', blockStart + 1);
+        const block = blockEnd > -1 ? text.slice(blockStart, blockEnd) : text.slice(blockStart);
+
+        // First bullet point in the block (strip markdown bold)
+        const bulletMatch = block.match(/^[-*]\s+(.+)$/m);
+        const firstChange = bulletMatch
+          ? bulletMatch[1].replace(/\*\*/g, '').trim()
+          : null;
+
+        // Show the What's New badge in the hero
+        const badge    = document.getElementById('whats-new-badge');
+        const verEl    = document.getElementById('whats-new-ver');
+        const changeEl = document.getElementById('whats-new-change');
+        if (badge && verEl && changeEl) {
+          verEl.textContent    = 'v' + version;
+          changeEl.textContent = firstChange || '';
+          badge.style.display  = 'inline-flex';
+        }
+      } catch (_) { /* silently fail — never break the page */ }
+    })();
+  </script>
+
+  <script>
+    (function () {
+      const RELEASES = 'https://github.com/jalonsogo/tui-studio-desktop/releases';
+      const BASE     = RELEASES + '/latest/download';
+
+      const OS_CONFIG = {
+        mac: {
+          url:    BASE + '/TUIStudio.dmg',
+          label:  '<span class="apple-logo"></span> Download for Mac',
+          hint:   'Apple Silicon',
+          ctaSub: 'Native Mac app for Apple Silicon.<br>No install fuss — download and start designing immediately.',
+        },
+        win: {
+          url:    BASE + '/TUIStudio.exe',
+          label:  '<span class="win-logo">⊞</span> Download for Windows',
+          hint:   'Windows 10 / 11 &nbsp;·&nbsp; x64 &nbsp;ARM64',
+          ctaSub: 'Native Windows app.<br>No install fuss — download and start designing immediately.',
+        },
+        docker: {
+          url:    'https://hub.docker.com/r/javieralonso716/tui-studio-web',
+          label:  '🐳 Run with Docker',
+          hint:   'Web-based &nbsp;·&nbsp; Any OS &nbsp;·&nbsp; No install',
+          ctaSub: 'Run TUIStudio in a container.<br>Works on any OS — no install fuss.',
+        },
+      };
+
+      const state = { url: RELEASES };
+
+      // Buttons always read from state at click time
+      ['navBtn', 'heroBtn', 'ctaBtn'].forEach(id => {
+        const btn = document.getElementById(id);
+        NeonGlass.initButton(btn);
+        btn.addEventListener('click', () => window.open(state.url, '_blank'));
+      });
+
+      function setOS(os) {
+        const cfg = OS_CONFIG[os];
+        if (!cfg) return;
+        state.url = cfg.url;
+
+        ['navBtn', 'heroBtn', 'ctaBtn'].forEach(id => {
+          const btn = document.getElementById(id);
+          if (btn) btn.querySelector('.ng-btn-label').innerHTML = cfg.label;
+        });
+
+        const heroHint = document.getElementById('heroHint');
+        const ctaHint  = document.getElementById('ctaHint');
+        const ctaSub   = document.getElementById('ctaSub');
+        if (heroHint) heroHint.innerHTML = cfg.hint;
+        if (ctaHint)  ctaHint.innerHTML  = cfg.hint;
+        if (ctaSub)   ctaSub.innerHTML   = cfg.ctaSub;
+
+        // Sync both selectors
+        document.querySelectorAll('.os-tab').forEach(tab => {
+          tab.classList.toggle('active', tab.dataset.os === os);
+        });
+      }
+
+      // Bind all selector tabs (hero + CTA stay in sync automatically)
+      document.querySelectorAll('.os-tab').forEach(tab => {
+        tab.addEventListener('click', () => setOS(tab.dataset.os));
+      });
+
+      // Auto-detect on load
+      const ua = navigator.userAgent;
+      const detected = /Win/i.test(ua) ? 'win'
+                     : /Mac/i.test(ua) && !/iPhone|iPad/i.test(ua) ? 'mac'
+                     : /Linux/i.test(ua) && !/Android/i.test(ua) ? 'docker'
+                     : null;
+      if (detected) setOS(detected);
+    })();
+  </script>
+  <script>
+    /* ── Lightbox ── */
+    (function () {
+      const lb      = document.getElementById('lightbox');
+      const lbImg   = document.getElementById('lightboxImg');
+      const lbCap   = document.getElementById('lightboxCaption');
+      const lbClose = document.getElementById('lightboxClose');
+
+      function open(img) {
+        lbImg.src = img.src;
+        lbImg.alt = img.alt;
+        lbCap.textContent = img.closest('.screenshot-card')
+          ?.querySelector('.screenshot-label')?.textContent || '';
+        lb.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function close() {
+        lb.classList.remove('is-open');
+        document.body.style.overflow = '';
+      }
+
+      document.querySelectorAll('.screenshot-card img').forEach(img => {
+        img.addEventListener('click', () => open(img));
+      });
+
+      lbClose.addEventListener('click', close);
+      lb.addEventListener('click', e => { if (e.target === lb) close(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    })();
+  </script>
+  <script>
+    /* ── ANSI pixel art canvas ── */
+    (function () {
+      const GRID = [
+        "00000000000000001111111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "00000000000001111111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "00000000111111111111111111111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "00001111111111111110001111111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "01111111111111100000000000111111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "11111111111000000000000000000001111111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "11111111000000000000000000000000001111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "11111100111111000000000000011111110111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011100000000000000",
+        "11111101111111111110000111111111111111111100000000111111111111011111000001111100111110000000001111111111000111000000000000000000000000111100111100000000000000",
+        "11111101111111111111111111111111110111111100000000111111111111011111000001111100111110000000011111001110001111000000000000000000000000111100000000000000000000",
+        "11111100001111111111111111111111000111111100000000000111110000011111000001111100111110000000011111000001111111111011100001111000011111111100111100001111111100",
+        "11111100000000111111111111100000000111111100000000000111110000011111000001111100111110000000001111111000001111000011100001111000111100111100111100111110011111",
+        "11111100000000000111111110000000000111111100000000000111110000011111000001111100111110000000000011111110001111000011100001111011111000111100111100111100001111",
+        "11111100000000000111111100000000000111111100000000000111110000011111000001111100111110000000000000001111001111000011100001111011111000111100111100111100001111",
+        "11111100000000000111111100000000000111111100000000000111110000011111111111111000111110000000011100001111001111000011110011111001111001111100111100111110001111",
+        "11111100000000000111111100000000000111111100000000000111110000001111111111110000111110000000111111111110001111111011111111111100111111111110111110011111111110",
+        "11111110000000000111111100000000001111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001100000",
+        "11111111111000000111111100000001111111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "11111111111111000001111000011111111111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "00111111111111111100000111111111111111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "00000011111111111111111111111111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "00000000001111111111111111111111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "00000000000000111111111111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "00000000000000000111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      ];
+      const CW = 5, CH = 9;
+      const rows = GRID.length;
+      const cols = Math.max(...GRID.map(r => r.length));
+      const canvas = document.getElementById('ansiCanvas');
+      canvas.width  = cols * CW;
+      canvas.height = rows * CH;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < GRID[r].length; c++) {
+          if (GRID[r][c] === '1') ctx.fillRect(c * CW, r * CH, CW, CH);
+        }
+      }
+    })();
+  </script>
+  <script>
+    /* ── ASCII plasma background ── */
+    (function () {
+      const canvas = document.getElementById('ascii-bg');
+      const ctx    = canvas.getContext('2d');
+
+      const FS = 14;          /* font size / row height */
+      const CW = FS * 0.62;   /* column width (monospace ratio) */
+
+      /* Density ramp — space = empty, █ = full */
+      const CHARS = ' ·.:;+|*#%@█';
+
+      let t = 0;
+      let W, H, cols, rows;
+
+      /* plasma value at grid cell (c, r) — returns -1 … 1 */
+      function plasma(c, r) {
+        const x = c * 0.18;
+        const y = r * 0.22;
+        const cx = cols * 0.09;
+        const cy = rows * 0.11;
+        const d  = Math.sqrt((c - cx) * (c - cx) + (r - cy) * (r - cy));
+        return (
+          Math.sin(x + t) +
+          Math.sin(y + t * 0.7) +
+          Math.sin((x + y) * 0.6 + t * 0.9) +
+          Math.sin(d * 0.28 + t * 1.1)
+        ) / 4; /* -1 … 1 */
+      }
+
+      /* top-to-bottom vignette: full at top, gone by ~80% */
+      function vignette(r) {
+        const ratio = r / rows;
+        return Math.max(0, Math.min(1, 1 - (ratio - 0.35) / 0.45));
+      }
+
+      function init() {
+        canvas.width  = W = canvas.offsetWidth;
+        canvas.height = H = canvas.offsetHeight;
+        cols = Math.floor(W / CW);
+        rows = Math.floor(H / FS);
+        ctx.font = `${FS}px 'SF Mono','Fira Code',Consolas,monospace`;
+      }
+
+      function frame() {
+        ctx.clearRect(0, 0, W, H);
+        ctx.font = `${FS}px 'SF Mono','Fira Code',Consolas,monospace`;
+
+        for (let r = 0; r < rows; r++) {
+          const vig = vignette(r);
+          if (vig < 0.008) continue;
+
+          for (let c = 0; c < cols; c++) {
+            const v    = plasma(c, r);          /* -1 … 1   */
+            const norm = (v + 1) / 2;           /*  0 … 1   */
+            const idx  = Math.floor(norm * (CHARS.length - 1));
+            const ch   = CHARS[idx];
+            if (ch === ' ') continue;
+
+            /* opacity peaks at mid-values, falls off at extremes */
+            const intensity = Math.sin(norm * Math.PI); /* 0→1→0  */
+            const op = intensity * 0.55 * vig;
+            if (op < 0.006) continue;
+
+            ctx.fillStyle = `rgba(74,222,128,${op.toFixed(3)})`;
+            ctx.fillText(ch, c * CW, (r + 1) * FS);
+          }
+        }
+
+        t += 0.016;
+        requestAnimationFrame(frame);
+      }
+
+      init();
+      window.addEventListener('resize', init);
+      frame();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docker Model Runner — Case study · Javier Alonso</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <div class="brand"><a href="../index.html">Javier Alonso<span>.</span></a></div>
+    <div class="navlinks">
+      <a class="back" href="../index.html">← All projects</a>
+      <button class="toggle" data-toggle-theme><span class="dot"></span><span class="lbl">Dark</span></button>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Case study · 0 → 1 · GA Sep 2025</div>
+    <h1>Docker Model Runner &amp; model cards</h1>
+    <p class="lead">End-to-end UX for running LLMs locally through Docker — across Desktop, CLI, and Hub. I designed and coded the Hub model cards so developers pick the right model out of ~18,000.</p>
+    <div class="stats">
+      <div class="stat"><b data-count="2.1" data-suffix="M">0</b><span>model pulls</span></div>
+      <div class="stat"><b data-count="91.5" data-suffix="K">0</b><span>distinct users</span></div>
+      <div class="stat"><b data-count="124" data-suffix="K">0</b><span>Desktop installs</span></div>
+      <div class="stat"><b data-count="18.2" data-suffix="K">0</b><span>models run</span></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="mock reveal">
+      <div class="cap"><b>Signature screen — Hub model card &amp; the CLI pull/run flow</b><span class="pill">theme-aware SVG</span></div>
+      <svg viewBox="0 0 960 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Model card and CLI">
+        <rect x="0" y="0" width="960" height="440" rx="16" fill="var(--svg-window)"/>
+        <!-- model card -->
+        <rect x="28" y="28" width="470" height="384" rx="14" fill="var(--svg-bg)" stroke="var(--svg-line)"/>
+        <circle cx="72" cy="76" r="22" fill="var(--svg-chip)"/><path d="M60 76h24 M72 64v24" stroke="var(--svg-accent)" stroke-width="3"/>
+        <text x="108" y="70" font-size="18" font-weight="800" fill="var(--svg-text)">ai/llama3.2</text>
+        <text x="108" y="90" font-size="12" fill="var(--svg-subtle)">Meta · instruction-tuned · GGUF</text>
+        <!-- decision chips -->
+        <g font-size="12">
+          <rect x="52" y="118" width="120" height="52" rx="10" fill="var(--svg-panel)" stroke="var(--svg-line)"/><text x="66" y="140" fill="var(--svg-subtle)" font-size="10">SIZE</text><text x="66" y="158" fill="var(--svg-text)" font-weight="700">4.2 GB</text>
+          <rect x="182" y="118" width="120" height="52" rx="10" fill="var(--svg-panel)" stroke="var(--svg-line)"/><text x="196" y="140" fill="var(--svg-subtle)" font-size="10">QUANT</text><text x="196" y="158" fill="var(--svg-text)" font-weight="700">Q4_K_M</text>
+          <rect x="312" y="118" width="146" height="52" rx="10" fill="var(--svg-panel)" stroke="var(--svg-line)"/><text x="326" y="140" fill="var(--svg-subtle)" font-size="10">FITS YOUR MACHINE</text><text x="326" y="158" fill="var(--svg-good)" font-weight="700">✓ 16 GB RAM</text>
+        </g>
+        <rect x="52" y="184" width="406" height="10" rx="5" fill="var(--svg-line)"/>
+        <rect x="52" y="202" width="360" height="10" rx="5" fill="var(--svg-line)"/>
+        <rect x="52" y="240" width="180" height="40" rx="10" fill="var(--svg-accent)"/><text x="92" y="265" font-size="13" fill="#fff" font-weight="700">Pull model</text>
+        <rect x="244" y="240" width="120" height="40" rx="10" fill="var(--svg-panel)" stroke="var(--svg-line)"/><text x="270" y="265" font-size="13" fill="var(--svg-text)">Compare</text>
+        <text x="52" y="320" font-size="11" fill="var(--svg-subtle)">Similar: gemma3 · qwen2.5-coder · smollm2</text>
+        <!-- CLI -->
+        <rect x="520" y="28" width="412" height="384" rx="14" fill="#0b1220" stroke="var(--svg-line)"/>
+        <text x="544" y="70" font-family="monospace" font-size="13" fill="#7ea8ff">$ docker model pull ai/llama3.2</text>
+        <text x="544" y="96" font-family="monospace" font-size="13" fill="#cfe0ff">Pulling… ██████████ 100%</text>
+        <text x="544" y="122" font-family="monospace" font-size="13" fill="#8affc1">✓ Model ready (OCI artifact)</text>
+        <text x="544" y="156" font-family="monospace" font-size="13" fill="#7ea8ff">$ docker model run ai/llama3.2</text>
+        <text x="544" y="182" font-family="monospace" font-size="13" fill="#cfe0ff">&gt; Explain multi-stage builds</text>
+        <rect x="544" y="200" width="360" height="180" rx="10" fill="#0f1830"/>
+        <text x="560" y="226" font-family="monospace" font-size="12" fill="#cfe0ff">A multi-stage build uses multiple</text>
+        <text x="560" y="246" font-family="monospace" font-size="12" fill="#cfe0ff">FROM statements to keep images small…</text>
+        <text x="560" y="286" font-family="monospace" font-size="11" fill="#6f86b8">tokens: 128 in · 342 out  · trace ▸</text>
+      </svg>
+    </div>
+
+    <div class="two" style="margin-top:34px">
+      <div>
+        <div class="sec-head"><div class="kicker">The problem</div><h2>Pick the right model, fast</h2></div>
+        <p style="color:var(--muted);font-size:16px">Local inference had no first-class UX, and with ~18K models the choice was overwhelming — unclear size, quantization, task fit, and hardware needs. Picking wrong wastes a big download and erodes trust. The model card had to make the decision obvious at a glance.</p>
+      </div>
+      <div>
+        <div class="sec-head"><div class="kicker">My role</div><h2>Full-stack design</h2></div>
+        <p style="color:var(--muted);font-size:16px">Designed across Desktop, CLI, and Hub; designed <em>and coded</em> the Hub model cards and the AI Model Flow selector. Ran my own discovery — the "Docker Model Runner – Insights" report (co-authored with Francesco Corti) — which drove the card content.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:color-mix(in srgb,var(--blue) 6%,var(--bg))">
+  <div class="wrap">
+    <div class="sec-head"><div class="kicker">Who it serves</div><h2>Personas</h2></div>
+    <div class="cards">
+      <div class="card"><div class="em">🧑‍💻</div><h4>Ana — AI-curious dev</h4><p>Pick a model that fits her task and hardware, keep data local.</p></div>
+      <div class="card"><div class="em">🤖</div><h4>Priya — agent engineer</h4><p>Pull &amp; run models like any image, in scripts and pipelines.</p></div>
+      <div class="card"><div class="em">🌱</div><h4>Sam — newcomer</h4><p>Guided onboarding for first-time AI developers.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="two">
+      <div class="uc">
+        <div class="sec-head"><div class="kicker">Jobs to be done</div><h2>Use cases designed</h2></div>
+        <ul>
+          <li>Find a model that fits my task and hardware</li>
+          <li>Pull &amp; run a model from the CLI like any image</li>
+          <li>Decide between similar models without trial-and-error downloads</li>
+          <li>Manage local models inside Desktop</li>
+          <li>Guided onboarding for first-time AI developers</li>
+        </ul>
+      </div>
+      <div>
+        <div class="sec-head"><div class="kicker">Delivery</div><h2>What shipped</h2></div>
+        <p style="color:var(--muted);font-size:16px">Desktop Model Runner UI · CLI inference UX (push/pull) · coded Hub model cards + new card layout · AI Model Flow selector · research report · handoff artifacts (Miro + a Python model-selector repo). Beta Apr 2025 → GA Sep 18, 2025 (open source, `github.com/docker/model-runner`).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--ink-2)">
+  <div class="wrap">
+    <div class="sec-head"><div class="kicker" style="color:#7ea8ff">Impact</div><h2 style="color:#fff">Adoption at scale</h2></div>
+    <div class="metrics">
+      <div class="metric"><b style="color:#fff">2.1M</b><span style="color:#9db9f0">model pulls across ~18.2K models</span></div>
+      <div class="metric"><b style="color:#fff">91.5K</b><span style="color:#9db9f0">distinct users · 124K installs</span></div>
+      <div class="metric"><b style="color:#fff">~10,085</b><span style="color:#9db9f0">peak monthly active model users (Apr 26)</span></div>
+    </div>
+    <p style="color:#c9d6f0;margin-top:14px;max-width:760px">Docker's GA post highlights the surface I designed: <em>"the UI provides guided onboarding to help even first-time AI developers start serving models smoothly."</em></p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div><a href="../index.html">← Back to all projects</a></div>
+    <div>Sources: Docker Sigma (Model Runner pulls daily); Docker blog (Model Runner GA). Metrics approximate, Jul 2026.</div>
+  </div>
+</footer>
+<script src="../assets/theme.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+/* The deck's dropdown (js/shared/dropdown.js): a button showing the value and a chevron, and a list that opens above
+   it (below, near the top of the screen). Uses the page's tokens (landing.css or studio.css). */
+.dd { position: relative; display: inline-flex; }
+.dd-native { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.dd-btn { display: inline-flex; align-items: center; justify-content: space-between; gap: 12px; height: 100%; min-width: 76px; padding: 0 13px 0 12px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.dd-chev { flex: none; width: 6px; height: 6px; border: solid currentColor; border-width: 0 1.6px 1.6px 0; transform: translateY(-2px) rotate(45deg); opacity: .55; transition: transform .15s; }
+.dd-btn[aria-expanded="true"] .dd-chev { transform: translateY(2px) rotate(-135deg); }
+.dd-list { position: absolute; left: 50%; bottom: calc(100% + 10px); translate: -50% 0; z-index: 80; display: grid; gap: 2px; min-width: 100%; padding: 5px; border-radius: 10px;
+  background: var(--panel); box-shadow: 0 18px 40px -14px rgba(0,0,0,.5), 0 0 0 1px var(--line); }
+.dd-list.down { bottom: auto; top: calc(100% + 10px); }
+.dd-list[hidden] { display: none; }
+.dd-list button { height: 28px; padding: 0 16px; border: 0; border-radius: 6px; background: none; color: var(--ink-2); font: 700 12.5px/1 var(--f-mono); text-align: left; white-space: nowrap; cursor: pointer; }
+.dd-list button:hover, .dd-list button:focus-visible { background: var(--body-2); color: var(--ink); outline: none; }
+.dd-list button[aria-selected="true"] { background: var(--orange); color: #fff; }

@@ -1,0 +1,38 @@
+{
+  "name": "figx",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Personal .fig file viewer/previewer — decode and render old Figma designs without Figma.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oyabun/figx.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "figx": "src/cli/cli.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "decode": "node src/cli/cli.js decode",
+    "render": "node src/cli/cli.js render",
+    "export": "node src/cli/cli.js export",
+    "preview": "node src/cli/cli.js preview",
+    "explore": "node src/cli/explore.js",
+    "build:cli": "node scripts/build-cli.mjs",
+    "build:docs-engine": "node scripts/build-docs-engine.mjs"
+  },
+  "dependencies": {
+    "@resvg/resvg-wasm": "^2.6.2",
+    "fflate": "^0.8.2",
+    "fzstd": "^0.1.1",
+    "kiwi-schema": "^0.5.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "postject": "^1.0.0-alpha.6"
+  }
+}

@@ -1,0 +1,143 @@
+<!doctype html>
+<!--
+  Parked sections removed from index4.html (2026-07-13) — kept for future use.
+
+  Contains the STATS strip and the PILLARS ("The idea") section that used to sit
+  between the hero and the live app demo. The markup is verbatim; the matching
+  CSS is included below so the sections can be dropped back into index4.html
+  (or previewed here — this page reuses index4's resources/ folder).
+
+  To restore: copy a <section>/<div> back into index4.html and, if the styles
+  were pruned there, the corresponding CSS block too.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>den — parked sections</title>
+<style>
+  :root{
+    --ink:#2B2013;
+    --ink-soft:rgba(43,32,19,.72);
+    --ink-faint:rgba(43,32,19,.5);
+    --fox:#C0702E;
+    --bg:#FBF7ED;
+    --hairline:rgba(43,32,19,.14);
+    --hairline-2:rgba(43,32,19,.09);
+    --shadow-md:0 18px 40px -26px rgba(36,26,15,.4);
+    --serif:'den-serif', Georgia, serif;
+    --mono:'den-mono', ui-monospace, monospace;
+  }
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,'Helvetica Neue',sans-serif;}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 28px;}
+  .eyebrow{
+    font-family:var(--mono);font-size:12px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--fox);display:inline-flex;align-items:center;gap:9px;
+  }
+  .eyebrow::before{content:"";width:16px;height:1px;background:var(--fox);opacity:.6;}
+
+  /* ---------- stats ---------- */
+  .stats{padding:78px 0 24px;}
+  .stats .wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:0;}
+  .stat{border-left:1px solid var(--hairline);padding:6px 32px;}
+  .stat:first-child{border-left:none;padding-left:0;}
+  .stat .num{font-family:var(--serif);font-variation-settings:"SOFT" 50;font-weight:340;
+    font-size:clamp(44px,4.8vw,60px);line-height:1;color:var(--ink);letter-spacing:-.01em;}
+  .stat .num em{font-style:normal;color:var(--fox);}
+  .stat .lbl{display:block;margin-top:12px;font-size:14.5px;color:var(--ink-faint);max-width:26ch;line-height:1.5;}
+
+  /* ---------- pillars ---------- */
+  .pillars{padding:92px 0 112px;}
+  .pillars .eyebrow{margin-bottom:16px;}
+  .pillars h2{
+    font-family:var(--serif);font-weight:420;font-variation-settings:"SOFT" 50;
+    font-size:clamp(28px,3.2vw,40px);letter-spacing:-.014em;margin-bottom:48px;max-width:20ch;line-height:1.08;
+  }
+  .pillar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+  .pillar{
+    border:1px solid var(--hairline);border-radius:20px;overflow:hidden;
+    background:linear-gradient(180deg,rgba(255,255,255,.4),rgba(240,232,212,.28));
+    transition:transform .25s cubic-bezier(.2,.7,.2,1), box-shadow .25s, border-color .25s;
+  }
+  .pillar:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);border-color:rgba(43,32,19,.2);}
+  /* illustration band — warm spotlight backdrop, art rests at its base */
+  .pillar-art{
+    height:172px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;
+    padding:20px 22px 0;
+    background:
+      radial-gradient(88% 78% at 50% 26%, rgba(214,151,96,.14), transparent 72%),
+      linear-gradient(180deg, rgba(247,239,222,.7), rgba(247,239,222,0));
+    border-bottom:1px solid var(--hairline-2);
+  }
+  .pillar-art img{
+    display:block;max-height:140px;max-width:90%;width:auto;height:auto;object-fit:contain;
+    filter:drop-shadow(0 16px 24px rgba(36,26,15,.18));
+    transition:transform .3s cubic-bezier(.2,.7,.2,1);
+  }
+  /* full-bleed variant: zoom + reposition inside the band to clip a floating illustration */
+  .pillar-art.cover{padding:0;align-items:stretch;position:relative;}
+  .pillar-art.cover img{
+    position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;
+    object-fit:cover;object-position:center;filter:none;
+    transform:scale(var(--z,1.6));transform-origin:var(--zo,center);
+  }
+  .pillar-art.cover.pad{--z:1.8;--zo:99% 30%;}     /* clip pad.png to its last three keys */
+  .pillar-art.cover.comp{--z:1.42;--zo:47% 30%;}   /* frame computer.png on the screen/den mark */
+  .pillar:hover .pillar-art img{transform:translateY(-3px);}
+  .pillar:hover .pillar-art.cover img{transform:scale(calc(var(--z,1.6) + .05));}
+  .pillar-body{padding:22px 26px 30px;}
+  .pillar h3{font-size:18px;font-weight:600;margin-bottom:9px;letter-spacing:-.01em;}
+  .pillar p{font-size:14.5px;color:var(--ink-soft);line-height:1.6;}
+
+  @media (max-width:920px){
+    .stats .wrap{grid-template-columns:1fr;gap:24px;}
+    .stat{border-left:none;border-top:1px solid var(--hairline);padding:18px 0 0;}
+    .stat:first-child{border-top:none;padding-top:0;}
+    .pillar-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ STATS ============ -->
+<div class="stats">
+  <div class="wrap stagger">
+    <div class="stat"><span class="num">00</span><span class="lbl">Nothing it does can reach your machine</span></div>
+    <div class="stat"><span class="num"><em>100%</em></span><span class="lbl">Of its world is its own: files, daemon, network</span></div>
+    <div class="stat"><span class="num">&lt;2s</span><span class="lbl">To wake a fresh den when the old one is done</span></div>
+  </div>
+</div>
+
+<!-- ============ PILLARS ============ -->
+<section class="pillars">
+  <div class="wrap">
+    <span class="eyebrow reveal">The idea</span>
+    <h2 class="reveal">Wild on the inside.<br>Quiet on the outside.</h2>
+    <div class="pillar-grid stagger">
+      <div class="pillar">
+        <div class="pillar-art cover comp"><img src="../resources/computer.png" alt="A retro personal computer showing the den logo, a machine of its own." loading="lazy"></div>
+        <div class="pillar-body">
+          <h3>A burrow of its own</h3>
+          <p>Each agent settles into a disposable microVM with its own Docker daemon, filesystem and kernel. Nothing it touches is yours.</p>
+        </div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-art"><img src="../resources/den-dusk.webp" alt="" loading="lazy"></div>
+        <div class="pillar-body">
+          <h3>A guarded doorway</h3>
+          <p>Nothing leaves without your say. Requests pass by the domains you allow; the rest are turned away at the door, and logged.</p>
+        </div>
+      </div>
+      <div class="pillar">
+        <div class="pillar-art cover pad"><img src="../resources/pad.png" alt="" loading="lazy"></div>
+        <div class="pillar-body">
+          <h3>No more babysitting</h3>
+          <p>Say yes once, then leave it be. The agent installs, builds and rewrites code on its own, and you come back to a finished diff.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

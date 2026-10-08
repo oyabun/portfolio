@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic Platform / AI Cloud — Case study · Javier Alonso</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <div class="brand"><a href="../index.html">Javier Alonso<span>.</span></a></div>
+    <div class="navlinks">
+      <a class="back" href="../index.html">← All projects</a>
+      <button class="toggle" data-toggle-theme><span class="dot"></span><span class="lbl">Dark</span></button>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Case study · 0 → 1 · in buildout</div>
+    <h1>Agentic Platform / AI Cloud</h1>
+    <p class="lead">Primary designer for Docker's cloud agent platform. I defined the product's primitives, information architecture, onboarding, and journeys — the work of shaping <em>what the product is</em>.</p>
+    <div class="stats">
+      <div class="stat"><b data-count="20.7" data-suffix="M">0</b><span>cagent command events (runtime it fronts)</span></div>
+      <div class="stat"><b>DRI</b><span>platform research</span></div>
+      <div class="stat"><b>3</b><span>primitives defined: sessions · sandboxes · kits</span></div>
+      <div class="stat"><b>Full</b><span>product definition &amp; IA</span></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="mock reveal">
+      <div class="cap"><b>Signature screen — project board with Kanban &amp; Artifacts as first-class primitives</b><span class="pill">theme-aware SVG</span></div>
+      <svg viewBox="0 0 960 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Agentic Platform project board">
+        <rect x="0" y="0" width="960" height="440" rx="16" fill="var(--svg-window)"/>
+        <rect x="28" y="28" width="904" height="384" rx="14" fill="var(--svg-bg)" stroke="var(--svg-line)"/>
+        <!-- tabs -->
+        <text x="52" y="66" font-size="15" font-weight="800" fill="var(--svg-text)">payments-agent</text>
+        <g font-size="12">
+          <rect x="52" y="82" width="72" height="26" rx="7" fill="var(--svg-chip)"/><text x="66" y="99" fill="var(--svg-accent)" font-weight="700">Board</text>
+          <text x="140" y="99" fill="var(--svg-subtle)">Artifacts</text>
+          <text x="220" y="99" fill="var(--svg-subtle)">Sandboxes</text>
+          <text x="320" y="99" fill="var(--svg-subtle)">Kits</text>
+        </g>
+        <line x1="52" y1="120" x2="908" y2="120" stroke="var(--svg-line)"/>
+        <!-- columns -->
+        <g font-size="11" fill="var(--svg-subtle)">
+          <text x="70" y="146">To do</text><text x="310" y="146">Running</text><text x="550" y="146">Review</text><text x="790" y="146">Done</text>
+        </g>
+        <g>
+          <rect x="56" y="156" width="210" height="60" rx="10" fill="var(--svg-panel)" stroke="var(--svg-line)"/><rect x="72" y="172" width="120" height="9" rx="4" fill="var(--svg-text)" opacity=".6"/><rect x="72" y="190" width="80" height="8" rx="4" fill="var(--svg-line)"/>
+          <rect x="56" y="226" width="210" height="60" rx="10" fill="var(--svg-panel)" stroke="var(--svg-line)"/><rect x="72" y="242" width="140" height="9" rx="4" fill="var(--svg-text)" opacity=".6"/>
+          <rect x="296" y="156" width="210" height="60" rx="10" fill="var(--svg-chip)" stroke="var(--svg-accent)"/><circle cx="316" cy="180" r="6" fill="var(--svg-accent)"/><rect x="330" y="175" width="120" height="9" rx="4" fill="var(--svg-text)" opacity=".7"/><rect x="330" y="192" width="80" height="8" rx="4" fill="var(--svg-accent)" opacity=".5"/>
+          <rect x="536" y="156" width="210" height="60" rx="10" fill="var(--svg-panel)" stroke="var(--svg-line)"/><rect x="552" y="172" width="120" height="9" rx="4" fill="var(--svg-text)" opacity=".6"/><rect x="552" y="190" width="90" height="8" rx="4" fill="var(--svg-line)"/>
+          <rect x="776" y="156" width="132" height="60" rx="10" fill="var(--svg-panel)" stroke="var(--svg-line)"/><rect x="792" y="172" width="90" height="9" rx="4" fill="var(--svg-good)" opacity=".7"/>
+        </g>
+        <!-- session composer -->
+        <rect x="56" y="308" width="852" height="80" rx="12" fill="var(--svg-panel)" stroke="var(--svg-line)"/>
+        <text x="74" y="336" font-size="12" fill="var(--svg-subtle)">New session</text>
+        <rect x="74" y="346" width="620" height="30" rx="8" fill="var(--svg-bg)" stroke="var(--svg-line)"/><text x="88" y="366" font-size="12" fill="var(--svg-subtle)">Describe a task, pick a kit &amp; sandbox…</text>
+        <rect x="708" y="346" width="90" height="30" rx="8" fill="var(--svg-accent)"/><text x="726" y="366" font-size="12" fill="#fff" font-weight="700">Run</text>
+        <rect x="808" y="346" width="90" height="30" rx="8" fill="var(--svg-bg)" stroke="var(--svg-line)"/><text x="826" y="366" font-size="11" fill="var(--svg-text)">SSH ▸</text>
+      </svg>
+    </div>
+
+    <div class="note reveal"><b>A note on names.</b> <b>dagent</b> is the Docker Agent app — create / run / pull / push / share agents — the product layer Javier designed and researched (via the <em>Dagent UX Study</em>), and the core of this platform. It's distinct from <b>cagent</b>, the open-source CLI runtime it fronts (~20.7M command events), and from <b>Gordon</b>, the embedded assistant. dagent's own telemetry (Sigma <code>PREP.DAGENT</code>, Aug 2025–Jun 2026) shows an early-stage product: <b>3,412 events · 96 users · 369 agents created · 2,144 runs</b> — matching the "prototype stage" his research brief describes.</div>
+
+    <div class="two" style="margin-top:34px">
+      <div>
+        <div class="sec-head"><div class="kicker">The problem</div><h2>No mental model yet</h2></div>
+        <p style="color:var(--muted);font-size:16px">Docker was building a platform to run and manage AI agents in the cloud, but the product had no established mental model: what is a session vs. a sandbox? what's a kit? how do users delegate to agents and trust the result? It started as a Vercel prototype with unvalidated core flows.</p>
+      </div>
+      <div>
+        <div class="sec-head"><div class="kicker">My role</div><h2>Primary designer &amp; research DRI</h2></div>
+        <p style="color:var(--muted);font-size:16px">Defined primitives and IA, designed onboarding and the end-to-end journeys, authored the platform research plan (screener → interviews → Useberry usability tests with SUS/UMUX-Lite), facilitated the Dagent UX study, and drove a "code red" push that unblocked release.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:color-mix(in srgb,var(--blue) 6%,var(--bg))">
+  <div class="wrap">
+    <div class="sec-head"><div class="kicker">Who it serves</div><h2>Personas</h2></div>
+    <div class="cards">
+      <div class="card"><div class="em">🤖</div><h4>Priya — agent engineer</h4><p>Start sessions, run agents in isolated sandboxes, package kits.</p></div>
+      <div class="card"><div class="em">🛡️</div><h4>Marco — platform eng</h4><p>Safe execution and connectors, external editors over SSH.</p></div>
+      <div class="card"><div class="em">🏢</div><h4>Dana — enterprise admin</h4><p>Governance, policies, and cost across teams.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="two">
+      <div class="uc">
+        <div class="sec-head"><div class="kicker">Jobs to be done</div><h2>Use cases designed</h2></div>
+        <ul>
+          <li>Start an agent session and watch it work (composer, session detail, mobile)</li>
+          <li>Run agents safely in isolated sandboxes (templates, secrets, volumes, activity log)</li>
+          <li>Package reusable capabilities as Kits</li>
+          <li>Understand a project at a glance (Kanban + Artifacts tabs)</li>
+          <li>Connect external editors (Cursor/Codex) over SSH; assign a reviewer agent to PRs</li>
+        </ul>
+      </div>
+      <div>
+        <div class="sec-head"><div class="kicker">Delivery</div><h2>What shipped</h2></div>
+        <p style="color:var(--muted);font-size:16px">IA (MCP/Connections, Kits, Sandboxes, Policies, Automation) · sessions/sandboxes model · New Session Composer (Unified Picker) · project-detail with Kanban + Artifacts · onboarding + empty states · Kits · Connectors · reviewer agent · Create Project revamp · mobile session UI · Slack integration · Share Session · F&amp;F launch prototype · SSH integration. Fronts the open-source <em>cagent</em> runtime (~20.7M command events).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div><a href="../index.html">← Back to all projects</a></div>
+    <div>Sources: Notion (Agentic Platform Research, Dagent UX Study); Jira (APT); Docker Sigma (cagent command events); Docker blog (cagent, Sandboxes, AI Governance). Product ramping — scope &amp; definition are the headline.</div>
+  </div>
+</footer>
+<script src="../assets/theme.js"></script>
+</body>
+</html>

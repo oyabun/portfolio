@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>den — Let coding agents run full YOLO, safely</title>
+  <meta name="description" content="den runs every coding agent in a disposable, network-policed microVM. Stop babysitting yes/no/cancel prompts — turn off the guardrails and let Claude, Codex, Antigravity, or OpenCode run unattended.">
+  <meta property="og:title" content="den — Let coding agents run full YOLO, safely">
+  <meta property="og:description" content="Ephemeral, isolated sandboxes you control with your own policies and tools. Full support for Codex, Antigravity, Claude, OpenCode and more.">
+  <meta property="og:image" content="screenshots/app-home.png">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    /* ── Dark scene palette — den: light spilling out of the dark ── */
+    :root {
+      --bg:          #060607;
+      --bg-2:        #0B0B0D;
+      --panel:       #111114;
+      --panel-2:     #17171B;
+      --line:        rgba(255,255,255,0.09);
+      --line-soft:   rgba(255,255,255,0.055);
+      --text:        #F4F3F1;
+      --text-mid:    rgba(244,243,241,0.62);
+      --text-dim:    rgba(244,243,241,0.38);
+      --text-faint:  rgba(244,243,241,0.22);
+      /* the "light of fusion" — warm ember spilling into cool dark */
+      --ember:       #FF6A2C;
+      --ember-hot:   #FF8A3D;
+      --ember-deep:  #E0421C;
+      --violet:      #6C5BD4;
+      --cyan:        #2FB6C9;
+      --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Figtree', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    ::selection { background: rgba(255,106,44,0.28); color: #fff; }
+
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+
+    /* film grain over everything */
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 200; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+      opacity: 0.04;
+    }
+
+    /* mono eyebrow used across sections */
+    .kicker {
+      display: inline-flex; align-items: center; gap: 9px;
+      font-family: var(--mono);
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .kicker::before {
+      content: ''; width: 6px; height: 6px; border-radius: 1px;
+      background: var(--ember); box-shadow: 0 0 10px 1px rgba(255,106,44,0.7);
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 28px;
+      transition: background 0.3s, border-color 0.3s, backdrop-filter 0.3s;
+      border-bottom: 1px solid transparent;
+    }
+    nav.scrolled {
+      background: rgba(6,6,7,0.72);
+      backdrop-filter: blur(18px) saturate(160%);
+      -webkit-backdrop-filter: blur(18px) saturate(160%);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo img { width: 30px; height: 30px; object-fit: contain; }
+    .nav-logo-text { font-size: 19px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
+    .nav-links { display: flex; align-items: center; gap: 30px; list-style: none; }
+    .nav-links a {
+      text-decoration: none; color: var(--text-mid);
+      font-size: 13.5px; font-weight: 500; transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: var(--text) !important; color: #0a0a0a !important;
+      padding: 8px 16px; border-radius: 8px; font-weight: 600 !important;
+      transition: transform 0.2s, box-shadow 0.2s !important;
+    }
+    .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(255,255,255,0.14); }
+
+    /* ─── HERO ─── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 150px 24px 90px;
+      overflow: hidden;
+    }
+    /* the doorway of light — warm ember spilling from a bright opening into the dark */
+    .beam {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      overflow: hidden;
+    }
+    /* volumetric wash across the scene */
+    .beam::before {
+      content: '';
+      position: absolute; inset: -20%;
+      background:
+        radial-gradient(60% 80% at 50% 42%, rgba(255,138,61,0.30) 0%, rgba(224,66,28,0.16) 30%, transparent 62%),
+        radial-gradient(90% 70% at 50% 30%, rgba(108,91,212,0.16) 0%, transparent 60%),
+        radial-gradient(50% 60% at 50% 90%, rgba(47,182,201,0.08) 0%, transparent 60%);
+      filter: blur(10px);
+    }
+    /* the bright opening itself */
+    .portal {
+      position: absolute; z-index: 1; pointer-events: none;
+      top: 34%; left: 50%;
+      width: 150px; height: 320px;
+      transform: translate(-50%, -50%) perspective(900px) rotateY(0deg);
+      background: linear-gradient(180deg, #FFF7EE 0%, #FFD9A8 26%, var(--ember-hot) 55%, var(--ember-deep) 100%);
+      border-radius: 4px;
+      box-shadow:
+        0 0 60px 20px rgba(255,170,90,0.55),
+        0 0 160px 60px rgba(255,110,50,0.45),
+        0 0 320px 140px rgba(224,66,28,0.30);
+      animation: breathe 7s ease-in-out infinite;
+    }
+    /* the light streaming out toward the viewer */
+    .portal::after {
+      content: '';
+      position: absolute; top: -40%; left: 50%;
+      width: 1400px; height: 1000px;
+      transform: translateX(-50%);
+      background: conic-gradient(from 90deg at 50% 0%,
+        transparent 0deg,
+        rgba(255,150,80,0.00) 40deg,
+        rgba(255,150,80,0.10) 72deg,
+        rgba(255,180,110,0.16) 90deg,
+        rgba(255,150,80,0.10) 108deg,
+        rgba(255,150,80,0.00) 140deg,
+        transparent 360deg);
+      filter: blur(6px);
+      mix-blend-mode: screen;
+    }
+    @keyframes breathe {
+      0%, 100% { opacity: 0.92; box-shadow: 0 0 60px 20px rgba(255,170,90,0.55), 0 0 160px 60px rgba(255,110,50,0.45), 0 0 320px 140px rgba(224,66,28,0.30); }
+      50%      { opacity: 1;    box-shadow: 0 0 80px 26px rgba(255,180,100,0.62), 0 0 200px 80px rgba(255,120,55,0.52), 0 0 380px 160px rgba(224,66,28,0.34); }
+    }
+    /* darken the very edges to sell the "den" enclosure */
+    .beam::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(120% 90% at 50% 45%, transparent 40%, rgba(6,6,7,0.55) 78%, var(--bg) 100%);
+    }
+
+    .hero-inner { position: relative; z-index: 3; display: flex; flex-direction: column; align-items: center; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-family: var(--mono); font-size: 11.5px; font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--text-mid);
+      background: rgba(20,20,24,0.55);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(8px);
+      padding: 7px 14px 7px 10px; border-radius: 100px;
+      margin-bottom: 30px;
+      opacity: 0; animation: fadeUp 0.7s ease forwards 0.1s;
+    }
+    .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ADE80; box-shadow: 0 0 8px #4ADE80; animation: pulse 2s infinite; }
+
+    .hero-title {
+      font-size: clamp(46px, 8vw, 92px);
+      font-weight: 700; line-height: 0.98; letter-spacing: -0.045em;
+      color: var(--text);
+      max-width: 900px; margin-bottom: 24px;
+      opacity: 0; animation: fadeUp 0.9s ease forwards 0.24s;
+    }
+    .hero-title em {
+      font-style: normal;
+      background: linear-gradient(100deg, var(--ember-hot) 0%, #FFC98A 50%, var(--ember) 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .hero-sub {
+      font-size: clamp(16px, 2vw, 19px); font-weight: 400;
+      color: var(--text-mid); max-width: 620px; line-height: 1.6;
+      margin-bottom: 38px;
+      opacity: 0; animation: fadeUp 0.9s ease forwards 0.38s;
+    }
+    .hero-actions {
+      display: flex; gap: 14px; align-items: center; flex-wrap: wrap; justify-content: center;
+      opacity: 0; animation: fadeUp 0.9s ease forwards 0.52s;
+    }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: var(--text); color: #0a0a0a;
+      font-size: 15px; font-weight: 600;
+      padding: 13px 26px; border-radius: 10px; text-decoration: none;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+      transition: transform 0.22s, box-shadow 0.22s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(255,255,255,0.16); }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 9px;
+      color: var(--text); font-size: 15px; font-weight: 500;
+      padding: 13px 22px; border-radius: 10px; text-decoration: none;
+      border: 1px solid var(--line); background: rgba(255,255,255,0.02);
+      transition: all 0.22s;
+    }
+    .btn-ghost:hover { border-color: rgba(255,255,255,0.24); background: rgba(255,255,255,0.05); transform: translateY(-2px); }
+
+    /* install command pill */
+    .install {
+      margin-top: 28px;
+      display: inline-flex; align-items: center; gap: 14px;
+      font-family: var(--mono); font-size: 13.5px;
+      background: rgba(12,12,14,0.7);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(8px);
+      padding: 11px 12px 11px 18px; border-radius: 10px;
+      opacity: 0; animation: fadeUp 0.9s ease forwards 0.66s;
+    }
+    .install .prompt { color: var(--ember); }
+    .install .cmd { color: var(--text); }
+    .install button {
+      background: rgba(255,255,255,0.06); border: 1px solid var(--line);
+      color: var(--text-mid); border-radius: 6px; padding: 5px 7px;
+      cursor: pointer; display: flex; transition: all 0.18s;
+    }
+    .install button:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+
+    .hero-scroll {
+      position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+      z-index: 3; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--text-faint);
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      opacity: 0; animation: fadeUp 1s ease forwards 1s;
+    }
+    .hero-scroll .line { width: 1px; height: 34px; background: linear-gradient(var(--text-faint), transparent); }
+
+    /* ─── LOGO STRIP ─── */
+    .logos { border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); background: var(--bg-2); }
+    .logos-inner { padding: 34px 28px; text-align: center; }
+    .logos-label { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 22px; }
+    .logos-row { display: flex; align-items: center; justify-content: center; gap: 42px; flex-wrap: wrap; }
+    .logos-row img { height: 22px; width: auto; opacity: 0.4; filter: brightness(0) invert(1); transition: opacity 0.2s; }
+    .logos-row img:hover { opacity: 0.75; }
+
+    /* ─── SECTION SHELL (technical framing) ─── */
+    section.block { padding: 110px 0; position: relative; }
+    .sec-head { max-width: 720px; margin-bottom: 60px; }
+    .sec-head.center { margin-left: auto; margin-right: auto; text-align: center; }
+    .sec-title {
+      font-size: clamp(32px, 4.6vw, 52px); font-weight: 700;
+      letter-spacing: -0.035em; line-height: 1.06; margin: 18px 0 16px;
+    }
+    .sec-title em { font-style: normal; color: var(--text-dim); }
+    .sec-sub { font-size: 17px; color: var(--text-mid); line-height: 1.6; max-width: 560px; }
+    .sec-head.center .sec-sub { margin: 0 auto; }
+
+    /* corner-bracket framed card */
+    .frame { position: relative; border: 1px solid var(--line); background: var(--panel); border-radius: 16px; }
+    .frame::before, .frame::after,
+    .frame > .cnr-tl, .frame > .cnr-tr {
+      content: ''; position: absolute; width: 9px; height: 9px; border-color: rgba(255,255,255,0.28); border-style: solid; border-width: 0;
+    }
+
+    /* ─── BENTO ─── */
+    .bento {
+      display: grid; grid-template-columns: repeat(6, 1fr);
+      gap: 16px; grid-auto-rows: minmax(200px, auto);
+    }
+    .tile {
+      position: relative; overflow: hidden;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px; padding: 26px;
+      display: flex; flex-direction: column;
+      opacity: 0; transform: translateY(28px);
+      transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.25s, background 0.25s;
+    }
+    .tile.visible { opacity: 1; transform: translateY(0); }
+    .tile:hover { border-color: rgba(255,255,255,0.2); background: var(--panel-2); }
+    .tile .num {
+      position: absolute; top: 20px; right: 22px;
+      font-family: var(--mono); font-size: 11px; color: var(--text-faint); letter-spacing: 0.05em;
+    }
+    .t-a { grid-column: span 4; grid-row: span 2; }
+    .t-b { grid-column: span 2; grid-row: span 2; }
+    .t-c { grid-column: span 3; }
+    .t-d { grid-column: span 3; }
+    .t-e { grid-column: span 6; }
+
+    .t-icon {
+      width: 44px; height: 44px; border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text); background: rgba(255,255,255,0.05);
+      border: 1px solid var(--line); margin-bottom: 18px; flex-shrink: 0;
+    }
+    .t-title { font-size: 19px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 9px; }
+    .t-desc { font-size: 14px; line-height: 1.65; color: var(--text-mid); }
+
+    /* hero tile with ember glow + shot */
+    .t-a { justify-content: space-between; }
+    .t-a::before {
+      content: ''; position: absolute; top: -60px; right: -60px; width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(255,106,44,0.16) 0%, transparent 68%); pointer-events: none;
+    }
+    .t-a .t-title { font-size: 26px; }
+    .tile-shot {
+      margin-top: 20px; width: 100%; border-radius: 10px;
+      border: 1px solid var(--line); display: block;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    }
+
+    /* agent logos grid inside tile-b */
+    .agents { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: auto; }
+    .agent {
+      display: flex; align-items: center; gap: 10px;
+      border: 1px solid var(--line-soft); border-radius: 10px; padding: 11px 12px;
+      background: rgba(255,255,255,0.015); transition: border-color 0.2s, background 0.2s;
+    }
+    .agent:hover { border-color: var(--line); background: rgba(255,255,255,0.04); }
+    .agent svg { flex-shrink: 0; }
+    .agent span { font-size: 12.5px; font-weight: 600; color: var(--text-mid); }
+    .a-claude { color: #D97757; } .a-codex, .a-opencode, .a-cursor { color: #E8E6E3; } .a-antigravity { color: #4285F4; }
+
+    /* git tile with diff chips */
+    .t-e { flex-direction: row; align-items: center; gap: 30px; flex-wrap: wrap; }
+    .t-e .e-copy { flex: 1; min-width: 280px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-family: var(--mono); font-size: 12px; color: var(--text);
+      background: rgba(255,255,255,0.03); border: 1px solid var(--line);
+      border-radius: 8px; padding: 8px 12px; white-space: nowrap;
+    }
+    .chip .add { color: #4ADE80; } .chip .del { color: #F87171; }
+
+    /* ─── PROOF / SCREENSHOT STRIP ─── */
+    .shot-block { background: var(--bg-2); border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); }
+    .browser {
+      position: relative; border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+      background: var(--panel);
+      box-shadow: 0 48px 140px rgba(0,0,0,0.6);
+      opacity: 0; transform: translateY(40px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+    }
+    .browser.visible { opacity: 1; transform: translateY(0); }
+    .browser::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+      background: radial-gradient(80% 120% at 50% -10%, rgba(255,106,44,0.06), transparent 60%);
+    }
+    .b-bar { display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: var(--panel-2); border-bottom: 1px solid var(--line); }
+    .b-dots { display: flex; gap: 7px; }
+    .b-dots i { width: 11px; height: 11px; border-radius: 50%; background: rgba(255,255,255,0.14); }
+    .b-url { flex: 1; text-align: center; font-family: var(--mono); font-size: 11.5px; color: var(--text-faint); }
+    .b-shot { display: block; width: 100%; height: auto; }
+
+    /* ─── STEPS ─── */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .step {
+      position: relative; border: 1px solid var(--line); border-radius: 14px; padding: 28px;
+      background: var(--panel);
+      opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .step.visible { opacity: 1; transform: translateY(0); }
+    .step-n { font-family: var(--mono); font-size: 12px; color: var(--ember); letter-spacing: 0.1em; margin-bottom: 16px; }
+    .step-t { font-size: 17px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.01em; }
+    .step-d { font-size: 13.5px; color: var(--text-mid); line-height: 1.6; }
+
+    /* ─── STATS ─── */
+    .stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 22px; }
+    .stat { flex: 1; min-width: 200px; border: 1px solid var(--line); border-radius: 14px; padding: 30px; text-align: center; background: var(--panel); }
+    .stat .n { font-size: 42px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 8px; }
+    .stat .n em { font-style: normal; background: linear-gradient(100deg, var(--ember-hot), var(--ember)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .stat .l { font-size: 13px; color: var(--text-mid); }
+
+    /* ─── CTA ─── */
+    .cta { position: relative; overflow: hidden; text-align: center; padding: 150px 24px; }
+    .cta::before {
+      content: ''; position: absolute; left: 50%; bottom: -220px; transform: translateX(-50%);
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(255,106,44,0.22) 0%, rgba(224,66,28,0.08) 40%, transparent 70%);
+      filter: blur(20px); pointer-events: none;
+    }
+    .cta-inner { position: relative; z-index: 1; }
+    .cta-title { font-size: clamp(38px, 6vw, 72px); font-weight: 700; letter-spacing: -0.04em; line-height: 1.02; margin-bottom: 22px; }
+    .cta-title em { font-style: normal; background: linear-gradient(100deg, var(--ember-hot), #FFC98A, var(--ember)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .cta-sub { font-size: 18px; color: var(--text-mid); max-width: 480px; margin: 0 auto 40px; line-height: 1.6; }
+    .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+    /* ─── FOOTER ─── */
+    footer { border-top: 1px solid var(--line); }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 22px; padding: 40px 28px; }
+    .footer-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .footer-logo img { width: 24px; height: 24px; opacity: 0.7; }
+    .footer-logo span { font-size: 17px; font-weight: 600; color: var(--text-mid); }
+    .footer-links { display: flex; gap: 26px; list-style: none; flex-wrap: wrap; }
+    .footer-links a { color: var(--text-dim); text-decoration: none; font-size: 13px; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy { font-family: var(--mono); font-size: 11px; color: var(--text-faint); }
+
+    /* ─── ANIM ─── */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .nav-links li:not(:last-child) { display: none; }
+      .bento { grid-template-columns: repeat(2, 1fr); }
+      .t-a, .t-b, .t-c, .t-d, .t-e { grid-column: span 2; grid-row: auto; }
+      .t-e { flex-direction: column; align-items: flex-start; gap: 20px; }
+      .steps { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .bento { grid-template-columns: 1fr; }
+      .t-a, .t-b, .t-c, .t-d, .t-e { grid-column: span 1; }
+      .agents { grid-template-columns: 1fr; }
+      .hero-actions { flex-direction: column; width: 100%; }
+      .btn-primary, .btn-ghost { width: 100%; justify-content: center; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav id="nav">
+  <a href="#" class="nav-logo">
+    <img src="../resources/logo.png" alt="den">
+    <span class="nav-logo-text">den</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="https://docs.docker.com/ai/sandboxes/" target="_blank" rel="noopener">sbx docs</a></li>
+    <li><a href="#cta" class="nav-cta">Download</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ── -->
+<header class="hero">
+  <div class="beam">
+    <div class="portal"></div>
+  </div>
+
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      The world's safest place to run coding agents
+    </div>
+
+    <h1 class="hero-title">Let your agents<br>run <em>full YOLO.</em></h1>
+
+    <p class="hero-sub">
+      Stop being the human on the yes / no / cancel button. den drops every coding agent
+      into a disposable, network-policed microVM — turn off the guardrails, walk away,
+      and let it run.
+    </p>
+
+    <div class="hero-actions">
+      <a href="#cta" class="btn-primary">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1v9m0 0L4.5 7m3 3 3-3M1.5 13h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Download for Mac
+      </a>
+      <a href="#features" class="btn-ghost">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.75" stroke="currentColor" stroke-width="1.4"/><path d="M6 5l4 2.5L6 10V5z" fill="currentColor"/></svg>
+        See it in action
+      </a>
+    </div>
+
+    <div class="install">
+      <span><span class="prompt">$</span> <span class="cmd" id="cmd">brew install --cask den</span></span>
+      <button id="copyBtn" aria-label="Copy install command">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="hero-scroll">
+    <span>Scroll</span>
+    <span class="line"></span>
+  </div>
+</header>
+
+<!-- ── LOGO STRIP ── -->
+<section class="logos">
+  <div class="logos-inner">
+    <div class="logos-label">Agents you already run, sealed inside</div>
+    <div class="logos-row">
+      <img src="../resources/brand-mono/claude.svg" alt="Claude">
+      <img src="../resources/brand-mono/codex.svg" alt="Codex">
+      <img src="../resources/brand-mono/copilot.svg" alt="Copilot">
+      <img src="../resources/brand-mono/cursor.svg" alt="Cursor">
+      <img src="../resources/brand-mono/droid.svg" alt="Droid">
+      <img src="../resources/brand-mono/gemini.svg" alt="Gemini">
+      <img src="../resources/brand-mono/opencode.svg" alt="OpenCode">
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ── -->
+<section class="block" id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Why den</span>
+      <h2 class="sec-title">Guardrails on the box,<br><em>not on the agent.</em></h2>
+      <p class="sec-sub">Lock down a disposable microVM once — its filesystem, its network — then let any agent run unattended inside it. The blast radius stops at the sandbox.</p>
+    </div>
+
+    <div class="bento" id="bento">
+
+      <!-- hero tile -->
+      <div class="tile t-a">
+        <span class="num">01</span>
+        <div>
+          <div class="t-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg></div>
+          <h3 class="t-title">Full YOLO, safely</h3>
+          <p class="t-desc">Flip on bypass-permissions and stop approving every command. The agent can install anything, run anything, touch any file — it's sealed inside a microVM it can't escape, so a bad call never reaches your machine.</p>
+        </div>
+        <img class="tile-shot" src="../screenshots/app-home.png" alt="den running a Claude agent with bypass-permissions enabled inside an isolated sandbox">
+      </div>
+
+      <!-- agents tile -->
+      <div class="tile t-b">
+        <span class="num">02</span>
+        <div class="t-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div>
+        <h3 class="t-title">Every agent, first-class</h3>
+        <p class="t-desc" style="margin-bottom:18px">Full agent TUIs over a real PTY. Bring the one you already use.</p>
+        <div class="agents">
+          <div class="agent a-claude"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M4.709 15.955l4.72-2.647.08-.23-.08-.128H9.2l-.79-.048-2.698-.073-2.339-.097-2.266-.122-.571-.121L0 11.784l.055-.352.48-.321.686.06 1.52.103 2.278.158 1.652.097 2.449.255h.389l.055-.157-.134-.098-.103-.097-2.358-1.596-2.552-1.688-1.336-.972-.724-.491-.364-.462-.158-1.008.656-.722.881.06.225.061.893.686 1.908 1.476 2.491 1.833.365.304.145-.103.019-.073-.164-.274-1.355-2.446-1.446-2.49-.644-1.032-.17-.619a2.97 2.97 0 01-.104-.729L6.283.134 6.696 0l.996.134.42.364.62 1.414 1.002 2.229 1.555 3.03.456.898.243.832.091.255h.158V9.01l.128-1.706.237-2.095.23-2.695.08-.76.376-.91.747-.492.584.28.48.685-.067.444-.286 1.851-.559 2.903-.364 1.942h.212l.243-.242.985-1.306 1.652-2.064.73-.82.85-.904.547-.431h1.033l.76 1.129-.34 1.166-1.064 1.347-.881 1.142-1.264 1.7-.79 1.36.073.11.188-.02 2.856-.606 1.543-.28 1.841-.315.833.388.091.395-.328.807-1.969.486-2.309.462-3.439.813-.042.03.049.061 1.549.146.662.036h1.622l3.02.225.79.522.474.638-.079.485-1.215.62-1.64-.389-3.829-.91-1.312-.329h-.182v.11l1.093 1.068 2.006 1.81 2.509 2.33.127.578-.322.455-.34-.049-2.205-1.657-.851-.747-1.926-1.62h-.128v.17l.444.649 2.345 3.521.122 1.08-.17.353-.608.213-.668-.122-1.374-1.925-1.415-2.167-1.143-1.943-.14.08-.674 7.254-.316.37-.729.28-.607-.461-.322-.747.322-1.476.389-1.924.315-1.53.286-1.9.17-.632-.012-.042-.14.018-1.434 1.967-2.18 2.945-1.726 1.845-.414.164-.717-.37.067-.662.401-.589 2.388-3.036 1.44-1.882.93-1.086-.006-.158h-.055L4.132 18.56l-1.13.146-.487-.456.061-.746.231-.243 1.908-1.312-.006.006z"/></svg><span>Claude</span></div>
+          <div class="agent a-codex"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8.086.457a6.105 6.105 0 013.046-.415c1.333.153 2.521.72 3.564 1.7a.117.117 0 00.107.029c1.408-.346 2.762-.224 4.061.366l.063.03.154.076c1.357.703 2.33 1.77 2.918 3.198.278.679.418 1.388.421 2.126a5.655 5.655 0 01-.18 1.631.167.167 0 00.04.155 5.982 5.982 0 011.578 2.891c.385 1.901-.01 3.615-1.183 5.14l-.182.22a6.063 6.063 0 01-2.934 1.851.162.162 0 00-.108.102c-.255.736-.511 1.364-.987 1.992-1.199 1.582-2.962 2.462-4.948 2.451-1.583-.008-2.986-.587-4.21-1.736a.145.145 0 00-.14-.032c-.518.167-1.04.191-1.604.185a5.924 5.924 0 01-2.595-.622 6.058 6.058 0 01-2.146-1.781c-.203-.269-.404-.522-.551-.821a7.74 7.74 0 01-.495-1.283 6.11 6.11 0 01-.017-3.064.166.166 0 00.008-.074.115.115 0 00-.037-.064 5.958 5.958 0 01-1.38-2.202 5.196 5.196 0 01-.333-1.589 6.915 6.915 0 01.188-2.132c.45-1.484 1.309-2.648 2.577-3.493.282-.188.55-.334.802-.438.286-.12.573-.22.861-.304a.129.129 0 00.087-.087A6.016 6.016 0 015.635 2.31C6.315 1.464 7.132.846 8.086.457zm-.804 7.85a.848.848 0 00-1.473.842l1.694 2.965-1.688 2.848a.849.849 0 001.46.864l1.94-3.272a.849.849 0 00.007-.854l-1.94-3.393zm5.446 6.24a.849.849 0 000 1.695h4.848a.849.849 0 000-1.696h-4.848z"/></svg><span>Codex</span></div>
+          <div class="agent a-antigravity"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21.751 22.607c1.34 1.005 3.35.335 1.508-1.508C17.73 15.74 18.904 1 12.037 1 5.17 1 6.342 15.74.815 21.1c-2.01 2.009.167 2.511 1.507 1.506 5.192-3.517 4.857-9.714 9.715-9.714 4.857 0 4.522 6.197 9.714 9.715z"/></svg><span>Antigravity</span></div>
+          <div class="agent a-opencode"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6H8v12h8V6zm4 16H4V2h16v20z"/></svg><span>OpenCode</span></div>
+        </div>
+      </div>
+
+      <!-- isolated -->
+      <div class="tile t-c">
+        <span class="num">03</span>
+        <div class="t-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+        <h3 class="t-title">Isolated by default</h3>
+        <p class="t-desc">Each sandbox is its own microVM with a separate filesystem and network. Your host stays untouched, every time.</p>
+      </div>
+
+      <!-- network -->
+      <div class="tile t-d">
+        <span class="num">04</span>
+        <div class="t-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></svg></div>
+        <h3 class="t-title">Network policies</h3>
+        <p class="t-desc">Decide exactly which domains an agent can reach. Everything else is blocked — no exfiltration, no surprises.</p>
+      </div>
+
+      <!-- git tile -->
+      <div class="tile t-e">
+        <span class="num">05</span>
+        <div class="e-copy">
+          <div class="t-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></div>
+          <h3 class="t-title">A branch per sandbox — review every diff</h3>
+          <p class="t-desc">Clone-isolate your repo and the agent commits freely on its own branch, your working tree untouched. Review the full diff and merge back when it's ready.</p>
+        </div>
+        <div class="chips">
+          <span class="chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>feat/oauth-pkce</span>
+          <span class="chip">--clone</span>
+          <span class="chip"><span class="add">+312</span> <span class="del">−87</span></span>
+          <span class="chip">Review &amp; merge</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── SCREENSHOT PROOF ── -->
+<section class="block shot-block">
+  <div class="wrap">
+    <div class="sec-head center">
+      <span class="kicker" style="justify-content:center">The command center</span>
+      <h2 class="sec-title">Watch a whole fleet<br><em>work at once.</em></h2>
+      <p class="sec-sub">Every sandbox, its agent, its status and uptime — in one dashboard. Jump into any terminal live.</p>
+    </div>
+    <div class="browser" id="browser">
+      <div class="b-bar">
+        <div class="b-dots"><i></i><i></i><i></i></div>
+        <div class="b-url">den — feral-cosmos · running</div>
+      </div>
+      <img class="b-shot" src="../screenshots/app-sandbox.png" alt="den dashboard: a Claude agent running inside the feral-cosmos sandbox, sandboxes grouped by project in the sidebar">
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="block" id="how">
+  <div class="wrap">
+    <div class="sec-head center">
+      <span class="kicker" style="justify-content:center">How it works</span>
+      <h2 class="sec-title">Three steps to hands-off.</h2>
+    </div>
+    <div class="steps" id="steps">
+      <div class="step">
+        <div class="step-n">STEP 01</div>
+        <div class="step-t">Spin up a sandbox</div>
+        <div class="step-d">Pick an agent, a base image and a workspace. den boots a fresh, disposable microVM in seconds.</div>
+      </div>
+      <div class="step">
+        <div class="step-n">STEP 02</div>
+        <div class="step-t">Set the guardrails</div>
+        <div class="step-d">Lock the network to the domains you trust, clone-isolate your repo, layer in your tools with kits and mixins.</div>
+      </div>
+      <div class="step">
+        <div class="step-n">STEP 03</div>
+        <div class="step-t">Turn off the wheel</div>
+        <div class="step-d">Flip on bypass-permissions and walk away. The agent runs full YOLO — sealed inside a box it can't escape.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── STATS ── -->
+<section class="block" style="padding-top:0">
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><div class="n"><em>0</em></div><div class="l">approval prompts to babysit</div></div>
+      <div class="stat"><div class="n"><em>&lt;3s</em></div><div class="l">to boot a fresh microVM</div></div>
+      <div class="stat"><div class="n"><em>1</em></div><div class="l">blast radius — the sandbox</div></div>
+      <div class="stat"><div class="n"><em>∞</em></div><div class="l">agents running in parallel</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta" id="cta">
+  <div class="cta-inner">
+    <span class="kicker" style="justify-content:center;margin-bottom:22px">Ready when you are</span>
+    <h2 class="cta-title">Ready to <em>let go<br>of the wheel?</em></h2>
+    <p class="cta-sub">den is free to try. Bring your sbx account and let your agents run.</p>
+    <div class="cta-actions">
+      <a href="#" class="btn-primary">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M7.5 1v9m0 0L4.5 7m3 3 3-3M1.5 13h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Download den
+      </a>
+      <a href="https://docs.docker.com/ai/sandboxes/" target="_blank" rel="noopener" class="btn-ghost">Read sbx docs →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-inner">
+    <a href="#" class="footer-logo">
+      <img src="../resources/logo.png" alt="">
+      <span>den</span>
+    </a>
+    <ul class="footer-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="https://docs.docker.com/ai/sandboxes/" target="_blank" rel="noopener">Docker Sandboxes</a></li>
+      <li><a href="#">GitHub</a></li>
+      <li><a href="#">Privacy</a></li>
+    </ul>
+    <span class="footer-copy">© 2026 den — built on Docker Sandboxes</span>
+  </div>
+</footer>
+
+<script>
+  // Nav scroll state
+  const nav = document.getElementById('nav');
+  addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 20), { passive: true });
+
+  // Reveal on scroll
+  const reveal = (sel, stagger = 80) => {
+    document.querySelectorAll(sel).forEach(container => {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (!e.isIntersecting) return;
+          const items = e.target.matches('.browser') ? [e.target] : e.target.children;
+          [...items].forEach((c, i) => setTimeout(() => c.classList.add('visible'), i * stagger));
+          io.unobserve(e.target);
+        });
+      }, { threshold: 0.14 });
+      io.observe(container);
+    });
+  };
+  reveal('#bento'); reveal('#steps', 120); reveal('.browser', 0);
+
+  // Copy install command
+  const copyBtn = document.getElementById('copyBtn');
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(document.getElementById('cmd').textContent);
+      copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      setTimeout(() => {
+        copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+      }, 1600);
+    } catch (_) {}
+  });
+
+  // Subtle parallax on the portal light
+  const portal = document.querySelector('.portal');
+  addEventListener('mousemove', (e) => {
+    const x = (e.clientX / innerWidth - 0.5) * 14;
+    const y = (e.clientY / innerHeight - 0.5) * 10;
+    portal.style.transform = `translate(-50%, -50%) perspective(900px) rotateY(${x * 0.4}deg) translate3d(${x}px, ${y}px, 0)`;
+  }, { passive: true });
+
+  // Smooth-scroll hash links
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href');
+      if (id === '#') return;
+      const t = document.querySelector(id);
+      if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    });
+  });
+</script>
+</body>
+</html>

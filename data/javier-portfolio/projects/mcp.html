@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCP Toolkit &amp; Catalog — Case study · Javier Alonso</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <div class="brand"><a href="../index.html">Javier Alonso<span>.</span></a></div>
+    <div class="navlinks">
+      <a class="back" href="../index.html">← All projects</a>
+      <button class="toggle" data-toggle-theme><span class="dot"></span><span class="lbl">Dark</span></button>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Case study · net-new · launched May 2025</div>
+    <h1>MCP Toolkit, Catalog &amp; Marketplace</h1>
+    <p class="lead">The surfaces that made Docker a hub for agent tooling. Launched with 100+ partner tools — and my UX iterations roughly 2.5×'d end-to-end conversion across two Desktop releases.</p>
+    <div class="stats">
+      <div class="stat"><b data-count="13.1" data-suffix="M">0</b><span>MCP Catalog pulls</span></div>
+      <div class="stat"><b data-count="10.6" data-suffix="M">0</b><span>tool-call events</span></div>
+      <div class="stat"><b data-count="10075" data-suffix="">0</b><span>peak weekly engaged instances</span></div>
+      <div class="stat"><b data-count="100" data-suffix="+">0</b><span>partner tools at launch</span></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="mock reveal">
+      <div class="cap"><b>Signature screen — MCP Toolkit: discover, connect, and one-click enable</b><span class="pill">theme-aware SVG</span></div>
+      <svg viewBox="0 0 960 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MCP Toolkit">
+        <rect x="0" y="0" width="960" height="430" rx="16" fill="var(--svg-window)"/>
+        <rect x="28" y="28" width="600" height="374" rx="14" fill="var(--svg-bg)" stroke="var(--svg-line)"/>
+        <text x="52" y="66" font-size="16" font-weight="800" fill="var(--svg-text)">MCP Toolkit</text>
+        <rect x="360" y="48" width="244" height="28" rx="8" fill="var(--svg-panel)" stroke="var(--svg-line)"/><text x="374" y="67" font-size="11" fill="var(--svg-subtle)">Search 100+ servers…</text>
+        <!-- server rows -->
+        <g font-size="12.5">
+          <rect x="52" y="92" width="552" height="46" rx="10" fill="var(--svg-panel)" stroke="var(--svg-line)"/><circle cx="78" cy="115" r="10" fill="var(--svg-chip)"/><text x="100" y="112" fill="var(--svg-text)" font-weight="700">Playwright</text><text x="100" y="128" fill="var(--svg-subtle)" font-size="10">browser automation</text><rect x="548" y="105" width="40" height="20" rx="10" fill="var(--svg-good)"/><circle cx="578" cy="115" r="7" fill="#fff"/>
+          <rect x="52" y="146" width="552" height="46" rx="10" fill="var(--svg-panel)" stroke="var(--svg-line)"/><circle cx="78" cy="169" r="10" fill="var(--svg-chip)"/><text x="100" y="166" fill="var(--svg-text)" font-weight="700">GitHub</text><text x="100" y="182" fill="var(--svg-subtle)" font-size="10">repos, issues, PRs</text><rect x="548" y="159" width="40" height="20" rx="10" fill="var(--svg-good)"/><circle cx="578" cy="169" r="7" fill="#fff"/>
+          <rect x="52" y="200" width="552" height="46" rx="10" fill="var(--svg-panel)" stroke="var(--svg-line)"/><circle cx="78" cy="223" r="10" fill="var(--svg-chip)"/><text x="100" y="220" fill="var(--svg-text)" font-weight="700">Stripe</text><text x="100" y="236" fill="var(--svg-subtle)" font-size="10">payments · OAuth</text><rect x="548" y="213" width="40" height="20" rx="10" fill="var(--svg-line)"/><circle cx="558" cy="223" r="7" fill="var(--svg-bg)"/>
+          <rect x="52" y="254" width="552" height="46" rx="10" fill="var(--svg-panel)" stroke="var(--svg-line)"/><circle cx="78" cy="277" r="10" fill="var(--svg-chip)"/><text x="100" y="274" fill="var(--svg-text)" font-weight="700">Grafana</text><text x="100" y="290" fill="var(--svg-subtle)" font-size="10">dashboards</text><rect x="548" y="267" width="40" height="20" rx="10" fill="var(--svg-line)"/><circle cx="558" cy="277" r="7" fill="var(--svg-bg)"/>
+        </g>
+        <rect x="52" y="322" width="240" height="36" rx="9" fill="var(--svg-accent)"/><text x="76" y="345" font-size="12" fill="#fff" font-weight="700">Connect to client ▸</text>
+        <text x="308" y="345" font-size="11" fill="var(--svg-subtle)">Gordon · Claude · Cursor · VS Code</text>
+        <!-- side: isolation -->
+        <rect x="652" y="28" width="280" height="374" rx="14" fill="var(--svg-panel)" stroke="var(--svg-line)"/>
+        <text x="674" y="62" font-size="13" font-weight="800" fill="var(--svg-text)">Secure by default</text>
+        <g font-size="12" fill="var(--svg-text)">
+          <rect x="674" y="80" width="236" height="34" rx="8" fill="var(--svg-bg)" stroke="var(--svg-line)"/><text x="690" y="101">🔒 OAuth &amp; credential store</text>
+          <rect x="674" y="122" width="236" height="34" rx="8" fill="var(--svg-bg)" stroke="var(--svg-line)"/><text x="690" y="143">📦 memory / net / disk isolation</text>
+          <rect x="674" y="164" width="236" height="34" rx="8" fill="var(--svg-bg)" stroke="var(--svg-line)"/><text x="690" y="185">🌉 Gateway MCP server</text>
+        </g>
+        <text x="674" y="232" font-size="11" fill="var(--svg-subtle)">docker mcp CLI</text>
+        <rect x="674" y="244" width="236" height="120" rx="10" fill="#0b1220"/>
+        <text x="690" y="272" font-family="monospace" font-size="11" fill="#7ea8ff">$ docker mcp server add</text>
+        <text x="690" y="294" font-family="monospace" font-size="11" fill="#8affc1">✓ enabled &amp; connected</text>
+      </svg>
+    </div>
+
+    <div class="two" style="margin-top:34px">
+      <div>
+        <div class="sec-head"><div class="kicker">The problem</div><h2>Fragmented, unsafe setup</h2></div>
+        <p style="color:var(--muted);font-size:16px">Developers had no trusted, discoverable way to find MCP servers or safely connect them to clients like Cursor, Claude, and Gordon. Setup meant cloning repos, wrangling secrets, and running tools with full host access.</p>
+      </div>
+      <div>
+        <div class="sec-head"><div class="kicker">My role</div><h2>Design lead, all surfaces</h2></div>
+        <p style="color:var(--muted);font-size:16px">Designed the Desktop Toolkit (discovery, add-server, credentials, client connection) and the Hub Marketplace, plus Custom MCP Server via URL — and owned the activation funnel, iterating it version over version.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:color-mix(in srgb,var(--blue) 6%,var(--bg))">
+  <div class="wrap">
+    <div class="sec-head"><div class="kicker">Impact, measured</div><h2>Activation ~doubled: Desktop 4.45 → 4.46</h2><p>Conversion at each funnel stage, as % of aware users. Same surface, consecutive releases — the cleanest "design moved the metric" story.</p></div>
+    <div class="mock"><canvas id="funnel" height="150"></canvas></div>
+    <div class="metrics" style="margin-top:8px">
+      <div class="metric"><b>~2.5×</b><span>awareness → successful tool call</span></div>
+      <div class="metric"><b>~2.1×</b><span>activation rate of aware users</span></div>
+      <div class="metric"><b>+52%</b><span>acquisition rate</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="two">
+      <div class="uc">
+        <div class="sec-head"><div class="kicker">Jobs to be done</div><h2>Use cases designed</h2></div>
+        <ul>
+          <li>Discover an MCP server I can trust</li>
+          <li>Add a server &amp; connect a client in a couple of clicks</li>
+          <li>Configure credentials safely (OAuth)</li>
+          <li>Bring my own server by URL</li>
+        </ul>
+      </div>
+      <div class="uc">
+        <div class="sec-head"><div class="kicker">Who it serves</div><h2>Personas</h2></div>
+        <ul>
+          <li><b>Priya</b> — agent engineer discovering &amp; wiring up servers</li>
+          <li><b>Marco</b> — platform eng who needs governable, isolated tooling</li>
+          <li><b>Ana</b> — dev trying MCP for the first time via Gordon</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div><a href="../index.html">← Back to all projects</a></div>
+    <div>Sources: Docker Sigma ("AI Tools – MCP Metrics", funnels by DD version; catalog pulls); Docker blog (Introducing MCP Catalog &amp; Toolkit). Funnel comparison is the most directly attributable impact.</div>
+  </div>
+</footer>
+<script src="../assets/theme.js"></script>
+<script>
+window.addEventListener('load',function(){
+  var blue=getComputedStyle(document.documentElement).getPropertyValue('--svg-accent')||'#1d63ed';
+  new Chart(document.getElementById('funnel'),{
+    type:'bar',
+    data:{labels:['Acquisition','Activation (of aware)','Engaged (tool call)'],
+      datasets:[
+        {label:'Desktop 4.45',data:[14.2,4.8,2.85],backgroundColor:'#9db9f0'},
+        {label:'Desktop 4.46',data:[21.6,9.9,7.11],backgroundColor:blue.trim()}
+      ]},
+    options:{plugins:{legend:{position:'bottom'}},scales:{y:{ticks:{callback:function(v){return v+'%';}}}}}
+  });
+});
+</script>
+</body>
+</html>

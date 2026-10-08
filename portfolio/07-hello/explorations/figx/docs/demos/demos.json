@@ -1,0 +1,41 @@
+[
+  {
+    "id": "simple-design-system",
+    "title": "Simple Design System",
+    "author": "Figma",
+    "file": "simple-design-system.fig",
+    "screenshot": "simple-design-system.webp",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "sourceLabel": "figma/sds on GitHub",
+    "sourceUrl": "https://github.com/figma/sds",
+    "communityUrl": "https://www.figma.com/community/file/1380235722331273046/simple-design-system",
+    "about": "Introducing the Simple Design System: A UI kit built by Figma to help you get started faster using pre-built examples and components. This library covers Figma’s best practices for building a basic design system, and includes a full range of resources to enable core design use cases – like designing for web, mobile, and more.",
+    "features": [
+      "Examples – Full screen mockups that can be inserted into your file to go from blank page to polished designs quickly",
+      "400+ components, backed by code (Code Connect available on paid plans only)",
+      "Styles and variables support, including light and dark mode",
+      "Commonly used icons"
+    ],
+    "note": "The code is available to view on Figma's GitHub account. The repository contains icons, variables, and components as well as useful scripts for getting started with Code Connect."
+  },
+  {
+    "id": "material-ui-for-figma",
+    "title": "Material UI for Figma (and MUI X)",
+    "author": "MUI",
+    "file": "material-ui-for-figma.fig",
+    "screenshot": "material-ui-for-figma.webp",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "sourceLabel": "mui.com/material-ui/design-resources",
+    "sourceUrl": "https://mui.com/material-ui/design-resources/material-ui-for-figma/",
+    "communityUrl": "https://www.figma.com/community/file/912837788133317724/material-ui-for-figma-and-mui-x",
+    "about": "Material UI components in Figma so designers and developers can communicate and iterate more efficiently. This free community version covers the Material UI and MUI X (advanced components like the Data Grid) libraries, built and maintained by the MUI team.",
+    "features": [
+      "Hundreds of components matching Material UI's own design, plus some beyond Material Design's own coverage",
+      "Shared terminology with the React library for props, variables, and design tokens — so designers and engineers speak the same language",
+      "Every component available with no customization limits in this free version"
+    ],
+    "note": "This is the free Community edition; MUI also sells a paid version with more customizable component variants. Design-kit releases are tracked on MUI's own GitHub (mui/mui-design-kits)."
+  }
+]

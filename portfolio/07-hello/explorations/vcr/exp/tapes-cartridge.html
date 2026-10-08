@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Cartridge Tapes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@700;900&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  try { var th = localStorage.getItem('vcr-ds-theme'); document.documentElement.setAttribute('data-theme', th === 'light' ? 'light' : 'dark');   /* dark unless you chose light */ } catch (e) {}
+</script>
+<link rel="stylesheet" href="../css/landing.css">
+<style>
+  /* Exploration: the demo tapes as QIC-style data cartridges. A frosted clear
+     shell you see the works through (one spool, the capstan, the tape run),
+     a matte black label across the bottom that hides the second spool, and a
+     metal head door on the right edge. Everything is placed in % of the shell,
+     and type is in cqw, so one cartridge scales from shelf size to specimen. */
+  .study { max-width: 1240px; margin: 0 auto; padding: 56px 20px 96px; }
+  .study h1 { font-size: clamp(28px, 4vw, 44px); margin: 0 0 8px; letter-spacing: -.02em; }
+  .study > p { margin: 0 0 40px; color: var(--ink-3); max-width: 60ch; }
+  .specimen { display: grid; place-items: center; padding: 40px 0 64px; }
+  .specimen .cart-link { width: min(560px, 100%); }
+  .shelf { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 22px; }
+  @media (max-width: 1100px) { .shelf { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .shelf { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } }
+
+  .cart-link { --c: var(--orange); display: flex; flex-direction: column; gap: 12px; min-width: 0; text-decoration: none; color: var(--ink-3); transition: transform .25s var(--ease-out); }
+  .cart-link:hover { transform: translateY(-5px) rotate(-.8deg); }
+  .cart-link:active { transform: translateY(1px); }
+
+  /* ---- the shell: 4 x 3, frosted polycarbonate ---- */
+  .cart {
+    position: relative; display: block; aspect-ratio: 4 / 3; container-type: inline-size;
+    border-radius: 2.2% / 3%;
+    background: linear-gradient(150deg, #dfe5ea, #c3cbd3 55%, #b8c1ca);
+    box-shadow:
+      inset 0 0 0 1px rgba(80, 100, 120, .55),          /* outer edge, a little blue like real PC */
+      inset 0 0 0 3px rgba(255, 255, 255, .45),         /* polished rim */
+      inset 0 0 0 4px rgba(90, 110, 130, .25),
+      0 1px 0 rgba(0, 0, 0, .25), 0 16px 26px -14px rgba(20, 30, 40, .55), 0 4px 8px -4px rgba(20, 30, 40, .3);
+    overflow: hidden;
+  }
+  .cart-link:hover .cart { box-shadow: inset 0 0 0 1px rgba(80,100,120,.55), inset 0 0 0 3px rgba(255,255,255,.45), inset 0 0 0 4px rgba(90,110,130,.25),
+    0 1px 0 rgba(0,0,0,.25), 0 26px 34px -16px rgba(20,30,40,.6), 0 6px 10px -4px rgba(20,30,40,.3); }
+
+  /* the works, seen through the plastic: softened, so the shell reads as frosted */
+  .q-works { position: absolute; inset: 0; filter: blur(.22cqw) saturate(.85); }
+  .q-rib { position: absolute; inset: 4.5% 4% 4.5% 4%; border-radius: 2%; box-shadow: inset 0 0 0 .5cqw rgba(110, 125, 140, .35); }
+
+  /* the one spool you can see: grey tape pack round a white three-spoke hub */
+  .q-pack {
+    position: absolute; left: 31%; top: 40%; translate: -50% -50%; aspect-ratio: 1; border-radius: 50%;
+    width: calc(26% + var(--w) * 26%);
+    background:
+      radial-gradient(circle closest-side, transparent 0 95%, rgba(0,0,0,.45) 96% 100%),
+      radial-gradient(circle closest-side, rgba(255,255,255,.08) 0 60%, transparent 61% 66%, rgba(255,255,255,.06) 67% 68%, transparent 69%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='1'/%3E%3CfeColorMatrix values='0 0 0 0 .1  0 0 0 0 .1  0 0 0 0 .11  0 0 0 1.4 -.35'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23s)'/%3E%3C/svg%3E"),
+      repeating-radial-gradient(circle, #3c3e42 0 .25cqw, #303236 .25cqw .5cqw);
+  }
+  .q-hub, .q-reel-under {
+    position: absolute; left: 31%; top: 40%; translate: -50% -50%; aspect-ratio: 1; width: 24%; border-radius: 50%;
+    background:
+      radial-gradient(circle closest-side, transparent 0 14%, rgba(0,0,0,.28) 15% 18%, transparent 19%),
+      radial-gradient(circle closest-side, #f3f2ee 0 33%, transparent 34% 76%, #f3f2ee 77% 100%),
+      repeating-conic-gradient(from 25deg, #f3f2ee 0 34deg, rgba(55, 60, 66, .9) 34deg 120deg);
+    box-shadow: 0 0 0 .3cqw rgba(0,0,0,.12);
+  }
+  /* the second spool exists, but sits under the label: only its rim peeks out */
+  .q-reel-under { left: 66%; top: 76%; opacity: .9; }
+  @keyframes qspin { to { rotate: 360deg; } }
+  .cart-link:hover .q-hub { animation: qspin 2.2s linear infinite; }
+
+  /* capstan / drive roller: translucent rubber puck near the door */
+  .q-capstan {
+    position: absolute; left: 80%; top: 24%; translate: -50% -50%; width: 15%; aspect-ratio: 1; border-radius: 50%;
+    background: radial-gradient(circle closest-side, #9aa3ab 0 18%, rgba(240,244,247,.7) 20% 70%, rgba(120,130,140,.6) 72% 100%);
+    box-shadow: inset 0 0 0 .4cqw rgba(255,255,255,.4);
+  }
+  /* the tape leaving the pack and running down to the head */
+  .q-run { position: absolute; left: 31%; right: 8.5%; top: 14%; height: .55cqw; background: #3a3c40; transform-origin: left center; rotate: 4deg; }
+  .q-run.down { left: auto; right: 8.5%; top: 14%; width: .55cqw; height: 66%; rotate: 0deg; }
+  .q-pin { position: absolute; width: 4.2%; aspect-ratio: 1; border-radius: 50%; translate: -50% -50%;
+    background: radial-gradient(circle at 35% 30%, #fff, #b9bec4 45%, #7a8088); box-shadow: 0 0 0 .25cqw rgba(0,0,0,.2); }
+
+  /* frosted plastic over the works: milk, grain, and a molded highlight */
+  .q-frost {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      linear-gradient(118deg, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 26%, rgba(255,255,255,0) 58%, rgba(255,255,255,.22) 64%, rgba(255,255,255,0) 72%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E"),
+      rgba(226, 232, 238, .38);
+    mix-blend-mode: normal;
+  }
+
+  /* screws through the plastic: crisp, they sit on the surface */
+  .q-screw { position: absolute; width: 3.4%; aspect-ratio: 1; border-radius: 50%; translate: -50% -50%;
+    background:
+      linear-gradient(45deg, transparent 45%, rgba(70,76,84,.55) 45% 55%, transparent 55%),
+      linear-gradient(-45deg, transparent 45%, rgba(70,76,84,.55) 45% 55%, transparent 55%),
+      radial-gradient(circle at 35% 30%, #f4f5f6, #a9aeb4 55%, #6e737a);
+    box-shadow: 0 0 0 .35cqw rgba(140,150,160,.45), 0 .2cqw .4cqw rgba(0,0,0,.25); }
+
+  /* metal head door down the right edge */
+  .q-door {
+    position: absolute; right: 0; top: 8%; bottom: 8%; width: 6.5%;
+    border-radius: .8cqw 0 0 .8cqw;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.06) 0 .3cqw, transparent .3cqw .9cqw),
+      linear-gradient(90deg, #2b2e33, #4a4e55 45%, #24272b);
+    box-shadow: inset .3cqw 0 0 rgba(255,255,255,.12), -.3cqw 0 .6cqw rgba(0,0,0,.25);
+  }
+  .q-door::after { content: ""; position: absolute; left: 30%; right: 30%; top: 38%; height: 24%; border-radius: 1cqw; background: #0c0d0f; }
+
+  /* write-protect dial, top left */
+  .q-safe { position: absolute; left: 13%; top: 13%; width: 7%; aspect-ratio: 1; border-radius: 50%; translate: -50% -50%;
+    background: conic-gradient(from -20deg, #1d1f22 0 40deg, #3a3e44 40deg 360deg); box-shadow: 0 0 0 .3cqw rgba(255,255,255,.35); }
+  .q-safe::after { content: "SAFE"; position: absolute; left: 120%; top: 50%; translate: 0 -50%; font: 700 2cqw/1 var(--f-mono); letter-spacing: .1em; color: rgba(40,48,56,.6); }
+
+  /* the label: matte black, printed in cream with the tape's colour as a stripe */
+  .q-label {
+    position: absolute; left: 10%; right: 12%; top: 57%; bottom: 13%;
+    border-radius: 1cqw; background: linear-gradient(#18191b, #0e0f10);
+    box-shadow: 0 .3cqw .6cqw rgba(0,0,0,.35), inset 0 .2cqw 0 rgba(255,255,255,.06);
+    color: #EDE6D3; overflow: hidden;
+    display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto 1fr auto; column-gap: 3cqw;
+    padding: 2.6cqw 3.4cqw 2.4cqw;
+  }
+  .q-label::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 1.6cqw; background: var(--c); }
+  .q-label::after { /* print sheen */ content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(100deg, transparent 40%, rgba(255,255,255,.06) 50%, transparent 60%); }
+  .q-label .kind { font: 700 2.3cqw/1 var(--f-mono); letter-spacing: .22em; color: var(--c); }
+  .q-label .num { grid-row: 1; grid-column: 2; align-self: start; margin-top: -.6cqw; font-family: var(--f-dot); font-weight: 900; font-size: 7cqw; line-height: .9; color: var(--c); }
+  .q-label b { grid-column: 1 / 3; align-self: center; font-size: 5.2cqw; line-height: 1.1; letter-spacing: -.01em; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .q-label small { grid-column: 1 / 3; font: 500 2.3cqw/1.2 var(--f-mono); color: #9C978C; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .cart-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 2px; font: 700 10px/1 var(--f-mono); letter-spacing: .12em; }
+  .cart-foot span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cart-foot span:last-child { flex: none; color: color-mix(in srgb, var(--c) 72%, var(--ink)); }
+</style>
+</head>
+<body>
+<main class="study">
+  <h1>Demo tapes as data cartridges</h1>
+  <p>An exploration for the landing page's demo shelf. Each tape is a frosted QIC-style cartridge: you see one spool through the shell, the label covers the other. Hover to spin it.</p>
+  <div class="specimen" id="specimen"></div>
+  <div class="shelf" id="shelf"></div>
+</main>
+<script>
+  // [id, title, lines, size, label colour, how much tape is on the visible spool]
+  const DEMOS = [
+    ['platform-game', 'Retro platformer game', 487, '1.5MB', '--orange', 0.75],
+    ['crush-game', 'Match-3 phone game', 520, '6.8MB', '--c-write', 0.4],
+    ['git-visor', 'Git archaeology visualizer', 692, '4.7MB', '--c-bash', 0.9],
+    ['marginalia-links', 'Link library & feed reader', 875, '1.4MB', '--c-read', 0.25],
+    ['orbit-watch', 'Real-time ISS tracker', 982, '5.9MB', '--c-text', 0.6],
+  ];
+  const cart = ([id, name, lines, size, c, w]) =>
+    '<a class="cart-link" style="--c:var(' + c + ');--w:' + w + '" href="../player.html?demo=' + id + '">' +
+      '<span class="cart">' +
+        '<span class="q-works">' +
+          '<i class="q-rib"></i>' +
+          '<i class="q-reel-under"></i>' +
+          '<i class="q-pack"></i><i class="q-hub"></i>' +
+          '<i class="q-run"></i><i class="q-run down"></i>' +
+          '<i class="q-pin" style="left:91.5%;top:14%"></i><i class="q-pin" style="left:91.5%;top:80%"></i>' +
+          '<i class="q-capstan"></i>' +
+          '<i class="q-safe"></i>' +
+        '</span>' +
+        '<i class="q-frost"></i>' +
+        '<i class="q-screw" style="left:5.5%;top:7%"></i><i class="q-screw" style="left:86%;top:7%"></i>' +
+        '<i class="q-screw" style="left:5.5%;top:93%"></i><i class="q-screw" style="left:86%;top:93%"></i>' +
+        '<i class="q-door"></i>' +
+        '<span class="q-label"><span class="kind">DATA CARTRIDGE</span><span class="num">' + lines + '</span>' +
+          '<b>' + name + '</b><small>' + lines + ' lines · ' + size + ' · sonnet 5</small></span>' +
+      '</span>' +
+      '<span class="cart-foot"><span>' + id + '.jsonl</span><span>▶ REPLAY</span></span>' +
+    '</a>';
+  document.getElementById('specimen').innerHTML = cart(DEMOS[0]);
+  document.getElementById('shelf').innerHTML = DEMOS.map(cart).join('');
+</script>
+</body>
+</html>

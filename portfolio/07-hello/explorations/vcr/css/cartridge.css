@@ -1,0 +1,150 @@
+/* The data cartridge: a 3D tape you can turn (cartridge.js), the deck that plays it (alt/5's screen,
+   tape, keys and speed knob) and the small flat cartridges of the demo shelf. Shared by
+   tapes-cartridge-02.html and landing.html. Needs landing.css for the colour and type tokens, and shelf.css
+   for the frost tokens and the small flat cartridges. */
+
+.cart-stage { position: relative; height: clamp(400px, 64vw, 760px); margin: 0; }
+.cart-stage canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: pan-y; }
+.cart-stage canvas.drag { cursor: grabbing; }
+.cart-stage .cart-hint { position: absolute; left: 0; right: 0; bottom: 6px; text-align: center; font: 500 11px var(--f-mono); color: var(--ink-3); pointer-events: none; }
+.cart-fallback { display: none; height: 100%; place-items: center; text-align: center; color: var(--ink-3); border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line-2); }
+.cart-stage.no-gl canvas, .cart-stage.no-gl .cart-hint { display: none; } .cart-stage.no-gl .cart-fallback { display: grid; }
+
+/* ---- the deck under the cartridge: alt/5's screen and tape, then the keys ----
+   Ported from alt/5/deck.css with a d5- prefix (landing.css already has a .tape). */
+/* one device, as on alt/5: the screen, the tape and the keys share a single body */
+.deck {
+  --scr: #0E0E0F; --scr-ink: #EFEDE6; --scr-dim: #6B6862; --lime: #C6F432; --red: #FF2E3A;
+  display: grid; gap: 10px; max-width: 860px; margin: 8px auto 0; padding: 16px 16px 14px; border-radius: 28px;
+  background: var(--body); box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.45), inset 0 -2px 0 rgba(0,0,0,.06);
+}
+.d5-screen {
+  --acc: var(--orange);
+  position: relative; isolation: isolate; overflow: hidden;
+  background: var(--scr); color: var(--scr-ink); border-radius: 20px; padding: 11px 14px 10px;
+  box-shadow: 0 0 0 5px var(--bezel), var(--shadow), inset 0 0 0 1px rgba(255,255,255,.05), inset 0 10px 30px rgba(0,0,0,.6);
+  display: grid; grid-template-columns: 1fr auto; grid-template-areas: "top clock" "main main" "tape tape" "viz viz"; column-gap: 10px;
+}
+.d5-screen::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 2; background-image: radial-gradient(rgba(255,255,255,.05) .6px, transparent .8px); background-size: 3px 3px; mix-blend-mode: screen; }
+.d5-screen[data-kind="prompt"]   { --acc: var(--orange); }
+.d5-screen[data-kind="text"]     { --acc: #5A86FF; }
+.d5-screen[data-kind="tool"]     { --acc: var(--lime); }
+.d5-screen[data-kind="thinking"] { --acc: #B9B4AA; }
+.d5-screen[data-err="1"]         { --acc: var(--red); }
+.d5-screen[data-kind="none"]     { --acc: var(--scr-dim); }
+.d5-top { grid-area: top; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.d5-kind { font: 700 10.5px/1 var(--f-ui); letter-spacing: .12em; background: var(--acc); color: #0B0B0B; padding: 4px 7px 3px; border-radius: 6px; transition: background-color .2s; }
+.d5-idx { font-size: 13px; color: var(--scr-dim); }
+.d5-gap { flex: 1; }
+.d5-state { font-size: 14px; color: var(--scr-ink); }
+.d5-clock { grid-area: clock; align-self: center; font-size: 22px; line-height: 1; color: var(--scr-ink); display: flex; align-items: baseline; gap: 2px; font-variant-numeric: tabular-nums; }
+.d5-clock::before { content: ""; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; align-self: center; background: #3a3836; }
+.d5-screen.playing .d5-clock::before { background: var(--red); box-shadow: 0 0 8px var(--red); animation: d5-rec 1s steps(2, jump-none) infinite; }
+@keyframes d5-rec { 50% { opacity: .25; } }
+.d5-total { font-size: 12px; color: var(--scr-dim); }
+.d5-main { grid-area: main; position: relative; margin-top: 9px; }
+.d5-title { font: 700 11px/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--acc); margin-bottom: 6px; display: flex; gap: 8px; align-items: center; }
+.d5-title .dur { color: var(--scr-dim); letter-spacing: .04em; font-weight: 400; }
+/* two lines of event, so the screen stays short */
+.d5-body { font: 600 17px/1.28 var(--f-ui); letter-spacing: -.01em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; min-height: calc(17px * 1.28 * 2); }
+.d5-body.mono { font: 500 13.5px/1.62 var(--f-mono); letter-spacing: 0; min-height: calc(17px * 1.28 * 2); }
+.d5-body .dim { color: var(--scr-dim); font-weight: 500; }
+.d5-body .think-dots i { display: inline-block; width: .32em; height: .32em; margin: 0 .08em; border-radius: 50%; background: currentColor; animation: d5-think 1.1s infinite; }
+.d5-body .think-dots i:nth-child(2) { animation-delay: .15s; } .d5-body .think-dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes d5-think { 0%, 60%, 100% { transform: translateY(0); opacity: .35; } 30% { transform: translateY(-.25em); opacity: 1; } }
+.d5-main.swap .d5-body, .d5-main.swap .d5-title { animation: d5-swap .32s var(--ease-out); }
+@keyframes d5-swap { from { opacity: 0; transform: translateY(8px); } }
+.d5-run { position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: rgba(255,255,255,.06); border-radius: 2px; overflow: hidden; }
+.d5-run i { display: block; height: 100%; background: var(--acc); transform-origin: 0 50%; transform: scaleX(0); }
+.d5-viz { grid-area: viz; display: block; width: 100%; height: 64px; margin-top: 14px; cursor: crosshair; }
+/* what a spectrum column means, on hover: its 6 s, the tokens written, and what happened (the bottom row's colours) */
+.d5-tip {
+  position: absolute; z-index: 3; translate: -50% calc(-100% - 8px); pointer-events: none; white-space: nowrap;
+  padding: 7px 9px; border-radius: 8px; background: rgba(24,24,26,.96); box-shadow: 0 0 0 1px rgba(255,255,255,.1), 0 10px 24px -8px rgba(0,0,0,.6);
+  font: 600 11px/1.45 var(--f-mono); color: var(--scr-ink);
+}
+.d5-tip[hidden] { display: none; }
+.d5-tip b { color: var(--orange); font-weight: 700; margin-right: 6px; }
+.d5-tip .k { display: inline-flex; align-items: center; gap: 4px; margin-right: 8px; color: var(--scr-dim); }
+.d5-tip .k i { width: 7px; height: 7px; border-radius: 1px; background: var(--kc); }
+@media (prefers-reduced-motion: reduce) { .d5-main.swap .d5-body, .d5-main.swap .d5-title, .d5-body .think-dots i, .d5-screen.playing .d5-clock::before { animation: none; } }
+
+/* the tape you drag */
+/* the tape runs across the screen, between the event and the spectrum: the one timeline */
+.d5-tapewrap { grid-area: tape; position: relative; height: 78px; margin-top: 16px; border-radius: 10px; overflow: hidden; background: #121212; box-shadow: inset 0 0 0 1px rgba(255,255,255,.07), inset 0 2px 10px rgba(0,0,0,.6); }
+.d5-tape { display: block; width: 100%; height: 100%; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.d5-tape.grabbing { cursor: grabbing; }
+.d5-tape:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
+.d5-playhead { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px; background: var(--orange); pointer-events: none; box-shadow: 0 0 12px rgba(255, 91, 31, .7); }
+.d5-playhead::before, .d5-playhead::after { content: ""; position: absolute; left: 50%; width: 12px; height: 8px; margin-left: -6px; background: var(--orange); }
+.d5-playhead::before { top: 0; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.d5-playhead::after { bottom: 0; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+
+/* the keys */
+.controls { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 6px 4px 2px; }
+.keys { display: flex; gap: 8px; }
+.pkey {
+  --k: var(--key); --lip: var(--key-lip); --kc: var(--key-ink);
+  width: 58px; height: 52px; border: 0; border-radius: var(--r-2); cursor: pointer; display: grid; place-items: center;
+  background: var(--k); color: var(--kc); touch-action: none; user-select: none; -webkit-user-select: none;
+  box-shadow: 0 4px 0 var(--lip), 0 8px 14px -8px rgba(0,0,0,.4), inset 0 1px 0 var(--key-hi);
+  transition: transform .07s ease-out, box-shadow .07s ease-out, background-color .2s;
+}
+.pkey svg { width: 22px; height: 22px; fill: currentColor; }
+.pkey:active, .pkey.down { transform: translateY(3px); box-shadow: 0 1px 0 var(--lip), 0 3px 6px -3px rgba(0,0,0,.4), inset 0 1px 0 var(--key-hi); }
+.pkey.play { --k: var(--orange); --lip: #B8380C; --kc: #fff; }
+.pkey.play .i-pause, .pkey.play.on .i-play { display: none; }
+.pkey.play.on .i-pause { display: block; }
+.pkey.down:not(.play) { --k: var(--c-text); --kc: #fff; --lip: #1C3CC0; }
+.pkey.sm { width: 46px; }
+.pkey.sm svg { width: 19px; height: 19px; }
+/* the speed knob, from alt/5: drag, scroll or click to turn; labels at each detent */
+.d5-knobwrap { position: relative; flex: none; width: 84px; height: 76px; display: grid; place-items: center; margin-right: auto; }
+.d5-knob {
+  position: relative; width: 54px; height: 54px; border-radius: 50%; margin-top: 6px;
+  background: radial-gradient(circle at 50% 35%, var(--key) 0 55%, var(--body-2) 100%);
+  box-shadow: 0 4px 0 var(--key-lip), 0 10px 18px -8px rgba(0,0,0,.45), inset 0 1px 0 var(--key-hi);
+  cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.d5-knob:active { cursor: grabbing; }
+.d5-knob:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+.d5-knobcap {
+  position: absolute; inset: 7px; border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, var(--line) 0 3deg, transparent 3deg 12deg), var(--key);
+  box-shadow: inset 0 0 0 1px var(--line-2); transition: transform .28s cubic-bezier(.34, 1.56, .64, 1);
+}
+.d5-notch { position: absolute; left: 50%; top: 3px; width: 4px; height: 12px; margin-left: -2px; border-radius: 2px; background: var(--orange); }
+.d5-knoblabels { position: absolute; inset: 0; pointer-events: none; }
+.d5-knoblabels span { position: absolute; left: 50%; top: calc(50% + 3px); font: 700 8.5px/1 var(--f-mono); color: var(--ink-3); transform: translate(-50%, -50%); transition: color .15s; }
+.d5-knoblabels span.on { color: var(--orange); }
+/* out to the player: a key with an LED; while the tape plays it lights up in the tape's colour and glows */
+.go {
+  display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: var(--r-2); text-decoration: none; white-space: nowrap;
+  background: var(--key); color: var(--key-ink); font: 700 10.5px/1 var(--f-mono); letter-spacing: .12em;
+  box-shadow: 0 4px 0 var(--key-lip), 0 8px 14px -8px rgba(0,0,0,.4), inset 0 1px 0 var(--key-hi);
+  transition: transform .07s, box-shadow .3s, color .3s;
+}
+.go:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--key-lip), inset 0 1px 0 var(--key-hi); }
+.go .led { width: 7px; height: 7px; border-radius: 50%; background: var(--line-2); transition: background-color .3s, box-shadow .3s; }
+.go.playing { color: color-mix(in srgb, var(--c) 70%, var(--ink));
+  box-shadow: 0 4px 0 var(--key-lip), 0 0 0 1.5px color-mix(in srgb, var(--c) 70%, transparent), 0 0 22px 2px color-mix(in srgb, var(--c) 45%, transparent), inset 0 1px 0 var(--key-hi);
+  animation: go-glow 1.6s ease-in-out infinite; }
+.go.playing .led { background: var(--c); box-shadow: 0 0 8px var(--c), 0 0 2px var(--c); }
+@keyframes go-glow { 50% { box-shadow: 0 4px 0 var(--key-lip), 0 0 0 1.5px color-mix(in srgb, var(--c) 40%, transparent), 0 0 10px 0 color-mix(in srgb, var(--c) 25%, transparent), inset 0 1px 0 var(--key-hi); } }
+@media (prefers-reduced-motion: reduce) { .go.playing { animation: none; } }
+/* phones: the play key already shows the state, so the screen drops it to make room for the clock */
+@media (max-width: 640px) {
+  .controls { flex-wrap: wrap; justify-content: center; gap: 8px 12px; } .d5-knobwrap { margin-right: 0; }
+  .go { justify-content: center; }
+}
+@media (max-width: 520px) {
+  .d5-state { display: none; }
+  .keys { gap: 5px; } .pkey { width: 46px; height: 46px; } .pkey.sm { width: 38px; }
+  .go { font-size: 9.5px; letter-spacing: .08em; height: 40px; }
+}
+
+
+/* the play key while it plays: a soft orange glow, breathing */
+@keyframes play-pulse { 50% { filter: drop-shadow(0 0 10px rgba(255, 91, 31, .85)) brightness(1.08); } }
+@media (prefers-reduced-motion: reduce) { .pkey.play.on, .k-play.on, .bk-play.on { animation: none !important; } }
+.pkey.play.on { animation: play-pulse 1.4s ease-in-out infinite; }

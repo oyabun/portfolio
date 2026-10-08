@@ -1,0 +1,1215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MicroVM Lake — Topographic Contour Map</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #F3ECDA;
+      color: #2B2013;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    #app {
+      position: fixed;
+      inset: 0;
+    }
+
+    .panel {
+      position: fixed;
+      top: 18px;
+      left: 18px;
+      width: 300px;
+      padding: 16px 16px 14px;
+      border: 1px solid rgba(43, 32, 19, 0.14);
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(251, 247, 237, 0.9), rgba(251, 247, 237, 0.7));
+      box-shadow: 0 18px 44px -28px rgba(36, 26, 15, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(10px);
+      user-select: none;
+      pointer-events: auto;
+    }
+
+    .kicker {
+      font-size: 11px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(192, 112, 46, 0.85);
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 18px;
+      line-height: 1.15;
+      margin: 0 0 10px;
+      font-weight: 650;
+    }
+
+    .sub {
+      margin: 0 0 14px;
+      color: rgba(43, 32, 19, 0.7);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      color: rgba(43, 32, 19, 0.72);
+      font-size: 12px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #c0702e;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(43, 32, 19, 0.7);
+    }
+
+    .row input {
+      accent-color: #c0702e;
+    }
+
+    .readout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .chip {
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(43, 32, 19, 0.05);
+      border: 1px solid rgba(43, 32, 19, 0.12);
+      color: rgba(43, 32, 19, 0.72);
+      font-size: 11px;
+    }
+
+    .chip strong {
+      display: block;
+      margin-bottom: 2px;
+      color: #2B2013;
+      font-size: 12px;
+    }
+
+    .hint {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      max-width: 360px;
+      padding: 12px 14px;
+      border: 1px solid rgba(43, 32, 19, 0.14);
+      border-radius: 16px;
+      background: rgba(251, 247, 237, 0.82);
+      box-shadow: 0 18px 40px -28px rgba(36, 26, 15, 0.4);
+      color: rgba(43, 32, 19, 0.7);
+      font-size: 12px;
+      line-height: 1.45;
+      backdrop-filter: blur(10px);
+    }
+
+    canvas {
+      display: block;
+    }
+
+    /* dev overlays (control panel + hint + camera readout) are hidden unless ?debug */
+    .panel, .coords, .hint { display: none; }
+    body.debug .panel { display: block; }
+    body.debug .coords { display: block; }
+    body.debug .hint { display: block; }
+    .coords {
+      position: fixed; left: 18px; bottom: 18px; z-index: 6;
+      padding: 11px 14px; border-radius: 12px;
+      border: 1px solid rgba(43, 32, 19, 0.14); background: rgba(251, 247, 237, 0.86);
+      box-shadow: 0 18px 40px -28px rgba(36, 26, 15, 0.4); backdrop-filter: blur(10px);
+    }
+    .coords-kick { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(192, 112, 46, 0.9); margin-bottom: 8px; }
+    .coords pre { margin: 0; font-family: ui-monospace, Menlo, monospace; font-size: 12px;
+      line-height: 1.75; color: rgba(43, 32, 19, 0.86); white-space: pre; }
+
+    /* ── clickable sandbox dots ── */
+    .sbdots { position: fixed; inset: 0; z-index: 4; pointer-events: none; }
+    .sbdot {
+      position: absolute; transform: translate(-50%, -50%);
+      width: 16px; height: 16px; padding: 0; border: 0; background: none;
+      cursor: pointer; pointer-events: auto; color: #C0702E;
+    }
+    .sbdot-core {
+      position: absolute; inset: 4px; border-radius: 50%; background: #C0702E;
+      box-shadow: 0 0 0 3px rgba(251, 247, 237, 0.9), 0 2px 6px rgba(36, 26, 15, 0.35);
+      animation: sbbreathe 3.4s ease-in-out infinite;
+    }
+    @keyframes sbbreathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.14); } }
+    .sbdot-wave {
+      position: absolute; inset: 0; border-radius: 50%;
+      border: 1.5px solid rgba(192, 112, 46, 0.55); opacity: 0; transform: scale(0.5);
+      animation: sbwave 4s ease-out infinite;
+    }
+    .sbdot-wave:nth-child(2) { animation-delay: 1.33s; }
+    .sbdot-wave:nth-child(3) { animation-delay: 2.66s; }
+    @keyframes sbwave { 0% { opacity: 0.55; transform: scale(0.5); } 100% { opacity: 0; transform: scale(3.2); } }
+    .sbdot:hover { transform: translate(-50%, -50%) scale(1.08); }
+    .sbdot.active .sbdot-core { background: #241A0F; box-shadow: 0 0 0 3px rgba(251,247,237,0.95), 0 0 0 5px rgba(192,112,46,0.6); }
+    /* sandbox avatar badge sitting above the dot */
+    .sbdot-av {
+      position: absolute; left: 50%; bottom: 165%; transform: translateX(-50%);
+      width: 44px; height: 44px; border-radius: 13px; background: #F3EAD7;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 9px 20px -7px rgba(36,26,15,0.55), 0 0 0 1px rgba(43,32,19,0.08), inset 0 1px 0 rgba(255,255,255,0.65);
+      transition: transform 0.18s;
+    }
+    .sbav-icon { display: flex; align-items: center; justify-content: center; }
+    .sbav-icon svg { width: 24px; height: 24px; display: block; }
+    .sbav-status {
+      position: absolute; top: -4px; left: -4px; width: 14px; height: 14px; border-radius: 50%;
+      border: 2.5px solid #FBF7ED; background: #7b8a3c;
+    }
+    .sbav-status.wait { background: #C99A3E; }
+    .sbav-status.idle { background: #B4A98C; }
+    .sbav-agent {
+      position: absolute; bottom: -6px; right: -6px; width: 21px; height: 21px; border-radius: 50%;
+      background: #241A0F; border: 2.5px solid #FBF7ED;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sbav-agent svg { width: 13px; height: 13px; display: block; }
+    .sbdot:hover .sbdot-av, .sbdot.active .sbdot-av { transform: translateX(-50%) translateY(-2px) scale(1.08); }
+    .sbdot-tip {
+      position: absolute; left: 50%; top: 150%; transform: translateX(-50%);
+      white-space: nowrap; font-family: ui-monospace, Menlo, monospace; font-size: 11px;
+      color: #2B2013; background: rgba(251, 247, 237, 0.94); border: 1px solid rgba(43,32,19,0.14);
+      padding: 3px 8px; border-radius: 7px; opacity: 0; transition: opacity 0.15s;
+      pointer-events: none; box-shadow: 0 6px 16px -10px rgba(36,26,15,0.5);
+    }
+    .sbdot:hover .sbdot-tip { opacity: 1; }
+
+    /* ── sandbox detail card ── */
+    .sbcard {
+      position: fixed; top: 18px; right: 18px; z-index: 20;
+      width: 340px; max-height: calc(100vh - 36px); overflow-y: auto;
+      padding: 18px 18px 16px; border-radius: 16px;
+      background: #FBF8EF; border: 1px solid rgba(43, 32, 19, 0.14);
+      box-shadow: 0 30px 70px -34px rgba(36, 26, 15, 0.55);
+      color: #2B2013; font-size: 13px;
+      transform: translateX(12px); opacity: 0; visibility: hidden;
+      transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s;
+    }
+    .sbcard.open { transform: none; opacity: 1; visibility: visible; }
+    .sbcard::-webkit-scrollbar { width: 8px; }
+    .sbcard::-webkit-scrollbar-thumb { background: rgba(43,32,19,0.16); border-radius: 8px; }
+    .sbcard-close {
+      position: absolute; top: 14px; right: 14px; width: 26px; height: 26px; border-radius: 8px;
+      border: 1px solid rgba(43,32,19,0.14); background: rgba(43,32,19,0.03); color: #6b5230;
+      cursor: pointer; font-size: 14px; line-height: 1; display: flex; align-items: center; justify-content: center;
+    }
+    .sbcard-close:hover { background: rgba(43,32,19,0.08); }
+    .sb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+    .sb-lbl { font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: 0.12em;
+      text-transform: uppercase; color: rgba(43,32,19,0.45); margin-bottom: 5px; }
+    .sb-val { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 7px; }
+    .sb-val .dim { color: rgba(43,32,19,0.45); font-weight: 400; }
+    .sb-val .spark { width: 14px; height: 14px; flex: none; }
+    .sb-run { width: 8px; height: 8px; border-radius: 50%; background: #7b8a3c; flex: none; }
+    .sb-run.wait { background: #C99A3E; } .sb-run.idle { background: rgba(43,32,19,0.28); }
+    .sb-sep { height: 1px; background: rgba(43,32,19,0.1); margin: 16px 0; }
+    .sb-sec { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; margin-bottom: 12px; }
+    .sb-sec .chev { color: rgba(43,32,19,0.5); }
+    .sb-sec .cnt { margin-left: auto; font-size: 11px; color: rgba(43,32,19,0.45);
+      background: rgba(43,32,19,0.06); border-radius: 20px; padding: 1px 8px; font-weight: 600; }
+    .sb-ws { border: 1px solid rgba(43,32,19,0.14); border-radius: 10px; padding: 11px 12px; }
+    .sb-ws .tag { font-size: 12px; color: rgba(43,32,19,0.55); margin-bottom: 3px; }
+    .sb-ws .path { font-family: ui-monospace, Menlo, monospace; font-size: 12px; word-break: break-all; }
+    .sb-help { font-size: 11.5px; color: rgba(43,32,19,0.45); line-height: 1.45; margin-top: 10px; }
+    .sb-help code { font-family: ui-monospace, Menlo, monospace; background: rgba(43,32,19,0.06); padding: 0 4px; border-radius: 4px; }
+    .sb-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600;
+      border: 1px solid rgba(43,32,19,0.16); background: rgba(43,32,19,0.02); color: #2B2013;
+      border-radius: 9px; padding: 7px 12px; cursor: pointer; margin-top: 12px; }
+    .sb-btn:hover { border-color: rgba(43,32,19,0.3); }
+    .sb-btn.r { float: right; }
+    .sb-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .sb-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px;
+      border: 1px solid rgba(43,32,19,0.14); border-radius: 20px; padding: 5px 12px; background: rgba(255,255,255,0.5); }
+    .sb-port { display: flex; align-items: center; gap: 10px; font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; }
+    .sb-port .open { margin-left: auto; color: #8C4E17; font-family: var(--font-body, sans-serif); font-size: 12px; }
+    .sb-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+    .sb-preset { border: 1px solid rgba(43,32,19,0.14); border-radius: 11px; padding: 10px 9px; text-align: left; background: #fff; }
+    .sb-preset.on { border-color: #C0702E; box-shadow: 0 0 0 1px #C0702E inset; }
+    .sb-preset .pt { font-size: 12.5px; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+    .sb-preset .pt .g { width: 7px; height: 7px; border-radius: 50%; background: #7b8a3c; }
+    .sb-preset .ps { font-size: 10.5px; color: rgba(43,32,19,0.5); margin-top: 3px; }
+    .sb-rule { border: 1px solid rgba(43,32,19,0.12); border-radius: 11px; padding: 12px; margin-bottom: 10px; }
+    .sb-rule-head { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; flex-wrap: wrap; }
+    .sb-allow { font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: 0.06em; font-weight: 700;
+      color: #4E4E2B; background: rgba(111,110,62,0.16); border-radius: 5px; padding: 2px 6px; }
+    .sb-rule-name { font-weight: 700; font-size: 13px; }
+    .sb-rule-scope { margin-left: auto; font-size: 10.5px; color: rgba(43,32,19,0.42); }
+    .sb-dchip { font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; color: #3a2a17;
+      background: rgba(43,32,19,0.05); border: 1px solid rgba(43,32,19,0.09); border-radius: 6px; padding: 3px 8px;
+      display: inline-flex; align-items: center; gap: 6px; }
+    .sb-dchip .x { color: rgba(43,32,19,0.4); }
+
+    @media (max-width: 720px) {
+      .sbcard { left: 18px; right: 18px; width: auto; }
+      .panel {
+        width: calc(100% - 68px);
+      }
+      .hint {
+        left: 18px;
+        right: 18px;
+        max-width: none;
+      }
+    }
+  </style>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+
+  <section class="panel">
+    <div class="kicker">Spline contour render</div>
+    <h1>MicroVM Lake Route Field</h1>
+    <p class="sub">No raster map texture: only generated topographic contour splines, an ember route, beacons, and elevation relief.</p>
+
+    <label for="exaggeration">Elevation exaggeration <span id="exValue">1.00x</span></label>
+    <input id="exaggeration" type="range" min="0" max="2.5" step="0.01" value="1" />
+
+    <div class="row">
+      <span>Auto orbit</span>
+      <input id="autoOrbit" type="checkbox" />
+    </div>
+
+    <div class="row">
+      <span>Landmark labels</span>
+      <input id="labelsToggle" type="checkbox" />
+    </div>
+
+    <div class="readout">
+      <div class="chip"><strong>Start</strong>Claude Pines Valley</div>
+      <div class="chip"><strong>Target</strong>Sandbox Peak</div>
+      <div class="chip"><strong>Layering</strong>24 contour levels</div>
+      <div class="chip"><strong>Path</strong>Catmull-Rom spline</div>
+    </div>
+  </section>
+
+  <div class="hint">Drag to orbit. The amber contour lines are spline-smoothed isolines; the ember dots are live sandboxes — click one to inspect it.</div>
+
+  <div id="sbDots" class="sbdots"></div>
+  <aside id="sbCard" class="sbcard" aria-live="polite"></aside>
+
+  <div class="coords" id="coordsBox">
+    <div class="coords-kick">Camera view</div>
+    <pre id="coords"></pre>
+  </div>
+
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+    const app = document.getElementById('app');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0xF3ECDA, 0.02);
+
+    const camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 120);
+    camera.position.set(0.15, 13.4, -9.0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.NoToneMapping;
+    // transparent when embedded (blends into the host section); cream standalone
+    const embedded = window.self !== window.top;
+    if (embedded) { document.body.style.background = 'transparent'; renderer.setClearColor(0x000000, 0); }
+    else { renderer.setClearColor(0xF3ECDA, 1); }
+    app.appendChild(renderer.domElement);
+
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    composer.addPass(new OutputPass());
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.set(0, 0.8, 0);
+    controls.maxPolarAngle = Math.PI * 0.49;
+    controls.minDistance = 7;
+    controls.maxDistance = 35;
+    controls.autoRotate = false;
+    controls.enableZoom = false;
+    controls.autoRotateSpeed = 0.38;
+
+    const terrainGroup = new THREE.Group();
+    scene.add(terrainGroup);
+
+    const labelsGroup = new THREE.Group();
+    terrainGroup.add(labelsGroup);
+
+    const HUD_RADIUS = 12.8;
+    const WIDTH = 38;
+    const DEPTH = 24;
+    const NX = 228;
+    const NZ = 144;
+    const HEIGHT_SCALE = 3.8;
+    const BASE_Y = -0.12;
+
+    const xAt = (i) => -WIDTH / 2 + (i / (NX - 1)) * WIDTH;
+    const zAt = (j) => -DEPTH / 2 + (j / (NZ - 1)) * DEPTH;
+
+    function gauss(x, z, cx, cz, sx, sz, amp) {
+      const dx = (x - cx) / sx;
+      const dz = (z - cz) / sz;
+      return amp * Math.exp(-0.5 * (dx * dx + dz * dz));
+    }
+
+    function rawHeight(x, z) {
+      const northSlope = 0.10 * ((z + DEPTH / 2) / DEPTH);
+      const sandboxPeak = gauss(x, z, -2, 6, 2.4, 1.6, 1.35);
+      const yoloRidge = gauss(x, z, 9, 6.5, 4.6, 1.1, 0.72);
+      const networkForest = gauss(x, z, 15, 2.5, 2.6, 2.2, 0.6);
+      const rateLimitKnoll = gauss(x, z, 12, -2, 1.9, 1.5, 0.7);
+      const leftHighlands = gauss(x, z, -15, 4, 2.8, 3.4, 0.72);
+      const rootContextPoint = gauss(x, z, 0.2, -9, 3.6, 1.2, 0.36);
+      const lakeBasin = gauss(x, z, -1, -3, 9.5, 2.6, -0.6);
+      const claudeValley = gauss(x, z, -14, -3, 3.4, 1.9, -0.3);
+      const eastRidge = gauss(x, z, 16.5, 6, 3.0, 1.4, 0.6);
+      const farNorthPeak = gauss(x, z, 3, 10.5, 2.2, 1.5, 0.82);
+      const southHill = gauss(x, z, 8, -8.5, 2.6, 1.7, 0.55);
+      const westBasin = gauss(x, z, -10, 8, 3.2, 1.6, -0.3);
+      const knollA = gauss(x, z, -7, -8, 1.9, 1.4, 0.5);
+      const knollB = gauss(x, z, -17, -6, 2.2, 1.7, 0.5);
+      const streamCuts = -0.06 * Math.exp(-Math.abs(Math.sin((x + 1.7) * 0.5) - z * 0.05) * 5.0);
+      const ridgeTexture = 0.05 * Math.sin(x * 0.9 + z * 0.6) + 0.03 * Math.sin(x * 1.9 - z * 1.1);
+      const fineTexture = 0.016 * Math.sin((x + z) * 3.2) + 0.012 * Math.cos((x * 1.5 - z * 2.6));
+      return 0.2 + northSlope + sandboxPeak + yoloRidge + networkForest + rateLimitKnoll + leftHighlands + rootContextPoint + lakeBasin + claudeValley + eastRidge + farNorthPeak + southHill + westBasin + knollA + knollB + streamCuts + ridgeTexture + fineTexture;
+    }
+
+    const values = [];
+    let minH = Infinity;
+    let maxH = -Infinity;
+    for (let j = 0; j < NZ; j++) {
+      const row = [];
+      for (let i = 0; i < NX; i++) {
+        const h = rawHeight(xAt(i), zAt(j));
+        row.push(h);
+        minH = Math.min(minH, h);
+        maxH = Math.max(maxH, h);
+      }
+      values.push(row);
+    }
+
+    for (let j = 0; j < NZ; j++) {
+      for (let i = 0; i < NX; i++) {
+        values[j][i] = (values[j][i] - minH) / (maxH - minH);
+      }
+    }
+
+    function normalizedHeightAt(x, z) {
+      const gx = THREE.MathUtils.clamp(((x + WIDTH / 2) / WIDTH) * (NX - 1), 0, NX - 1);
+      const gz = THREE.MathUtils.clamp(((z + DEPTH / 2) / DEPTH) * (NZ - 1), 0, NZ - 1);
+      const i0 = Math.floor(gx);
+      const j0 = Math.floor(gz);
+      const i1 = Math.min(i0 + 1, NX - 1);
+      const j1 = Math.min(j0 + 1, NZ - 1);
+      const tx = gx - i0;
+      const tz = gz - j0;
+      const a = THREE.MathUtils.lerp(values[j0][i0], values[j0][i1], tx);
+      const b = THREE.MathUtils.lerp(values[j1][i0], values[j1][i1], tx);
+      return THREE.MathUtils.lerp(a, b, tz);
+    }
+
+    function toY(level) {
+      return BASE_Y + level * HEIGHT_SCALE;
+    }
+
+    function interpPoint(pA, pB, vA, vB, level) {
+      const denom = vB - vA;
+      const t = Math.abs(denom) < 1e-7 ? 0.5 : (level - vA) / denom;
+      return {
+        x: THREE.MathUtils.lerp(pA.x, pB.x, t),
+        z: THREE.MathUtils.lerp(pA.z, pB.z, t)
+      };
+    }
+
+    const EDGE_SEGMENTS = {
+      1: [[3, 0]],
+      2: [[0, 1]],
+      3: [[3, 1]],
+      4: [[1, 2]],
+      5: [[3, 2], [0, 1]],
+      6: [[0, 2]],
+      7: [[3, 2]],
+      8: [[2, 3]],
+      9: [[0, 2]],
+      10: [[0, 3], [1, 2]],
+      11: [[1, 2]],
+      12: [[1, 3]],
+      13: [[0, 1]],
+      14: [[3, 0]]
+    };
+
+    function keyOf(p) {
+      return `${Math.round(p.x * 1000)}:${Math.round(p.z * 1000)}`;
+    }
+
+    function extractSegments(level) {
+      const segments = [];
+      for (let j = 0; j < NZ - 1; j++) {
+        for (let i = 0; i < NX - 1; i++) {
+          const p0 = { x: xAt(i), z: zAt(j) };
+          const p1 = { x: xAt(i + 1), z: zAt(j) };
+          const p2 = { x: xAt(i + 1), z: zAt(j + 1) };
+          const p3 = { x: xAt(i), z: zAt(j + 1) };
+
+          const v0 = values[j][i];
+          const v1 = values[j][i + 1];
+          const v2 = values[j + 1][i + 1];
+          const v3 = values[j + 1][i];
+
+          let mask = 0;
+          if (v0 >= level) mask |= 1;
+          if (v1 >= level) mask |= 2;
+          if (v2 >= level) mask |= 4;
+          if (v3 >= level) mask |= 8;
+          if (mask === 0 || mask === 15) continue;
+
+          const edges = [
+            () => interpPoint(p0, p1, v0, v1, level),
+            () => interpPoint(p1, p2, v1, v2, level),
+            () => interpPoint(p2, p3, v2, v3, level),
+            () => interpPoint(p3, p0, v3, v0, level)
+          ];
+
+          const segmentPairs = EDGE_SEGMENTS[mask] || [];
+          for (const [edgeA, edgeB] of segmentPairs) {
+            const a = edges[edgeA]();
+            const b = edges[edgeB]();
+            if (Number.isFinite(a.x) && Number.isFinite(a.z) && Number.isFinite(b.x) && Number.isFinite(b.z)) {
+              segments.push({ a, b });
+            }
+          }
+        }
+      }
+      return segments;
+    }
+
+    function connectSegments(segments) {
+      const byKey = new Map();
+      for (let idx = 0; idx < segments.length; idx++) {
+        const aKey = keyOf(segments[idx].a);
+        const bKey = keyOf(segments[idx].b);
+        if (!byKey.has(aKey)) byKey.set(aKey, []);
+        if (!byKey.has(bKey)) byKey.set(bKey, []);
+        byKey.get(aKey).push(idx);
+        byKey.get(bKey).push(idx);
+      }
+
+      const visited = new Uint8Array(segments.length);
+      const polylines = [];
+
+      function extend(line, forward) {
+        while (true) {
+          const point = forward ? line[line.length - 1] : line[0];
+          const candidates = byKey.get(keyOf(point)) || [];
+          let nextIdx = -1;
+          for (const idx of candidates) {
+            if (!visited[idx]) {
+              nextIdx = idx;
+              break;
+            }
+          }
+          if (nextIdx < 0) break;
+
+          visited[nextIdx] = 1;
+          const seg = segments[nextIdx];
+          const pointKey = keyOf(point);
+          const other = keyOf(seg.a) === pointKey ? seg.b : seg.a;
+          if (forward) line.push(other); else line.unshift(other);
+          if (line.length > 2 && keyOf(line[0]) === keyOf(line[line.length - 1])) break;
+        }
+      }
+
+      for (let idx = 0; idx < segments.length; idx++) {
+        if (visited[idx]) continue;
+        visited[idx] = 1;
+        const line = [segments[idx].a, segments[idx].b];
+        extend(line, true);
+        extend(line, false);
+        if (line.length > 7) {
+          polylines.push(line);
+        }
+      }
+      return polylines;
+    }
+
+    function lineLength(points) {
+      let length = 0;
+      for (let i = 1; i < points.length; i++) {
+        const dx = points[i].x - points[i - 1].x;
+        const dz = points[i].z - points[i - 1].z;
+        length += Math.hypot(dx, dz);
+      }
+      return length;
+    }
+
+    function addContourSplines() {
+      const levels = [];
+      for (let l = 0.08; l <= 0.94; l += 0.0375) levels.push(l);
+
+      let created = 0;
+      for (let levelIndex = 0; levelIndex < levels.length; levelIndex++) {
+        const level = levels[levelIndex];
+        const polylines = connectSegments(extractSegments(level));
+        const major = levelIndex % 4 === 0;
+        const color = major ? 0x3D2A17 : (level > 0.62 ? 0xB0672A : 0x8C6B3E);
+        const opacity = major ? 0.9 : 0.52;
+        const radius = major ? 0.013 : 0.0065;
+        const material = new THREE.MeshBasicMaterial({
+          color,
+          transparent: true,
+          opacity,
+          blending: THREE.NormalBlending,
+          depthWrite: false
+        });
+
+        for (const polyline of polylines) {
+          if (created > 1600) break;
+          if (lineLength(polyline) < (major ? 0.65 : 0.9)) continue;
+
+          const closed = keyOf(polyline[0]) === keyOf(polyline[polyline.length - 1]);
+          const clean = closed ? polyline.slice(0, -1) : polyline;
+          if (clean.length < 5) continue;
+
+          const points = clean.map((p) => new THREE.Vector3(p.x, toY(level), p.z));
+          const curve = new THREE.CatmullRomCurve3(points, closed, 'centripetal', 0.25);
+          const tubularSegments = Math.min(260, Math.max(36, Math.floor(points.length * 2.2)));
+          const geometry = new THREE.TubeGeometry(curve, tubularSegments, radius, major ? 7 : 5, closed);
+          const mesh = new THREE.Mesh(geometry, material);
+          terrainGroup.add(mesh);
+          created += 1;
+        }
+      }
+    }
+
+    function addHudRings() {
+      const ringMaterial = new THREE.MeshBasicMaterial({
+        color: 0xcf9a5e,
+        transparent: true,
+        opacity: 0.18,
+        blending: THREE.NormalBlending,
+        depthWrite: false
+      });
+      for (const r of [5.0, 7.4, 9.8, HUD_RADIUS]) {
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.012, 5, 220), ringMaterial);
+        ring.rotation.x = Math.PI / 2;
+        ring.position.y = -0.18;
+        scene.add(ring);
+      }
+
+      const grid = new THREE.GridHelper(26, 36, 0x5c5330, 0x33301c);
+      grid.position.y = -0.22;
+      grid.material.transparent = true;
+      grid.material.opacity = 0.2;
+      scene.add(grid);
+
+      for (let a = 0; a < 360; a += 15) {
+        const rad = THREE.MathUtils.degToRad(a);
+        const material = new THREE.LineBasicMaterial({
+          color: a % 45 === 0 ? 0xd6a86a : 0x4e4a2a,
+          transparent: true,
+          opacity: a % 45 === 0 ? 0.24 : 0.11,
+          blending: THREE.NormalBlending,
+          depthWrite: false
+        });
+        const points = [
+          new THREE.Vector3(Math.cos(rad) * 2.0, -0.19, Math.sin(rad) * 2.0),
+          new THREE.Vector3(Math.cos(rad) * HUD_RADIUS, -0.19, Math.sin(rad) * HUD_RADIUS)
+        ];
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        scene.add(new THREE.Line(geometry, material));
+      }
+    }
+
+    function createTextSprite(text, options = {}) {
+      const fontSize = options.fontSize || 42;
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = `700 ${fontSize}px Georgia, serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = options.shadow || 'rgba(240, 231, 211, 0.9)';
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = options.fill || 'rgba(43, 32, 19, 0.95)';
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      const material = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        opacity: options.opacity || 0.9,
+        depthWrite: false,
+        blending: THREE.NormalBlending
+      });
+      const sprite = new THREE.Sprite(material);
+      sprite.scale.set(options.width || 3.4, options.height || 0.85, 1);
+      return sprite;
+    }
+
+    function addMarker(x, z, color = 0x7A5E34, size = 0.065) {
+      const y = toY(normalizedHeightAt(x, z)) + 0.12;
+      const marker = new THREE.Mesh(
+        new THREE.SphereGeometry(size, 18, 12),
+        new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.95, blending: THREE.NormalBlending })
+      );
+      marker.position.set(x, y, z);
+      terrainGroup.add(marker);
+
+      const vertical = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(x, BASE_Y - 0.05, z),
+        new THREE.Vector3(x, y + 1.4, z)
+      ]);
+      const line = new THREE.Line(vertical, new THREE.LineBasicMaterial({
+        color,
+        transparent: true,
+        opacity: 0.45,
+        blending: THREE.NormalBlending,
+        depthWrite: false
+      }));
+      terrainGroup.add(line);
+      return marker;
+    }
+
+    function addLabelsAndMarkers() {
+      const landmarks = [
+        { text: 'Sandbox Peak', x: -2, z: 6, color: 0xC0702E, width: 3.2, target: true },
+        { text: 'YOLO Ridge', x: 9, z: 6.5, color: 0x7A5E34, width: 2.8 },
+        { text: 'Network Policies Forest', x: 15, z: 2.5, color: 0x7A5E34, width: 4.1 },
+        { text: 'MicroVM Lake', x: -1, z: -3, color: 0x7A5E34, width: 3.0 },
+        { text: 'Claude Pines Valley', x: -14, z: -3, color: 0x7A5E34, width: 3.8 },
+        { text: 'Rate Limit Knoll', x: 12, z: -2, color: 0x7A5E34, width: 3.3 }
+      ];
+
+      for (const item of landmarks) {
+        const marker = addMarker(item.x, item.z, item.target ? 0xC0702E : 0x7A5E34, item.target ? 0.095 : 0.055);
+        const label = createTextSprite(item.text, {
+          width: item.width,
+          height: 0.7,
+          fill: item.target ? 'rgba(192, 112, 46, 0.98)' : 'rgba(43, 32, 19, 0.9)',
+          shadow: item.target ? 'rgba(251, 247, 237, 0.9)' : 'rgba(251, 247, 237, 0.85)',
+          fontSize: 42,
+          opacity: item.target ? 1.0 : 0.78
+        });
+        label.position.set(item.x, marker.position.y + 0.82, item.z);
+        labelsGroup.add(label);
+      }
+    }
+
+    function routePoint(x, z, lift = 0.32) {
+      return new THREE.Vector3(x, toY(normalizedHeightAt(x, z)) + lift, z);
+    }
+
+    const routeWaypoints = [
+      [-8.65, -1.55],
+      [-6.25, -0.95],
+      [-4.15, -0.55],
+      [-2.9, 0.55],
+      [-1.95, 1.8],
+      [-1.35, 3.45]
+    ];
+
+    const routeCurve = new THREE.CatmullRomCurve3(routeWaypoints.map(([x, z]) => routePoint(x, z)), false, 'centripetal', 0.3);
+    let pulse;
+
+    function addRoute() {
+      const routeMaterial = new THREE.MeshBasicMaterial({
+        color: 0xC0702E,
+        transparent: true,
+        opacity: 0.88,
+        blending: THREE.NormalBlending,
+        depthWrite: false
+      });
+      const coreMaterial = new THREE.MeshBasicMaterial({
+        color: 0xE0842F,
+        transparent: true,
+        opacity: 0.75,
+        blending: THREE.NormalBlending,
+        depthWrite: false
+      });
+      const haloGeometry = new THREE.TubeGeometry(routeCurve, 280, 0.055, 9, false);
+      const coreGeometry = new THREE.TubeGeometry(routeCurve, 280, 0.017, 7, false);
+      terrainGroup.add(new THREE.Mesh(haloGeometry, routeMaterial));
+      terrainGroup.add(new THREE.Mesh(coreGeometry, coreMaterial));
+
+      pulse = new THREE.Mesh(
+        new THREE.SphereGeometry(0.16, 26, 18),
+        new THREE.MeshBasicMaterial({ color: 0xE0842F, transparent: true, opacity: 1, blending: THREE.NormalBlending })
+      );
+      terrainGroup.add(pulse);
+
+      const targetRingMaterial = new THREE.MeshBasicMaterial({
+        color: 0xC0702E,
+        transparent: true,
+        opacity: 0.55,
+        blending: THREE.NormalBlending,
+        depthWrite: false
+      });
+      const target = routeWaypoints[routeWaypoints.length - 1];
+      const end = routePoint(target[0], target[1], 0.38);
+      for (const r of [0.28, 0.48, 0.72]) {
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.012, 5, 120), targetRingMaterial);
+        ring.rotation.x = Math.PI / 2;
+        ring.position.copy(end);
+        terrainGroup.add(ring);
+      }
+    }
+
+    function addParticleField() {
+      const count = 520;
+      const positions = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
+      const colorA = new THREE.Color(0xd69760);
+      const colorB = new THREE.Color(0xC0702E);
+      for (let i = 0; i < count; i++) {
+        const r = Math.sqrt(Math.random()) * HUD_RADIUS;
+        const a = Math.random() * Math.PI * 2;
+        const x = Math.cos(a) * r;
+        const z = Math.sin(a) * r;
+        positions[i * 3] = x;
+        positions[i * 3 + 1] = -0.06 + Math.random() * 0.35;
+        positions[i * 3 + 2] = z;
+        const c = Math.random() > 0.92 ? colorB : colorA;
+        colors[i * 3] = c.r;
+        colors[i * 3 + 1] = c.g;
+        colors[i * 3 + 2] = c.b;
+      }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      const material = new THREE.PointsMaterial({
+        size: 0.035,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.66,
+        blending: THREE.NormalBlending,
+        depthWrite: false
+      });
+      scene.add(new THREE.Points(geometry, material));
+    }
+
+    function addLightSweep() {
+      const material = new THREE.MeshBasicMaterial({
+        color: 0xcf9a5e,
+        transparent: true,
+        opacity: 0.08,
+        blending: THREE.NormalBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide
+      });
+      const geometry = new THREE.CircleGeometry(HUD_RADIUS, 96, 0, Math.PI / 8);
+      const sweep = new THREE.Mesh(geometry, material);
+      sweep.rotation.x = -Math.PI / 2;
+      sweep.position.y = 0.02;
+      scene.add(sweep);
+      return sweep;
+    }
+
+    addContourSplines();
+    addLabelsAndMarkers();
+    labelsGroup.visible = false;
+
+    const exSlider = document.getElementById('exaggeration');
+    const exValue = document.getElementById('exValue');
+    exSlider.addEventListener('input', () => {
+      const value = Number(exSlider.value);
+      terrainGroup.scale.y = value;
+      exValue.textContent = `${value.toFixed(2)}x`;
+    });
+
+    const autoOrbit = document.getElementById('autoOrbit');
+    autoOrbit.addEventListener('change', () => {
+      controls.autoRotate = autoOrbit.checked;
+    });
+
+    const labelsToggle = document.getElementById('labelsToggle');
+    labelsToggle.addEventListener('change', () => {
+      labelsGroup.visible = labelsToggle.checked;
+    });
+
+    // ── live sandboxes: clickable dots on the map + detail card ──
+    const SANDBOXES = [
+      {
+        name: 'claude-den-landing', x: -5, z: 1, av: 'CD', tint: '#C0702E', icon: 'box', agentKey: 'claude', bg: '#F6E4C9', fg: '#B96C29',
+        status: 'Running', state: 'run', uptime: '8h 47m', agent: 'Claude Code',
+        memory: 'max 32g', branch: 'no isolation',
+        workspace: '/Users/javieralonso/Code/den-landing',
+        kits: ['corporate', 'design', 'claude'],
+        ports: [{ from: 8000, to: 8000, proto: 'TCP' }],
+        preset: 'allow',
+        rules: [
+          { name: 'default-allow-all', scope: 'all sandboxes · local', chips: ['**'] },
+          { name: 'kit:claude-test2', scope: 'all sandboxes · local', chips: ['claude.com:443', 'downloads.claude.ai:443'] },
+          { name: 'kit:claude-den-landing', scope: 'sandbox · kit', chips: ['api.githubcopilot.com', 'claude.com:443', 'dovetail.com', 'downloads.claude.ai:443', 'mcp-proxy.anthropic.com:443', 'mcp.atlassian.com', 'mcp.figma.com', 'mcp.notion.com', 'mcp.slack.com'] }
+        ]
+      },
+      {
+        name: 'feral-cosmos', x: 4, z: 0, av: 'FC', tint: '#6F6E3E', icon: 'server', agentKey: 'codex', bg: '#D9E7E3', fg: '#3E7C74',
+        status: 'Running', state: 'run', uptime: '6m 31s', agent: 'Codex',
+        memory: 'max 16g', branch: 'main',
+        workspace: '/Users/javieralonso/Code/api-gateway',
+        kits: ['claude'],
+        ports: [{ from: 3000, to: 3000, proto: 'TCP' }],
+        preset: 'balanced',
+        rules: [
+          { name: 'kit:base', scope: 'all sandboxes · local', chips: ['registry.npmjs.org', 'github.com:443'] },
+          { name: 'sandbox:feral-cosmos', scope: 'sandbox · local', chips: ['api.openai.com:443'] }
+        ]
+      },
+      {
+        name: 'electric-satellite', x: -11, z: 4, av: 'ES', tint: '#7B6A9E', icon: 'terminal', agentKey: 'gemini', bg: '#E7E0F0', fg: '#7166A0',
+        status: 'Waiting for you', state: 'wait', uptime: '2h 03m', agent: 'Gemini CLI',
+        memory: 'max 8g', branch: 'feat/onboarding',
+        workspace: '/Users/javieralonso/Code/den-landing',
+        kits: ['design'],
+        ports: [],
+        preset: 'deny',
+        rules: [
+          { name: 'default-deny', scope: 'all sandboxes · local', chips: ['(allowlist only)'] }
+        ]
+      },
+      {
+        name: 'lively-canyon', x: 8, z: -3, av: 'LC', tint: '#3E7C74', icon: 'boxes', agentKey: 'claude', bg: '#F1DFE3', fg: '#A65A6E',
+        status: 'Idle', state: 'idle', uptime: '—', agent: 'Claude Code',
+        memory: 'max 16g', branch: 'no isolation',
+        workspace: '/Users/javieralonso/Code/sbx-cli',
+        kits: ['corporate', 'claude'],
+        ports: [{ from: 5173, to: 5173, proto: 'TCP' }],
+        preset: 'balanced',
+        rules: [
+          { name: 'kit:corporate', scope: 'all sandboxes · local', chips: ['*.docker.com:443', 'registry-1.docker.io'] }
+        ]
+      },
+      {
+        name: 'hidden-satellite', x: 14, z: 4, av: 'HS', tint: '#8A6D3C', icon: 'boxes', agentKey: 'codex', bg: '#EFE6D2', fg: '#8A6D3C',
+        status: 'Running', state: 'run', uptime: '41m', agent: 'Codex',
+        memory: 'max 16g', branch: 'agentic-platform-ff',
+        workspace: '/Users/javieralonso/Code/platform',
+        kits: ['corporate', 'design'],
+        ports: [{ from: 8080, to: 8080, proto: 'TCP' }],
+        preset: 'balanced',
+        rules: [
+          { name: 'kit:base', scope: 'all sandboxes · local', chips: ['registry.npmjs.org', 'github.com:443'] }
+        ]
+      },
+      {
+        name: 'mossy-harbor', x: -2, z: -7, av: 'MH', tint: '#5E8A6A', icon: 'terminal', agentKey: 'gemini', bg: '#DDE8DE', fg: '#3F7358',
+        status: 'Waiting for you', state: 'wait', uptime: '1h 12m', agent: 'Gemini CLI',
+        memory: 'max 8g', branch: 'main',
+        workspace: '/Users/javieralonso/Code/harbor',
+        kits: ['claude'],
+        ports: [],
+        preset: 'deny',
+        rules: [
+          { name: 'default-deny', scope: 'all sandboxes · local', chips: ['(allowlist only)'] }
+        ]
+      },
+      {
+        name: 'amber-thicket', x: 1, z: 9, av: 'AT', tint: '#C08A3A', icon: 'box', agentKey: 'claude', bg: '#F6E7C6', fg: '#B07A2C',
+        status: 'Running', state: 'run', uptime: '3h 58m', agent: 'Claude Code',
+        memory: 'max 32g', branch: 'no isolation',
+        workspace: '/Users/javieralonso/Code/thicket',
+        kits: ['corporate', 'design', 'claude'],
+        ports: [{ from: 5173, to: 5173, proto: 'TCP' }],
+        preset: 'allow',
+        rules: [
+          { name: 'default-allow-all', scope: 'all sandboxes · local', chips: ['**'] }
+        ]
+      },
+      {
+        name: 'quiet-fjord', x: 16, z: -1, av: 'QF', tint: '#6B7BA6', icon: 'server', agentKey: 'codex', bg: '#E1E5F0', fg: '#5E6E9E',
+        status: 'Idle', state: 'idle', uptime: '—', agent: 'Codex',
+        memory: 'max 16g', branch: 'feat/ports',
+        workspace: '/Users/javieralonso/Code/fjord',
+        kits: ['claude'],
+        ports: [{ from: 4000, to: 4000, proto: 'TCP' }],
+        preset: 'balanced',
+        rules: [
+          { name: 'sandbox:quiet-fjord', scope: 'sandbox · local', chips: ['api.openai.com:443'] }
+        ]
+      }
+    ];
+
+    const SPARK = '<svg class="spark" viewBox="0 0 20 20" fill="none"><path d="M10 1.5c.6 3.4 1.8 5.9 3.6 7.6C15.4 10.9 17.9 9.6 18.5 10c-3.4.6-5.9 1.8-7.6 3.6C9.1 15.4 10.4 17.9 10 18.5c-.6-3.4-1.8-5.9-3.6-7.6C4.6 9.1 2.1 10.4 1.5 10c3.4-.6 5.9-1.8 7.6-3.6C10.9 4.6 9.6 2.1 10 1.5Z" fill="#C0702E"/></svg>';
+
+    // lucide icons (stroke = currentColor) shown inside each avatar
+    const LUCIDE = {
+      box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>',
+      server: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>',
+      terminal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></svg>',
+      boxes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19V13.5l-5-3-4.03 2.42Z"/><path d="m7 16.5-4.74-2.85"/><path d="m7 16.5 5-3"/><path d="M7 16.5v5.17"/><path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z"/><path d="m17 16.5-5-3"/><path d="m17 16.5 4.74-2.85"/><path d="M17 16.5v5.17"/><path d="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z"/><path d="M12 8 7.26 5.15"/><path d="m12 8 4.74-2.85"/><path d="M12 13.5V8"/></svg>'
+    };
+    // AI-agent brand marks (lobe-style, white glyph on the dark corner circle)
+    const AGENT_ICON = {
+      claude: '<svg viewBox="12 15 40 28" fill="#fff"><path d="M34.8926 16L45.2953 42.0924H51L40.5973 16H34.8926Z"/><path d="M22.824 31.7672L26.3835 22.5976L29.943 31.7672H22.824ZM23.4011 16L13 42.0924H18.8157L20.9429 36.6129H31.8245L33.9513 42.0924H39.767L29.3659 16H23.4011Z"/></svg>',
+      codex: '<svg viewBox="30 30 40 40" fill="#fff"><path d="m65.6261 46.7346c.8277-2.4514.5427-5.1369-.781-7.3667-1.9907-3.42-5.9926-5.1796-9.9009-4.3515-1.7388-1.9328-4.2368-3.032-6.8557-3.0162-3.995-.009-7.5397 2.529-8.7688 6.2799-2.5664.5186-4.7817 2.1037-6.0781 4.3504-2.0055 3.4111-1.5483 7.7109 1.131 10.636-.8277 2.4514-.5427 5.1369.781 7.3667 1.9907 3.42 5.9926 5.1796 9.901 4.3515 1.7376 1.9328 4.2367 3.032 6.8556 3.0151 3.9974.0101 7.5432-2.5302 8.7723-6.2844 2.5664-.5186 4.7817-2.1038 6.078-4.3504 2.0033-3.4111 1.5449-7.7076-1.1333-10.6326zm-13.7136 18.9128c-1.5996.0022-3.149-.5501-4.377-1.5615.0559-.0293.1528-.0822.2155-.1204l7.265-4.1401c.3717-.2081.5997-.5985.5974-1.0204v-10.1061l3.0704 1.7494c.0331.0158.0547.0473.0593.0833v8.369c-.0046 3.7216-3.059 6.7389-6.8306 6.7468zm-14.6895-6.191c-.8015-1.3658-1.09-2.9667-.8152-4.5204.0536.0315.1482.0889.2155.1272l7.2649 4.14c.3683.2127.8244.2127 1.1938 0l8.8691-5.0536v3.4989c.0023.036-.0148.0708-.0433.0933l-7.3437 4.184c-3.271 1.8585-7.4485.7538-9.34-2.4694zm-1.912-15.648c.7981-1.368 2.0579-2.4143 3.5584-2.9577 0 .0619-.0035.171-.0035.2475v8.2813c-.0022.4208.2258.8112.5963 1.0193l8.8692 5.0525-3.0704 1.7494c-.0308.0203-.0696.0236-.1038.009l-7.3448-4.1873c-3.2642-1.8653-4.3838-5.9863-2.5026-9.2129zm25.2267 5.7928-8.8692-5.0536 3.0704-1.7483c.0308-.0203.0696-.0237.1038-.009l7.3447 4.1839c3.27 1.8642 4.3907 5.9919 2.5015 9.2185-.7992 1.3658-2.0579 2.412-3.5572 2.9565v-8.5288c.0034-.4207-.2235-.81-.5929-1.0192zm3.0555-4.5384c-.0536-.0326-.1482-.0889-.2155-.1271l-7.2649-4.1401c-.3683-.2126-.8243-.2126-1.1937 0l-8.8692 5.0536v-3.4988c-.0022-.036.0149-.0709.0434-.0934l7.3436-4.1806c3.271-1.8619 7.4531-.7537 9.3389 2.4751.7969 1.3635 1.0854 2.9599.8152 4.5113zm-19.2124 6.236-3.0716-1.7494c-.033-.0157-.0547-.0472-.0592-.0832v-8.3691c.0022-3.7261 3.0658-6.7456 6.8419-6.7434 1.5974 0 3.1434.5535 4.3713 1.5616-.0559.0292-.1516.0821-.2155.1203l-7.2649 4.1401c-.3717.2081-.5997.5974-.5975 1.0193l-.0045 10.1016zm1.668-3.5483 3.9506-2.2512 3.9506 2.2501v4.5012l-3.9506 2.25-3.9506-2.25z"/></svg>',
+      gemini: '<svg viewBox="32 32 36 36" fill="#fff"><path d="m48.56 60.9807c.96 2.19 1.44 4.53 1.44 7.02 0-2.49.465-4.83 1.395-7.02.96-2.19 2.25-4.095 3.87-5.715s3.525-2.895 5.715-3.825c2.19-.96 4.53-1.44 7.02-1.44-2.49 0-4.83-.465-7.02-1.395-2.1315-.919-4.0704-2.232-5.715-3.87-1.638-1.6446-2.951-3.5835-3.87-5.715-.93-2.19-1.395-4.53-1.395-7.02 0 2.49-.48 4.83-1.44 7.02-.93 2.19-2.205 4.095-3.825 5.715-1.6446 1.638-3.5835 2.951-5.715 3.87-2.19.93-4.53 1.395-7.02 1.395 2.49 0 4.83.48 7.02 1.44 2.19.93 4.095 2.205 5.715 3.825s2.895 3.525 3.825 5.715z"/></svg>'
+    };
+
+    const dotsLayer = document.getElementById('sbDots');
+    const cardEl = document.getElementById('sbCard');
+
+    function renderCard(sb) {
+      const kits = sb.kits.map(k => `<span class="sb-chip">◈ ${k}</span>`).join('');
+      const ports = sb.ports.length
+        ? sb.ports.map(p => `<div class="sb-port"><span class="sb-run"></span>${p.from} → ${p.to} <span class="dim">${p.proto}</span><span class="open">Open ↗</span></div>`).join('')
+        : `<div class="sb-help" style="margin-top:0">No ports exposed. Services must listen on 0.0.0.0.</div>`;
+      const presetCard = (id, title, sub, on) =>
+        `<div class="sb-preset ${on ? 'on' : ''}"><div class="pt">${id === 'allow' ? '<span class="g"></span>' : ''}${title}</div><div class="ps">${sub}</div></div>`;
+      const rules = sb.rules.map(r => `
+        <div class="sb-rule">
+          <div class="sb-rule-head"><span class="sb-allow">ALLOW</span><span class="sb-rule-name">${r.name}</span><span class="sb-rule-scope">${r.scope}</span></div>
+          <div class="sb-chips">${r.chips.map(c => `<span class="sb-dchip">${c} <span class="x">×</span></span>`).join('')}</div>
+        </div>`).join('');
+      return `
+        <button class="sbcard-close" aria-label="Close">×</button>
+        <div class="sb-grid">
+          <div><div class="sb-lbl">Status</div><div class="sb-val"><span class="sb-run ${sb.state}"></span>${sb.status}${sb.uptime !== '—' ? ' <span class="dim">· ' + sb.uptime + '</span>' : ''}</div></div>
+          <div><div class="sb-lbl">Agent</div><div class="sb-val">${SPARK}${sb.agent}</div></div>
+          <div><div class="sb-lbl">Memory</div><div class="sb-val"><span class="dim">—</span> · ${sb.memory}</div></div>
+          <div><div class="sb-lbl">Branch</div><div class="sb-val"><span class="dim">—</span> · ${sb.branch}</div></div>
+        </div>
+        <div class="sb-sep"></div>
+        <div class="sb-sec"><span class="chev">⌄</span>Workspaces</div>
+        <div class="sb-ws"><div class="tag">Primary (read-write)</div><div class="path">${sb.workspace}</div></div>
+        <button class="sb-btn r">+ Mount directory</button>
+        <div class="sb-help">Exposes a host folder into the running sandbox live (via <code>sbx mount</code>).</div>
+        <div class="sb-sep"></div>
+        <div class="sb-sec"><span class="chev">⌄</span>Kits<span class="cnt">${sb.kits.length}</span></div>
+        <div class="sb-chips">${kits}</div>
+        <div class="sb-sep"></div>
+        <div class="sb-sec"><span class="chev">⌄</span>Ports<span class="cnt">${sb.ports.length}</span></div>
+        ${ports}
+        <div class="sb-sep"></div>
+        <div class="sb-sec"><span class="chev">⌄</span>Network policy</div>
+        <div class="sb-lbl" style="margin-bottom:10px">Default preset</div>
+        <div class="sb-presets">
+          ${presetCard('allow', 'Allow all', 'All outbound', sb.preset === 'allow')}
+          ${presetCard('balanced', 'Balanced', 'AI APIs &amp; pkgs', sb.preset === 'balanced')}
+          ${presetCard('deny', 'Deny all', 'Allowlist only', sb.preset === 'deny')}
+        </div>
+        ${rules}
+        <div class="sb-help">Agents can only reach the allowed resources above; anything else is blocked by the default deny policy.</div>
+        <button class="sb-btn r">+ Add rule</button>
+        <div style="clear:both"></div>`;
+    }
+
+    let activeDot = null;
+    function openCard(sb, el) {
+      cardEl.innerHTML = renderCard(sb);
+      cardEl.classList.add('open');
+      cardEl.scrollTop = 0;
+      if (activeDot) activeDot.classList.remove('active');
+      activeDot = el; el.classList.add('active');
+    }
+    function closeCard() {
+      cardEl.classList.remove('open');
+      if (activeDot) { activeDot.classList.remove('active'); activeDot = null; }
+    }
+    cardEl.addEventListener('click', (e) => { if (e.target.closest('.sbcard-close')) closeCard(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCard(); });
+
+    const dots = SANDBOXES.map((sb) => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'sbdot';
+      el.innerHTML = '<span class="sbdot-wave"></span><span class="sbdot-wave"></span><span class="sbdot-wave"></span>'
+        + '<span class="sbdot-core"></span>'
+        + '<span class="sbdot-av" style="background:' + sb.bg + '">'
+          + '<span class="sbav-icon" style="color:' + sb.fg + '">' + (LUCIDE[sb.icon] || sb.av) + '</span>'
+          + '<span class="sbav-status ' + sb.state + '"></span>'
+          + '<span class="sbav-agent">' + (AGENT_ICON[sb.agentKey] || '') + '</span>'
+        + '</span>'
+        + '<span class="sbdot-tip">' + sb.name + '</span>';
+      el.addEventListener('click', () => openCard(sb, el));
+      dotsLayer.appendChild(el);
+      return { el, sb };
+    });
+
+    // ── calm ember routes: a comet trail draws in to a random dot (tail
+    // fading to transparent behind the head), holds, fades out, then a new
+    // random route begins. A couple of slots cycle continuously. ──
+    const routeGroup = new THREE.Group();
+    terrainGroup.add(routeGroup);
+    const RSEG = 160, RRAD = 6;
+    const RBX = WIDTH * 0.46, RBZ = DEPTH * 0.46;
+    function routePt(x, z, lift) {
+      return new THREE.Vector3(x, toY(normalizedHeightAt(x, z)) + lift, z);
+    }
+    function makeCurveTo(dot) {
+      // start beyond the map edge so lines arrive from outside, then fade in
+      const mX = WIDTH / 2, mZ = DEPTH / 2, margin = 3.5;
+      let sx, sz;
+      const side = Math.floor(Math.random() * 4);
+      if (side === 0) { sx = -mX - margin; sz = (Math.random() * 2 - 1) * mZ * 1.15; }
+      else if (side === 1) { sx = mX + margin; sz = (Math.random() * 2 - 1) * mZ * 1.15; }
+      else if (side === 2) { sz = -mZ - margin; sx = (Math.random() * 2 - 1) * mX * 1.05; }
+      else { sz = mZ + margin; sx = (Math.random() * 2 - 1) * mX * 1.05; }
+      const steps = 3 + Math.floor(Math.random() * 3);
+      const ctrl = [];
+      for (let i = 0; i <= steps; i++) {
+        const s = i / steps;
+        let x = THREE.MathUtils.lerp(sx, dot.x, s);
+        let z = THREE.MathUtils.lerp(sz, dot.z, s);
+        if (i > 0 && i < steps) { x += (Math.random() * 2 - 1) * 2.0; z += (Math.random() * 2 - 1) * 1.3; }
+        ctrl.push(new THREE.Vector3(x, 0, z));
+      }
+      // smooth 2D route, then drape it over the heightfield so it follows the topology
+      const flat = new THREE.CatmullRomCurve3(ctrl, false, 'centripetal', 0.4);
+      const N = 72;
+      const pts = [];
+      for (let i = 0; i <= N; i++) {
+        const p = flat.getPoint(i / N);
+        pts.push(routePt(p.x, p.z, 0.12));
+      }
+      return new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.2);
+    }
+    function tubeGeoFor(curve) {
+      const geo = new THREE.TubeGeometry(curve, RSEG, 0.022, RRAD, false);
+      const n = geo.attributes.position.count;
+      const aU = new Float32Array(n);
+      let k = 0;
+      for (let i = 0; i <= RSEG; i++) { const u = i / RSEG; for (let j = 0; j <= RRAD; j++) aU[k++] = u; }
+      geo.setAttribute('aU', new THREE.BufferAttribute(aU, 1));
+      return geo;
+    }
+    const ROUTE_VERT = 'attribute float aU; varying float vU; void main(){ vU = aU; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }';
+    const ROUTE_FRAG = 'precision mediump float; varying float vU; uniform float uHead; uniform float uWin; uniform float uFade; uniform vec3 uColor; void main(){ if (vU > uHead) discard; float a = (1.0 - clamp((uHead - vU) / uWin, 0.0, 1.0)) * uFade; if (a <= 0.004) discard; gl_FragColor = vec4(uColor, a); }';
+
+    const DRAW = 9.0, HOLD = 1.6, FADE = 3.0, GAP = 1.3;
+    const CYCLE = DRAW + HOLD + FADE + GAP;
+    const slots = [];
+    function respawn(slot, t) {
+      const dot = dots[Math.floor(Math.random() * dots.length)].sb;
+      slot.curve = makeCurveTo(dot);
+      slot.mesh.geometry.dispose();
+      slot.mesh.geometry = tubeGeoFor(slot.curve);
+      slot.t0 = t;
+    }
+    for (let i = 0; i < 2; i++) {
+      const mat = new THREE.ShaderMaterial({
+        uniforms: { uHead: { value: 0 }, uWin: { value: 0.32 }, uFade: { value: 0 }, uColor: { value: new THREE.Color(0xC0702E) } },
+        vertexShader: ROUTE_VERT, fragmentShader: ROUTE_FRAG, transparent: true, depthWrite: false
+      });
+      const mesh = new THREE.Mesh(new THREE.BufferGeometry(), mat);
+      routeGroup.add(mesh);
+      const beacon = new THREE.Mesh(
+        new THREE.SphereGeometry(0.07, 16, 12),
+        new THREE.MeshBasicMaterial({ color: 0xE0842F, transparent: true, opacity: 0, depthWrite: false })
+      );
+      routeGroup.add(beacon);
+      const slot = { mesh, mat, beacon, curve: null, t0: 0 };
+      respawn(slot, 0);
+      slot.t0 = -i * (CYCLE / 2);   // stagger the two slots
+      slots.push(slot);
+    }
+    function updateRoutes(t) {
+      for (const slot of slots) {
+        let e = t - slot.t0;
+        if (e < 0) { slot.mat.uniforms.uFade.value = 0; slot.beacon.material.opacity = 0; continue; }
+        if (e >= CYCLE) { respawn(slot, t); e = 0; }
+        let head, fade;
+        if (e < DRAW) { const s = e / DRAW; head = s * s * (3 - 2 * s); fade = 1; }
+        else if (e < DRAW + HOLD) { head = 1; fade = 1; }
+        else if (e < DRAW + HOLD + FADE) { head = 1; fade = 1 - (e - DRAW - HOLD) / FADE; }
+        else { head = 1; fade = 0; }
+        slot.mat.uniforms.uHead.value = head;
+        slot.mat.uniforms.uFade.value = fade;
+        if (slot.curve) slot.beacon.position.copy(slot.curve.getPointAt(Math.min(head, 0.9999)));
+        slot.beacon.material.opacity = 0.85 * fade * (head < 1 ? 1 : 0.5);
+      }
+    }
+
+    const _dv = new THREE.Vector3();
+    function positionDots() {
+      const w = window.innerWidth, h = window.innerHeight;
+      for (const d of dots) {
+        const y = toY(normalizedHeightAt(d.sb.x, d.sb.z)) * terrainGroup.scale.y + 0.28;
+        _dv.set(d.sb.x, y, d.sb.z).project(camera);
+        if (_dv.z > 1) { d.el.style.display = 'none'; continue; }
+        d.el.style.display = '';
+        d.el.style.left = ((_dv.x * 0.5 + 0.5) * w).toFixed(1) + 'px';
+        d.el.style.top = ((0.5 - _dv.y * 0.5) * h).toFixed(1) + 'px';
+      }
+    }
+
+    // dev overlays (control panel + camera readout) show only with ?debug
+    const debug = new URLSearchParams(location.search).has('debug');
+    document.body.classList.toggle('debug', debug);
+    const coordsEl = document.getElementById('coords');
+    function updateCoords() {
+      if (!coordsEl) return;
+      const az = THREE.MathUtils.radToDeg(controls.getAzimuthalAngle());
+      const pol = THREE.MathUtils.radToDeg(controls.getPolarAngle());
+      const p = camera.position, tg = controls.target;
+      coordsEl.textContent =
+        `azimuth   ${az.toFixed(1).padStart(6)}°\n` +
+        `polar     ${pol.toFixed(1).padStart(6)}°\n` +
+        `distance  ${controls.getDistance().toFixed(2).padStart(6)}\n` +
+        `camera   ${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)}\n` +
+        `target   ${tg.x.toFixed(2)}, ${tg.y.toFixed(2)}, ${tg.z.toFixed(2)}`;
+    }
+
+    const clock = new THREE.Clock();
+    function animate() {
+      const t = clock.getElapsedTime();
+      controls.update();
+      positionDots();
+      updateRoutes(t);
+      if (debug) updateCoords();
+
+      labelsGroup.children.forEach((label) => {
+        label.quaternion.copy(camera.quaternion);
+      });
+
+      composer.render();
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    function onResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, window.innerHeight);
+    }
+    window.addEventListener('resize', onResize);
+  </script>
+</body>
+</html>

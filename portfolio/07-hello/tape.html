@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>The tape — VCR · Javier Alonso</title>
+  <meta name="description" content="The VCR cassette, drawn: a blueprint tape you can turn. From the VCR landing hero.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .tape-stage {
+      position: relative;
+      height: min(72vh, 660px);
+      margin-top: 28px;
+      border: 1px solid var(--hairline);
+      border-radius: 18px;
+      background: var(--highlight);
+      overflow: hidden;
+    }
+    .tape-stage iframe { display: block; width: 100%; height: 100%; border: 0; }
+    .tape-hint {
+      position: absolute; left: 14px; bottom: 12px;
+      font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary);
+      pointer-events: none;
+    }
+    .tape-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+  </style>
+</head>
+<body>
+
+  <header class="top">
+    <div class="wrap top-inner">
+      <a class="wordmark" href="index.html" aria-label="Back to home">
+        Javier Alonso
+      </a>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="index.html#work">Work</a></li>
+          <li><a href="experience.html">Experience</a></li>
+          <li><a href="explorations/index.html" aria-current="page">Explorations</a></li>
+          <li><a href="mailto:javier@woztopus.com">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="detail">
+    <div class="wrap">
+      <section class="cv-head" aria-label="The tape">
+        <div class="hero-card">
+          <p class="eyebrow" style="margin-bottom:12px">VCR — the object</p>
+          <h1>The tape, drawn</h1>
+          <p class="sub">The cassette from the VCR hero: real geometry, lit by nothing, only its edges kept.</p>
+          <p class="cv-summary">That is what a blueprint is — the object described by where its surfaces end.
+            Drag to turn it; it takes this page's paper and ink, in either theme.</p>
+          <div class="tape-actions cv-pills">
+            <a class="pill pill-dark" href="explorations/vcr/index.html">Open VCR <span class="arrow" aria-hidden="true">→</span></a>
+            <a class="pill pill-open" href="explorations/index.html">All explorations</a>
+          </div>
+        </div>
+      </section>
+
+      <div class="tape-stage" id="stage">
+        <iframe id="tape" src="explorations/vcr/assets/tape.html" title="VCR: the tape, drawn" allowtransparency="true"></iframe>
+        <span class="tape-hint">drag to turn · double-click to reset</span>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bottom">
+    <div class="wrap bottom-inner">
+      <span>javier-alonso · № 07 Hello</span>
+      <nav aria-label="Footer">
+        <a href="mailto:javier@woztopus.com">email</a>
+        <a href="https://www.linkedin.com/in/javieralonsogomez" target="_blank" rel="noopener">linkedin</a>
+        <a href="index.html#work">work</a>
+      </nav>
+      <a class="to-top" href="#">↑</a>
+    </div>
+  </footer>
+
+  <script>
+  (function () {
+    'use strict';
+    var frame = document.getElementById('tape'), stage = document.getElementById('stage');
+    var css = function (n) { return getComputedStyle(stage).getPropertyValue(n).trim(); };
+    function theme() {
+      var paper = css('--highlight') || '#ffffff';
+      var ink = css('--text') || '#1c1b1a';
+      var fine = css('--text-secondary') || '#6f6a64';
+      var rule = css('--hairline') || '#e4e0db';
+      var msg = { vcr: 'theme', paper: paper, ink: ink, fine: fine, rule: rule, type: ink };
+      try { frame.contentWindow.postMessage(msg, '*'); } catch (e) {}
+      stage.style.background = paper;
+    }
+    addEventListener('message', function (e) {
+      if (e.source === frame.contentWindow && e.data && e.data.vcr === 'hello') theme();
+    });
+    new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', theme);
+  })();
+  </script>
+</body>
+</html>

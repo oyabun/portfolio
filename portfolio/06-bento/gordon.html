@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Gordon — Javier Alonso</title>
+  <meta name="description" content="Gordon, Docker's AI agent: from a 69-user prototype to ~119,700 monthly active users. Interaction model, onboarding, and safety UX.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="top">
+    <div class="wrap top-inner">
+      <a class="wordmark" href="index.html" aria-label="Back to home">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+          <rect x="2" y="2" width="16" height="16" rx="4"></rect>
+          <path d="M2 8h16M8 8v10"></path>
+        </svg>
+        Javier Alonso
+      </a>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="index.html#work">Work</a></li>
+          <li><a href="index.html#about">About</a></li>
+          <li><a href="mailto:javier.alonso@docker.com">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="detail">
+    <div class="wrap">
+
+      <p class="eyebrow" style="margin-bottom:8px">Case 01 / 06 — Selected Work</p>
+      <h1>Gordon</h1>
+      <p class="sub">From a 69-user prototype to ~119,700 monthly active users.</p>
+
+      <div class="leader"><b>Docker · Design lead, end-to-end</b><i aria-hidden="true"></i><span class="mono">2024–2026</span></div>
+      <div class="leader"><b>Ana · Sam · Marco · Dana</b><i aria-hidden="true"></i><span class="mono">AI-curious · newcomer · safety · pricing</span></div>
+
+      <section aria-label="Context">
+        <h2>Context</h2>
+        <p>Docker needed an AI assistant meeting developers where they work — Desktop and CLI — with no separate chat tool, and no unsafe agent actions on their machine. A true 0→1 bet: no established pattern, no existing users.</p>
+      </section>
+
+      <section aria-label="Role">
+        <h2>Role</h2>
+        <p>Interaction model · onboarding · safety &amp; permission UX · billing &amp; GA flows · support integration · the feedback research pipeline.</p>
+      </section>
+
+      <section aria-label="Jobs to be done">
+        <h2>Jobs-to-be-done</h2>
+        <ul>
+          <li>&ldquo;Ask about my containers/images/compose without leaving Docker.&rdquo; → Gordon in global search and the Containers/Images/Volumes tabs.</li>
+          <li>&ldquo;Let the agent act — but never do something destructive without my okay.&rdquo; → Danger classification (cautious/safer tiers), allow/deny dialog, CLI hook. <b>The safety pattern became the reference for other agent dialogs across Docker.</b></li>
+          <li>&ldquo;Understand what Gordon costs and which plan I need.&rdquo; → Budget/token views, plan mode, pricing.</li>
+          <li>&ldquo;Get started without reading docs.&rdquo; → Onboarding + login nudge.</li>
+          <li>&ldquo;Tell Docker when Gordon gets it wrong.&rdquo; → In-product Qualtrics feedback → permalink → Slack routing.</li>
+        </ul>
+      </section>
+
+      <section aria-label="Process">
+        <h2>Process</h2>
+        <p>Authored the continuous research plan; stood up the feedback pipeline; iterated free/blocked states, JIT nudges and permission tiers across releases; shipped V2 GA + pricing (Apr 2026), GA with Desktop 4.74 (May 2026), and again in 4.80 (Jul 2026).</p>
+      </section>
+
+      <section aria-label="Impact">
+        <h2>Impact</h2>
+        <div class="stats">
+          <div class="stat"><b>69 → 119,739</b><span>MAU, Nov 2024 → Jun 2026</span></div>
+          <div class="stat"><b>~13×</b><span>step-up at Ask Gordon launch · 4.38: 3,637 → 46,315</span></div>
+          <div class="stat"><b>~193K → 4.3M</b><span>requests / month</span></div>
+          <div class="stat"><b>~$260 MRR</b><span>shortly after monetization</span></div>
+        </div>
+        <p class="caveat" style="margin-top:24px">Growth reflects many contributors — design was a necessary enabler. &ldquo;Requests&rdquo; include background agentic calls. Figures approximate, current to Jul 2026.</p>
+      </section>
+
+      <section aria-label="Reflection">
+        <h2>Reflection</h2>
+        <p>Proudest of the safety UX — it made &ldquo;let the agent act&rdquo; shippable, and propagated to other products.</p>
+      </section>
+
+      <hr class="dash">
+
+      <nav class="back-nav" aria-label="Project navigation">
+        <a href="index.html#work">← Back to work</a>
+        <a href="#">Next: MCP Toolkit &amp; Catalog →</a>
+      </nav>
+
+    </div>
+  </main>
+
+  <footer class="bottom">
+    <div class="wrap bottom-inner">
+      <span>javier-alonso · № 06 Bento</span>
+      <nav aria-label="Footer">
+        <a href="mailto:javier.alonso@docker.com">email</a>
+        <a href="#">linkedin</a>
+        <a href="index.html#work">work</a>
+      </nav>
+      <a class="to-top" href="#">↑</a>
+    </div>
+  </footer>
+
+</body>
+</html>

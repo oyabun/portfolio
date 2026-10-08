@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dagent (Docker Agent app) — Case study · Javier Alonso</title>
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <div class="brand"><a href="../index.html">Javier Alonso<span>.</span></a></div>
+    <div class="navlinks">
+      <a class="back" href="../index.html">← All projects</a>
+      <button class="toggle" data-toggle-theme><span class="dot"></span><span class="lbl">Dark</span></button>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Case study · 0 → 1 · prototype → platform</div>
+    <h1>dagent — the Docker Agent app</h1>
+    <p class="lead">Create, run, and share AI agents, with an agent marketplace. The product layer I designed <em>and</em> researched — the direct core of the Agentic Platform / AI Cloud.</p>
+    <div class="stats">
+      <div class="stat"><b data-count="369" data-suffix="">0</b><span>distinct agents created</span></div>
+      <div class="stat"><b data-count="2144" data-suffix="">0</b><span>agent runs</span></div>
+      <div class="stat"><b data-count="96" data-suffix="">0</b><span>distinct dagent users</span></div>
+      <div class="stat"><b>~11</b><span>moderated UX-study sessions I ran</span></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="note reveal"><b>Where dagent sits.</b> <b>dagent</b> = the Docker Agent <em>app</em> (create / run / pull / push / share agents + marketplace). It's distinct from <b>cagent</b>, the open-source CLI runtime it fronts (~20.7M command events), and from <b>Gordon</b>, the embedded assistant. dagent is the prototype that matured into the <a href="agentic-platform.html" style="color:var(--blue)">Agentic Platform / AI Cloud</a>.</div>
+
+    <div class="mock reveal">
+      <div class="cap"><b>Signature screen — agent fleet: create, run &amp; share agents</b><span class="pill">theme-aware SVG</span></div>
+      <svg viewBox="0 0 960 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="dagent agent fleet">
+        <rect x="0" y="0" width="960" height="440" rx="16" fill="var(--svg-window)"/>
+        <rect x="28" y="28" width="904" height="384" rx="14" fill="var(--svg-bg)" stroke="var(--svg-line)"/>
+        <text x="52" y="66" font-size="16" font-weight="800" fill="var(--svg-text)">Agent Fleet</text>
+        <rect x="760" y="46" width="150" height="32" rx="9" fill="var(--svg-accent)"/><text x="784" y="67" font-size="12" fill="#fff" font-weight="700">+ New agent</text>
+        <line x1="52" y1="90" x2="908" y2="90" stroke="var(--svg-line)"/>
+        <!-- agent cards grid -->
+        <g>
+          <!-- card 1 -->
+          <rect x="52" y="106" width="270" height="128" rx="12" fill="var(--svg-panel)" stroke="var(--svg-line)"/>
+          <circle cx="80" cy="138" r="14" fill="var(--svg-chip)"/><text x="74" y="143" font-size="14">🤖</text>
+          <text x="104" y="134" font-size="13" font-weight="700" fill="var(--svg-text)">pr-reviewer</text>
+          <text x="104" y="151" font-size="10" fill="var(--svg-subtle)">multi-model · v1.2</text>
+          <rect x="70" y="164" width="66" height="16" rx="8" fill="var(--svg-chip)"/><text x="80" y="176" font-size="9" fill="var(--svg-accent)">anthropic</text>
+          <rect x="142" y="164" width="40" height="16" rx="8" fill="var(--svg-chip)"/><text x="150" y="176" font-size="9" fill="var(--svg-accent)">DMR</text>
+          <rect x="70" y="196" width="80" height="26" rx="7" fill="var(--svg-accent)"/><text x="90" y="213" font-size="11" fill="#fff" font-weight="700">Run</text>
+          <rect x="160" y="196" width="70" height="26" rx="7" fill="var(--svg-bg)" stroke="var(--svg-line)"/><text x="176" y="213" font-size="11" fill="var(--svg-text)">Push ▸</text>
+          <!-- card 2 -->
+          <rect x="345" y="106" width="270" height="128" rx="12" fill="var(--svg-panel)" stroke="var(--svg-line)"/>
+          <circle cx="373" cy="138" r="14" fill="var(--svg-chip)"/><text x="367" y="143" font-size="14">🧪</text>
+          <text x="397" y="134" font-size="13" font-weight="700" fill="var(--svg-text)">test-writer</text>
+          <text x="397" y="151" font-size="10" fill="var(--svg-subtle)">single-model · v0.4</text>
+          <rect x="363" y="164" width="52" height="16" rx="8" fill="var(--svg-chip)"/><text x="371" y="176" font-size="9" fill="var(--svg-accent)">openai</text>
+          <rect x="363" y="196" width="80" height="26" rx="7" fill="var(--svg-accent)"/><text x="383" y="213" font-size="11" fill="#fff" font-weight="700">Run</text>
+          <rect x="453" y="196" width="80" height="26" rx="7" fill="var(--svg-bg)" stroke="var(--svg-line)"/><text x="469" y="213" font-size="11" fill="var(--svg-text)">Import</text>
+          <!-- card 3 (marketplace) -->
+          <rect x="638" y="106" width="270" height="128" rx="12" fill="var(--svg-chip)" stroke="var(--svg-accent)" stroke-dasharray="4 4"/>
+          <text x="662" y="140" font-size="13" font-weight="800" fill="var(--svg-accent)">Marketplace</text>
+          <text x="662" y="160" font-size="11" fill="var(--svg-text)">Pull community agents</text>
+          <text x="662" y="178" font-size="11" fill="var(--svg-subtle)">from Docker Hub (OCI)</text>
+          <rect x="662" y="196" width="120" height="26" rx="7" fill="var(--svg-bg)" stroke="var(--svg-accent)"/><text x="682" y="213" font-size="11" fill="var(--svg-accent)" font-weight="700">Browse ▸</text>
+        </g>
+        <!-- run log -->
+        <rect x="52" y="250" width="856" height="140" rx="12" fill="#0b1220"/>
+        <text x="72" y="278" font-family="monospace" font-size="12" fill="#7ea8ff">$ dagent run pr-reviewer --input pr/482</text>
+        <text x="72" y="300" font-family="monospace" font-size="12" fill="#cfe0ff">▸ analyzing diff · 14 files</text>
+        <text x="72" y="322" font-family="monospace" font-size="12" fill="#cfe0ff">▸ 3 suggestions · 1 blocking</text>
+        <text x="72" y="344" font-family="monospace" font-size="12" fill="#8affc1">✓ run complete · shared to fleet</text>
+        <text x="72" y="372" font-family="monospace" font-size="11" fill="#6f86b8">create · run · pull · push · import · export</text>
+      </svg>
+    </div>
+
+    <div class="two" style="margin-top:34px">
+      <div>
+        <div class="sec-head"><div class="kicker">The problem</div><h2>Make agents shareable &amp; runnable</h2></div>
+        <p style="color:var(--muted);font-size:16px">Developers needed a way to define an agent once, run it, and share it — without wrangling code, dependencies, and orchestration. The app had to make the agent lifecycle (create → run → push/pull) feel as natural as working with container images, while validating an unproven mental model.</p>
+      </div>
+      <div>
+        <div class="sec-head"><div class="kicker">My role</div><h2>Designer &amp; researcher</h2></div>
+        <p style="color:var(--muted);font-size:16px">Designed the agent-lifecycle flows and the marketplace/fleet — and ran the research myself: facilitated the <em>Dagent UX Study</em> (~11 moderated think-aloud sessions, Oct 2025) and built a Qualtrics feedback form that accepted agents by URL or .yaml upload.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:color-mix(in srgb,var(--blue) 6%,var(--bg))">
+  <div class="wrap">
+    <div class="sec-head"><div class="kicker">Who it serves</div><h2>Personas</h2></div>
+    <div class="cards">
+      <div class="card"><div class="em">🤖</div><h4>Priya — agent engineer</h4><p>Define an agent, run it, iterate, and push it to the fleet.</p></div>
+      <div class="card"><div class="em">🧑‍💻</div><h4>Ana — AI-curious dev</h4><p>Pull a community agent and run it without building from scratch.</p></div>
+      <div class="card"><div class="em">🛡️</div><h4>Marco — platform eng</h4><p>Share vetted agents across a team via a trusted fleet.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="two">
+      <div class="uc">
+        <div class="sec-head"><div class="kicker">Jobs to be done</div><h2>Use cases designed</h2></div>
+        <ul>
+          <li>Create an agent and configure its models/tools</li>
+          <li>Run an agent and inspect the result</li>
+          <li>Pull a community agent from the marketplace</li>
+          <li>Push / share an agent to the fleet</li>
+          <li>Import an existing agent by URL or .yaml</li>
+        </ul>
+      </div>
+      <div>
+        <div class="sec-head"><div class="kicker">Delivery &amp; research</div><h2>What shipped</h2></div>
+        <p style="color:var(--muted);font-size:16px">Agent create/run/edit/import-export flows · agent marketplace (fleet) · the Dagent UX Study (plan, facilitation, synthesis) · a Qualtrics feedback instrument. This work fed directly into the Agentic Platform's primitives.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--ink-2)">
+  <div class="wrap">
+    <div class="sec-head"><div class="kicker" style="color:#7ea8ff">Impact</div><h2 style="color:#fff">Prototype-stage validation</h2></div>
+    <div class="metrics">
+      <div class="metric"><b style="color:#fff">369</b><span style="color:#9db9f0">distinct agents created</span></div>
+      <div class="metric"><b style="color:#fff">2,144</b><span style="color:#9db9f0">agent runs (89 users)</span></div>
+      <div class="metric"><b style="color:#fff">96</b><span style="color:#9db9f0">distinct dagent users</span></div>
+      <div class="metric"><b style="color:#fff">3,412</b><span style="color:#9db9f0">agent events (Aug 25–Jun 26)</span></div>
+    </div>
+    <p style="color:#c9d6f0;margin-top:14px;max-width:760px">Numbers are intentionally early — dagent was the validation phase. Its value in the story is the <em>design + research</em>: a real 0→1 agent app, shaped by studies I ran, that became the core of Docker's Agentic Platform. The runtime scale (~20.7M cagent events) lives one layer down.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div><a href="../index.html">← Back to all projects</a> · <a href="agentic-platform.html">Related: Agentic Platform →</a></div>
+    <div>Sources: Docker Sigma (PREP.DAGENT · L1_DAGENT__AGENT); Notion (Dagent UX Study); Slack (#team-ai-agent-private). Metrics current to Jun 2026.</div>
+  </div>
+</footer>
+<script src="../assets/theme.js"></script>
+</body>
+</html>

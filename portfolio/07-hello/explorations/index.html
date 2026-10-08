@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Explorations — Javier Alonso</title>
+  <meta name="description" content="Everything built on the side: Den, VCR, Figx, TUI.Studio, HarbourMaster, ProteOS, Narwhal, tinyd and the Figma plugins.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+  <header class="top">
+    <div class="wrap top-inner">
+      <a class="wordmark" href="../index.html" aria-label="Back to home">
+        Javier Alonso
+      </a>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="../index.html#work">Work</a></li>
+          <li><a href="../experience.html">Experience</a></li>
+          <li><a href="index.html" aria-current="page">Explorations</a></li>
+          <li><a href="mailto:javier.alonso@docker.com">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="xp">
+    <div class="wrap">
+
+      <div class="hero-card xp-head">
+        <p class="eyebrow" style="margin-bottom:12px">Explorations — № 07</p>
+        <h1>Everything built on the side.</h1>
+        <p class="sub">Shipped apps, session tools, Figma plugins and terminal toys — the prototyping habit, taken to production.</p>
+      </div>
+
+      <div class="xp-grid">
+
+        <article class="xp-card">
+          <img class="xp-shot" src="../assets/previews/den-landing.webp" alt="Den landing page" loading="lazy">
+          <div class="xp-body">
+            <div class="xp-top"><h3>Den</h3><span class="xp-domain mono">useden.ai</span></div>
+            <p class="xp-blurb">Somewhere safe to let agents run wild — the app for Docker Sandboxes. Every coding agent gets a private microVM with its own filesystem, daemon and guarded network, so it can build, install and rewrite freely while your machine never stirs.</p>
+            <ul class="hero-skills xp-tags"><li>macOS · Swift</li><li>Docker Sandboxes</li><li>microVMs</li><li>agent safety</li></ul>
+            <div class="xp-links">
+              <a class="pill pill-dark" href="den/index.html">Preview <span class="arrow" aria-hidden="true">→</span></a>
+              <a class="pill pill-open" href="https://useden.ai" target="_blank" rel="noopener">Live site</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="xp-card">
+          <img class="xp-shot" src="../assets/previews/vcr-landing.webp" alt="vcr.dev replaying a session" loading="lazy">
+          <div class="xp-body">
+            <div class="xp-top"><h3>VCR</h3><span class="xp-domain mono">vcr.dev</span></div>
+            <p class="xp-blurb">A VCR for your Claude Code and Codex sessions. Drop in the session log and replay the whole run like a tape — every prompt, response and tool call on a video-editor timeline, with cost and token analytics on the side. 1× to 60× transport, shuttle, dead-air skip. Parsed entirely in your browser: no server, nothing uploaded.</p>
+            <ul class="hero-skills xp-tags"><li>Vanilla JS</li><li>Three.js</li><li>session analytics</li><li>privacy-first</li></ul>
+            <div class="xp-links">
+              <a class="pill pill-dark" href="vcr/index.html">Preview <span class="arrow" aria-hidden="true">→</span></a>
+              <a class="pill pill-open" href="vcr/player.html" target="_blank" rel="noopener">The deck</a>
+              <a class="pill pill-open" href="https://vcr.dev" target="_blank" rel="noopener">Live site</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="xp-card">
+          <img class="xp-shot" src="../assets/previews/figx-landing.webp" alt="Figx viewer" loading="lazy">
+          <div class="xp-body">
+            <div class="xp-top"><h3>Figx</h3><span class="xp-domain mono">oyabun.github.io/figx</span></div>
+            <p class="xp-blurb">A personal, offline .fig file viewer — decodes Figma's proprietary binary format (Kiwi schema, Zstandard) and renders the scene graph to SVG. Pan/zoom, a Pages/Layers sidebar and a design-token inspector. No account, no cloud, no plugin.</p>
+            <ul class="hero-skills xp-tags"><li>TypeScript</li><li>reverse engineering</li><li>SVG rendering</li></ul>
+            <div class="xp-links">
+              <a class="pill pill-dark" href="figx/docs/index.html">Preview <span class="arrow" aria-hidden="true">→</span></a>
+              <a class="pill pill-open" href="https://oyabun.github.io/figx/" target="_blank" rel="noopener">Live demo</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="xp-card">
+          <img class="xp-shot" src="../assets/previews/tui-landing.webp" alt="TUI Studio landing page" loading="lazy">
+          <div class="xp-body">
+            <div class="xp-top"><h3>TUI.Studio</h3><span class="xp-domain mono">tui.studio</span></div>
+            <p class="xp-blurb">A Figma-like visual editor for Terminal UI applications — design, preview and ship TUI apps with a neon-glass component kit built for the occasion.</p>
+            <ul class="hero-skills xp-tags"><li>desktop app</li><li>terminal UX</li><li>design tooling</li></ul>
+            <div class="xp-links">
+              <a class="pill pill-dark" href="tui-studio/index.html">Preview <span class="arrow" aria-hidden="true">→</span></a>
+              <a class="pill pill-open" href="https://tui.studio" target="_blank" rel="noopener">Live site</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="xp-card">
+          <img class="xp-shot" src="../assets/previews/harbourmaster.webp" alt="HarbourMaster app" loading="lazy">
+          <div class="xp-body">
+            <div class="xp-top"><h3>HarbourMaster</h3><span class="xp-domain mono">macOS · Swift</span></div>
+            <p class="xp-blurb">Know what's running on your ports. A small Mac app that shows which process holds which port, so two dev servers never collide in the dark again.</p>
+            <ul class="hero-skills xp-tags"><li>Swift</li><li>menu bar</li><li>dev tools</li></ul>
+            <div class="xp-links">
+              <a class="pill pill-dark" href="harbourmaster/index.html">Preview <span class="arrow" aria-hidden="true">→</span></a>
+              <a class="pill pill-open" href="https://github.com/jalonsogo/harbourmaster" target="_blank" rel="noopener">GitHub</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="xp-card">
+          <img class="xp-shot" src="../assets/previews/proteos.webp" alt="ProteOS desktop overview" loading="lazy">
+          <div class="xp-body">
+            <div class="xp-top"><h3>ProteOS</h3><span class="xp-domain mono">P/OS</span></div>
+            <p class="xp-blurb">Shape-shifting intelligence from the depths of containerization — an ocean-themed desktop that runs Claude, Gemini and OpenAI CLIs side by side in Docker containers, named for Proteus, the sea god of change.</p>
+            <ul class="hero-skills xp-tags"><li>Docker</li><li>Node</li><li>multi-provider AI</li></ul>
+            <div class="xp-links"></div>
+          </div>
+        </article>
+
+        <article class="xp-card">
+          <div class="xp-shot xp-shot-plain" aria-hidden="true"><span class="xp-glyph">◈</span></div>
+          <div class="xp-body">
+            <div class="xp-top"><h3>Narwhal</h3><span class="xp-domain mono">agent builder</span></div>
+            <p class="xp-blurb">A visual workflow builder for AI-powered workflows: drag agents and tools onto a canvas, wire execution flows and capabilities between them, configure everything in a side panel. React Flow, TypeScript, real-time updates.</p>
+            <ul class="hero-skills xp-tags"><li>React</li><li>TypeScript</li><li>React Flow</li><li>agents</li></ul>
+            <div class="xp-links"></div>
+          </div>
+        </article>
+
+        <article class="xp-card">
+          <img class="xp-shot" src="../assets/previews/tinyd.webp" alt="tinyd" loading="lazy">
+          <div class="xp-body">
+            <div class="xp-top"><h3>tinyd</h3><span class="xp-domain mono">tinyd.sh</span></div>
+            <p class="xp-blurb">A tiny Docker Desktop in your terminal — the daily container loop without leaving the prompt, with a landing page whose hero is an animated terminal.</p>
+            <ul class="hero-skills xp-tags"><li>Go</li><li>TUI</li><li>Docker</li></ul>
+            <div class="xp-links">
+              <a class="pill pill-dark" href="tinyd/index.html">Preview <span class="arrow" aria-hidden="true">→</span></a>
+              <a class="pill pill-open" href="https://github.com/jalonsogo/tinyd" target="_blank" rel="noopener">GitHub</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="xp-card">
+          <img class="xp-shot" src="../assets/previews/conveyor.webp" alt="Conveyor plugin" loading="lazy">
+          <div class="xp-body">
+            <div class="xp-top"><h3>Conveyor</h3><span class="xp-domain mono">Figma plugin</span></div>
+            <p class="xp-blurb">CSV in, component instances out. Batch-generate design variations from real data: drop a CSV, columns auto-map to component properties by name, instances land in a smart layout with a live preview before anything is written.</p>
+            <ul class="hero-skills xp-tags"><li>Figma API</li><li>batch generation</li><li>design ops</li></ul>
+            <div class="xp-links"></div>
+          </div>
+        </article>
+
+        <article class="xp-card">
+          <img class="xp-shot" src="../assets/previews/crane.webp" alt="Crane plugin" loading="lazy">
+          <div class="xp-body">
+            <div class="xp-top"><h3>Crane</h3><span class="xp-domain mono">Figma plugin</span></div>
+            <p class="xp-blurb">Page scaffolding for Figma files — generate structured, emoji-labelled page layouts in one action, with a custom layout editor, duplicate detection and JSON import/export so whole teams scaffold the same way.</p>
+            <ul class="hero-skills xp-tags"><li>Figma API</li><li>workflow</li><li>templates</li></ul>
+            <div class="xp-links"></div>
+          </div>
+        </article>
+
+        <article class="xp-card">
+          <img class="xp-shot" src="../assets/previews/loom.webp" alt="Loom plugin" loading="lazy">
+          <div class="xp-body">
+            <div class="xp-top"><h3>Loom</h3><span class="xp-domain mono">Figma plugin</span></div>
+            <p class="xp-blurb">Batch text replacement — select any number of text layers, paste multi-line copy, and each line weaves into the next element in order, formatting and fonts intact.</p>
+            <ul class="hero-skills xp-tags"><li>Figma API</li><li>copy</li><li>productivity</li></ul>
+            <div class="xp-links"></div>
+          </div>
+        </article>
+
+        <!-- TODO: confirm Graphic Recorder blurb with Javier -->
+        <article class="xp-card">
+          <div class="xp-shot xp-shot-plain" aria-hidden="true"><span class="xp-glyph">✎</span></div>
+          <div class="xp-body">
+            <div class="xp-top"><h3>Graphic Recorder</h3><span class="xp-domain mono">sketchnotes</span></div>
+            <p class="xp-blurb">Live graphic recording and sketchnotes — capturing rooms, talks and workflows as they happen, the visual half of the design practice.</p>
+            <ul class="hero-skills xp-tags"><li>visual thinking</li><li>facilitation</li></ul>
+            <div class="xp-links"></div>
+          </div>
+        </article>
+
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="bottom">
+    <div class="wrap bottom-inner">
+      <span>javier-alonso · № 07 Hello</span>
+      <nav aria-label="Footer">
+        <a href="mailto:javier.alonso@docker.com">email</a>
+        <a href="https://www.linkedin.com/in/javieralonsogomez" target="_blank" rel="noopener">linkedin</a>
+        <a href="../index.html#work">work</a>
+      </nav>
+      <a class="to-top" href="#">↑</a>
+    </div>
+  </footer>
+
+</body>
+</html>
