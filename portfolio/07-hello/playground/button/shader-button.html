@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shader Button</title>
+<style>
+  :root { --bg:#0b0b0f; --fg:#f4f4f6; --muted:#8a8a96; --panel:#15151c; --line:#26262f; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; background:var(--bg); color:var(--fg);
+         font:14px/1.4 Inter, system-ui, sans-serif; display:flex; flex-direction:column;
+         align-items:center; justify-content:center; gap:40px; padding:40px 16px; }
+
+  /* ---------- THE BUTTON ---------- */
+  .shader-btn {
+    --radius: 999px; --pad-x: 36px; --pad-y: 18px;
+    --border: #c8ff3a; --border-w: 1px;
+    position:relative; overflow:hidden; isolation:isolate; cursor:pointer;
+    border-radius:var(--radius); padding:var(--pad-y) var(--pad-x);
+    border:var(--border-w) solid color-mix(in srgb, var(--border) 50%, transparent);
+    background:#050605;
+    box-shadow:
+      inset 0 0 10px color-mix(in srgb, var(--border) 25%, transparent),
+      inset 0 1px 0 rgba(255,255,255,.18),
+      0 8px 30px rgba(0,0,0,.5);
+    color:#fff; font:500 17px/1 Inter, system-ui, sans-serif; letter-spacing:.01em;
+    transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+  }
+  .shader-btn:hover {
+    transform:translateY(-1px);
+    border-color:color-mix(in srgb, var(--border) 85%, transparent);
+    box-shadow:
+      inset 0 0 14px color-mix(in srgb, var(--border) 40%, transparent),
+      inset 0 1px 0 rgba(255,255,255,.22),
+      0 0 24px color-mix(in srgb, var(--border) 18%, transparent),
+      0 8px 30px rgba(0,0,0,.5);
+  }
+  .shader-btn:active { transform:translateY(0) scale(.98); }
+  .shader-btn canvas { position:absolute; inset:0; width:100%; height:100%; z-index:-1; display:block; }
+  .shader-btn span { position:relative; text-shadow:0 1px 8px rgba(0,0,0,.35); }
+
+  /* ---------- CONTROL PANEL (demo only) ---------- */
+  .panel { width:100%; max-width:420px; background:var(--panel); border:1px solid var(--line);
+           border-radius:14px; padding:18px; display:grid; gap:12px; }
+  .panel h4 { margin:6px 0 0; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600; }
+  .row { display:grid; grid-template-columns:96px 1fr 44px; align-items:center; gap:10px; }
+  .row label { color:var(--muted); }
+  .row output { text-align:right; font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; accent-color:#c8ff3a; }
+  input[type=color] { width:100%; height:28px; border:1px solid var(--line); border-radius:8px; background:none; padding:2px; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<button class="shader-btn" id="btn">
+  <canvas></canvas>
+  <span>Shader Button&nbsp;&nbsp;→</span>
+</button>
+
+<div class="panel" id="panel"></div>
+
+<script>
+/* =========================================================
+   FRAGMENT SHADER — organic light, rotation, sparkles
+   ========================================================= */
+const FRAG = `
+precision highp float;
+uniform vec2  uRes, uLight;
+uniform float uTime, uClock, uSeed, uScale, uAmp, uFreq, uDef, uBands, uGlow, uGrain;
+uniform float uRot, uSpark, uSparkSize, uSparkDensity;
+uniform vec3  uColA, uColB, uBg;
+
+float hash(vec2 p){
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
+float noise(vec2 p){
+  vec2 i = floor(p), f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1,0)), u.x),
+             mix(hash(i + vec2(0,1)), hash(i + 1.0), u.x), u.y);
+}
+float fbm(vec2 p){
+  float v = 0.0, a = 0.5;
+  for (int i = 0; i < 5; i++){ v += a * noise(p); p = p * 2.03 + 1.7; a *= 0.5; }
+  return v;
+}
+mat2 rot(float a){ float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }
+
+// Twinkling 4-point stars on a jittered grid
+float sparkles(vec2 fc){
+  vec2 sp = fc / uRes.y * uSparkDensity;
+  sp.y -= uClock * 0.25;                       // slow upward drift
+  vec2 id = floor(sp), f = fract(sp) - 0.5;
+  float total = 0.0;
+  for (int y = -1; y <= 1; y++)
+  for (int x = -1; x <= 1; x++){
+    vec2 nb  = vec2(float(x), float(y));
+    vec2 cid = id + nb;
+    float h  = hash(cid + uSeed);
+    if (h > uSpark) continue;                  // only some cells get a star
+    vec2 pos = nb + (vec2(hash(cid + 1.7), hash(cid + 3.3)) - 0.5) * 0.8;
+    vec2 o   = (f - pos) / uSparkSize;
+    float d  = length(o);
+    float core = exp(-d * d * 250.0);
+    float arms = exp(-abs(o.x) * 28.0) * exp(-abs(o.y) * 260.0)
+               + exp(-abs(o.y) * 28.0) * exp(-abs(o.x) * 260.0);
+    float tw = pow(0.5 + 0.5 * sin(uClock * (1.5 + 3.0 * hash(cid + 7.1)) + h * 40.0), 6.0);
+    total += (core * 1.4 + arms * 0.9) * tw;
+  }
+  return total;
+}
+
+void main(){
+  vec2 uv = gl_FragCoord.xy / uRes;
+  vec2 p  = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y * uScale;
+  p  = rot(uRot * 0.6) * p;                     // the whole field slowly rotates
+  p += uSeed * vec2(17.13, 9.71);
+  float t = uTime;
+
+  // Domain warping
+  vec2 w = vec2(fbm(p * 0.8 + vec2(t * 0.30, 0.0)),
+                fbm(p * 0.8 + vec2(5.2, t * 0.25)));
+  vec2 q = p + uAmp * (w - 0.5) * 2.0;
+
+  // Broad soft folds
+  float field = (q.x * 0.6 - q.y) * uBands
+              + 0.25 * sin(q.y * uFreq + t * 1.1)
+              + fbm(q * 0.4 - t * 0.08) * 0.9;
+  float band = pow(0.5 + 0.5 * cos(field * 6.2831), uDef);
+
+  // Light pool: rotating ellipse centred on uLight (orbits, or follows cursor)
+  vec2 lp = (uv - uLight) * vec2(uRes.x / uRes.y, 1.0);
+  lp = rot(uRot) * lp;
+  float dist = length(lp * vec2(0.36, 0.75)) + (w.y - 0.5) * 0.5;
+  float side = pow(1.0 - smoothstep(0.0, 1.0, dist), 1.3);
+
+  float lum  = side * (0.55 + 0.75 * band) * uGlow;
+  vec3 tint  = mix(uColB, uColA, smoothstep(0.1, 0.85, lum));
+  vec3 col   = uBg + tint * lum;
+
+  // Sparkles: brighter inside the light, faint in the dark
+  float s = sparkles(gl_FragCoord.xy) * mix(0.35, 1.3, side);
+  col += mix(vec3(1.0), uColA, 0.35) * s;
+
+  // Grain
+  float g = hash(gl_FragCoord.xy + fract(t * 7.0) * 100.0) - 0.5;
+  col += g * uGrain * (0.35 + lum);
+
+  col = col / (1.0 + col * 0.6);
+  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+}`;
+
+const VERT = `attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }`;
+
+/* =========================================================
+   WEBGL SETUP
+   ========================================================= */
+function createShaderButton(button, opts){
+  const canvas = button.querySelector('canvas');
+  const gl = canvas.getContext('webgl', { premultipliedAlpha:false, antialias:false });
+  if (!gl) return null;
+
+  const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(s)); return s; };
+  const prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, VERT));
+  gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FRAG));
+  gl.linkProgram(prog); gl.useProgram(prog);
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, 'a');
+  gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+  const names = ['uRes','uLight','uTime','uClock','uSeed','uScale','uAmp','uFreq','uDef','uBands','uGlow',
+                 'uGrain','uRot','uSpark','uSparkSize','uSparkDensity','uColA','uColB','uBg'];
+  const u = Object.fromEntries(names.map(n => [n, gl.getUniformLocation(prog, n)]));
+  const hex = h => [1,3,5].map(i => parseInt(h.slice(i, i+2), 16) / 255);
+
+  function resize(){
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const r = button.getBoundingClientRect();
+    canvas.width = Math.max(1, r.width * dpr); canvas.height = Math.max(1, r.height * dpr);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+  }
+  new ResizeObserver(resize).observe(button); resize();
+
+  let hover = 0, hoverTarget = 0, time = 0, clock = 0, angle = 0, last = performance.now();
+  let mouse = [0.5, 0.5], light = [0.75, 0.5];
+  button.addEventListener('pointerenter', () => hoverTarget = 1);
+  button.addEventListener('pointerleave', () => hoverTarget = 0);
+  button.addEventListener('pointermove', e => {
+    const r = button.getBoundingClientRect();
+    mouse = [(e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height];
+  });
+
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function frame(now){
+    const dt = Math.min((now - last) / 1000, 0.05); last = now;
+    hover += (hoverTarget - hover) * Math.min(dt * 6, 1);
+    if (!reduce){
+      time  += dt * opts.speed * (1 + hover * 0.8);
+      clock += dt * opts.drift;
+      angle += dt * opts.rotation * (1 + hover * 1.5);
+    }
+
+    // Idle: light orbits on a Lissajous path. Hover: it follows the cursor.
+    const idle = [0.5 + 0.42 * Math.sin(clock), 0.5 + 0.45 * Math.sin(clock * 1.7 + 1.0)];
+    const k = Math.min(dt * (3 + hover * 5), 1);
+    for (let i = 0; i < 2; i++){
+      const target = idle[i] + (mouse[i] - idle[i]) * hover;
+      light[i] += (target - light[i]) * k;
+    }
+
+    gl.uniform2f(u.uRes, canvas.width, canvas.height);
+    gl.uniform2f(u.uLight, light[0], light[1]);
+    gl.uniform1f(u.uTime, time);
+    gl.uniform1f(u.uClock, now / 1000);
+    gl.uniform1f(u.uSeed, opts.seed);
+    gl.uniform1f(u.uScale, opts.scale);
+    gl.uniform1f(u.uAmp, opts.amplitude);
+    gl.uniform1f(u.uFreq, opts.frequency);
+    gl.uniform1f(u.uDef, opts.definition);
+    gl.uniform1f(u.uBands, opts.bands);
+    gl.uniform1f(u.uGlow, opts.glow * (1 + hover * 0.35));
+    gl.uniform1f(u.uGrain, opts.grain);
+    gl.uniform1f(u.uRot, angle);
+    gl.uniform1f(u.uSpark, opts.sparkles * (1 + hover * 0.5));
+    gl.uniform1f(u.uSparkSize, opts.sparkleSize);
+    gl.uniform1f(u.uSparkDensity, opts.sparkleDensity);
+    gl.uniform3fv(u.uColA, hex(opts.colorA));
+    gl.uniform3fv(u.uColB, hex(opts.colorB));
+    gl.uniform3fv(u.uBg, hex(opts.background));
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // Border is plain CSS, driven by custom properties
+  opts.applyBorder = () => {
+    button.style.setProperty('--border', opts.borderColor);
+    button.style.setProperty('--border-w', opts.borderWidth + 'px');
+  };
+  opts.applyBorder();
+  return opts;
+}
+
+/* =========================================================
+   OPTIONS + DEMO PANEL
+   ========================================================= */
+const opts = {
+  seed: 3, speed: 0.4, scale: 1.0, amplitude: 0.8, frequency: 2.5,
+  definition: 1.6, bands: 0.55, glow: 1.5, grain: 0.22,
+  drift: 0.7, rotation: 0.35,
+  sparkles: 0.4, sparkleSize: 1.5, sparkleDensity: 7,
+  colorA: '#c8ff3a', colorB: '#3f6b12', background: '#050605',
+  borderColor: '#c8ff3a', borderWidth: 1
+};
+createShaderButton(document.getElementById('btn'), opts);
+
+const groups = [
+  ['Shader', [
+    ['seed','Seed',0,100,1], ['speed','Speed',0,3,.01], ['scale','Scale',.2,5,.01],
+    ['amplitude','Amplitude',0,2,.01], ['frequency','Frequency',0,12,.1],
+    ['definition','Definition',1,30,.1], ['bands','Bands',.2,6,.01],
+    ['glow','Glow',0,4,.01], ['grain','Grain',0,.6,.01]]],
+  ['Motion', [
+    ['drift','Drift',0,3,.01], ['rotation','Rotation',-2,2,.01]]],
+  ['Sparkles', [
+    ['sparkles','Amount',0,1,.01], ['sparkleSize','Size',.3,3,.01], ['sparkleDensity','Density',2,20,.5]]],
+  ['Colors', [
+    ['colorA','Light','color'], ['colorB','Shadow','color'], ['background','Background','color']]],
+  ['Border', [
+    ['borderColor','Color','color'], ['borderWidth','Width',0,4,.5]]]
+];
+
+const panel = document.getElementById('panel');
+for (const [title, controls] of groups){
+  const h = document.createElement('h4'); h.textContent = title; panel.appendChild(h);
+  for (const [key, label, min, max, step] of controls){
+    const row = document.createElement('div'); row.className = 'row';
+    const isColor = min === 'color';
+    row.innerHTML = isColor
+      ? `<label>${label}</label><input type="color" value="${opts[key]}"><output></output>`
+      : `<label>${label}</label><input type="range" min="${min}" max="${max}" step="${step}" value="${opts[key]}"><output>${opts[key]}</output>`;
+    const input = row.querySelector('input'), out = row.querySelector('output');
+    input.addEventListener('input', () => {
+      opts[key] = isColor ? input.value : +input.value;
+      if (!isColor) out.textContent = input.value;
+      if (key.startsWith('border')) opts.applyBorder();
+    });
+    panel.appendChild(row);
+  }
+}
+</script>
+</body>
+</html>

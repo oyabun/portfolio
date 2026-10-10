@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>(function(){try{var p=JSON.parse(localStorage.getItem('cryz-prefs'))||{};var e=document.documentElement;e.setAttribute('data-theme',p.theme||'system');e.setAttribute('data-accent',p.accent||'pink');if(p.mono)e.classList.add('cryz-mono');if(p.field)e.classList.add('cryz-field');if(p.tilt===false)e.classList.add('cryz-no-tilt');if(p.heroBg===false)e.classList.add('cryz-no-hero-bg');if(p.heroIcons===false)e.classList.add('cryz-no-hero-icons');}catch(_){}})();</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>MCP Toolkit & Catalog — Javier Alonso</title>
+  <meta name="description" content="MCP Toolkit, Catalog and Marketplace: discovery, add-server, credentials and client connection. ~13.1M catalog pulls.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+  <header class="top">
+    <div class="wrap top-inner">
+      <a class="wordmark" href="../index.html" aria-label="Back to home">
+        Javier Alonso
+      </a>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="../experience.html">Resume</a></li>
+          <li><a href="../index.html#work">Portfolio</a></li>
+          <li><a href="../playground/index.html">Playground</a></li>
+          <li><a href="../index.html#about">About</a></li>
+          <li><a href="mailto:javier.alonso@docker.com">Contact</a></li>
+          <li><a class="cryz" href="../cryz.html" aria-label="cryz"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 11h.01"/><path d="M14 6h.01"/><path d="M18 6h.01"/><path d="M6.5 13.1h.01"/><path d="M22 5c0 9-4 12-6 12s-6-3-6-12c0-2 2-3 6-3s6 1 6 3"/><path d="M17.4 9.9c-.8.8-2 .8-2.8 0"/><path d="M10.1 7.1C9 7.2 7.7 7.7 6 8.6c-3.5 2-4.7 3.9-3.7 5.6 4.5 7.8 9.5 8.4 11.2 7.4.9-.5 1.9-2.1 1.9-4.7"/><path d="M9.1 16.5c.3-1.1 1.4-1.7 2.4-1.4"/></svg>cryz</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+    <main class="detail">
+    <div class="wrap">
+
+      <p class="eyebrow" style="margin-bottom:8px">Case 02 / 05 — Selected Work</p>
+      <h1>MCP Toolkit &amp; Catalog</h1>
+      <p class="sub">Making Docker a trusted hub for agent tooling: ~2.5× end-to-end conversion across two releases.</p>
+
+      <div class="leader"><b>Docker · Design lead, net-new</b><i aria-hidden="true"></i><span class="mono">2024–2025</span></div>
+      <div class="leader"><b>Priya · Marco · Ana</b><i aria-hidden="true"></i><span class="mono">agent eng · governance · discovery</span></div>
+
+      <section aria-label="Context">
+        <h2>Context</h2>
+        <p>As agents exploded, developers needed a trusted, discoverable way to find and run MCP servers, and a safe way to connect them to clients like Cursor, Claude, and Gordon. The raw MCP ecosystem was fragmented and hard to set up.</p>
+      </section>
+
+      <section aria-label="Research">
+        <h2>Research</h2>
+        <p>Before drawing anything, I audited the raw MCP ecosystem: servers were discovered by word of mouth, installed through hand-edited JSON config, and shipped with no provenance signal. Interviews and support threads surfaced the same three anxieties, mapped to personas: <b>Priya</b> (agent engineer) wanted tool breadth, <b>Marco</b> (platform lead) wanted to know who audited a server and where secrets went, and <b>Ana</b> (AI-curious developer) just wanted one that worked on the first try.</p>
+        <p>The funnel baseline told the same story: only 2.85% of users aware of MCP in Desktop ever completed a successful tool call. Discovery, setup, and credentials were each a drop-off, not one combined cliff.</p>
+      </section>
+
+      <section aria-label="Conceptualization">
+        <h2>Conceptualization</h2>
+        <p>The concept: <b>the catalog is the product</b>. A curated hub where trust is visible (verified publisher, provenance, attestation), servers install like images, and client connection is a guided flow rather than config archaeology. Three flows were sketched and tested in sequence: discovery &amp; filtering, add-server with client handoff, and a dedicated credential step that keeps secrets out of chat context.</p>
+        <p>The key trade-off was decided early: curation over openness. A smaller catalog with visible trust signals beats an unbounded list, with custom-URL servers kept as an escape hatch.</p>
+      </section>
+
+      <section aria-label="Use cases">
+        <h2>UX use cases</h2>
+        <p>Each card defines the job, the design response, the objective, the measured outcome, and the trade-off made.</p>
+        <article class="usecase"><h3>Curated Catalog in Desktop plus the Hub Marketplace, with filtering and verified sources.</h3><p class="uc-job">&ldquo;Discover an MCP server I can trust&rdquo;</p><dl><dt>Objective</dt><dd>Cut search cost and trust anxiety so developers land on a server that fits the task.</dd><dt>Outcome</dt><dd>~13.1M catalog pulls and ~10.6M tool-call events; a long adoption tail (Playwright, Obsidian, GitHub, Fetch) rather than one default.</dd><dt>Trade-off</dt><dd>Curation adds review overhead and caps supply, traded against a sharper trust signal than the raw ecosystem.</dd></dl></article>
+        <article class="usecase"><h3>Toolkit add-server flow with client-connection steps for Cursor, Claude and Gordon.</h3><p class="uc-job">&ldquo;Add a server and connect it to my client in a couple of clicks&rdquo;</p><dl><dt>Objective</dt><dd>Turn discovery into a running tool call without config files or terminal archaeology.</dd><dt>Outcome</dt><dd>Desktop 4.45 → 4.6: acquisition 14.2% → 21.6% (+52%), activation of aware users 4.8% → 9.9% (2.1×), awareness → successful call 2.85% → 7.11% (2.5×).</dd><dt>Trade-off</dt><dd>Opinionated defaults shorten the flow but hide advanced configuration, exposed only as escape hatches.</dd></dl></article>
+        <article class="usecase"><h3>Dedicated credential step: secrets entered once, stored by Desktop, never echoed into chat or logs.</h3><p class="uc-job">&ldquo;Configure credentials safely&rdquo;</p><dl><dt>Objective</dt><dd>Make the safe path the easy path for tokens and API keys.</dd><dt>Outcome</dt><dd>Platform/governance users (Marco) could approve tooling without audit anxiety; part of the funnel lift above.</dd><dt>Trade-off</dt><dd>An extra prompt adds friction to every add, accepted to keep secrets out of agent context.</dd></dl></article>
+        <article class="usecase"><h3>Custom MCP Server via URL in Integrations.</h3><p class="uc-job">&ldquo;Bring my own server by URL&rdquo;</p><dl><dt>Objective</dt><dd>Keep the Toolkit useful for servers the catalog has not curated yet.</dd><dt>Outcome</dt><dd>Long-tail servers reachable without leaving the product; dynamic-mcps reached ~51.9K instances.</dd><dt>Trade-off</dt><dd>Openness weakens the curation promise, mitigated by surfacing provenance and permission state.</dd></dl></article>
+      </section>
+
+      <section aria-label="Measurement">
+        Measurement was wired into the funnel itself: awareness, add, activation, and successful tool call tracked per Desktop version in Sigma, so each release could be read against the 2.85% baseline rather than vibes.
+        <div class="stats"><div class="stat"><b>~13.1M</b><span>MCP Catalog pulls</span></div><div class="stat"><b>~10.6M</b><span>tool-call events</span></div><div class="stat"><b>~2.5×</b><span>awareness → successful tool call (4.45 → 4.6)</span></div><div class="stat"><b>~10,075</b><span>peak weekly engaged Desktop instances</span></div></div>
+        <p class="caveat" style="margin-top:24px">Funnel figures from Sigma &ldquo;AI Tools – MCP Metrics&rdquo; by Desktop version; approximate, current to Jul 2026.</p>
+      </section>
+
+      <section aria-label="Reflection">
+        <h2>Reflection</h2>
+        <p>Curation is ongoing work, not a launch feature. The catalog only holds trust because review keeps up with supply, and that operational cost is part of the design.</p>
+      </section>
+
+      <section aria-label="Design screens">
+        <h2>Design screens</h2>
+        <p>Exported from the original Figma files with figx.</p>
+        <div class="screens">
+        <figure><img src="../assets/ux/mcp/hub-catalog.png" alt="Trusted-content filtering and pull analytics in the Hub catalog (concept)" loading="lazy"><figcaption>Trusted-content filtering and pull analytics in the Hub catalog (concept)</figcaption></figure>
+        <figure><img src="../assets/ux/mcp/toolkit-catalog.png" alt="MCP Toolkit grid in Docker Desktop (shipped)" loading="lazy"><figcaption>MCP Toolkit grid in Docker Desktop (shipped)</figcaption></figure>
+        <figure><img src="../assets/ux/mcp/server-secrets.png" alt="Server configuration with endpoint and stored secrets (shipped)" loading="lazy"><figcaption>Server configuration with endpoint and stored secrets (shipped)</figcaption></figure>
+        </div>
+      </section>
+
+      <hr class="dash">
+
+      <nav class="back-nav" aria-label="Project navigation">
+        <a href="../index.html#work">← Back to work</a>
+        <a href="model-runner.html">Next: Docker Model Runner →</a>
+      </nav>
+
+    </div>
+  </main>
+
+  <footer class="bottom">
+    <div class="wrap bottom-inner">
+      <span>javier-alonso · № 07 Hello</span>
+      <nav aria-label="Footer">
+        <a href="mailto:javier.alonso@docker.com">email</a>
+        <a href="https://www.linkedin.com/in/javieralonsogomez/" target="_blank" rel="noopener">linkedin</a>
+        <a href="https://x.com/oyabun" target="_blank" rel="noopener">twitter</a>
+        <a href="../index.html#work">work</a>
+      </nav>
+      <a class="to-top" href="#">↑</a>
+    </div>
+  </footer>
+
+  <script src="../cryz.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>(function(){try{var p=JSON.parse(localStorage.getItem('cryz-prefs'))||{};var e=document.documentElement;e.setAttribute('data-theme',p.theme||'system');e.setAttribute('data-accent',p.accent||'pink');if(p.mono)e.classList.add('cryz-mono');if(p.field)e.classList.add('cryz-field');if(p.tilt===false)e.classList.add('cryz-no-tilt');if(p.heroBg===false)e.classList.add('cryz-no-hero-bg');if(p.heroIcons===false)e.classList.add('cryz-no-hero-icons');}catch(_){}})();</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Docker Model Runner — Javier Alonso</title>
+  <meta name="description" content="Docker Model Runner and the Hub model cards: local inference UX plus the discovery surface for ~18K models. ~2.1M pulls.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+  <header class="top">
+    <div class="wrap top-inner">
+      <a class="wordmark" href="../index.html" aria-label="Back to home">
+        Javier Alonso
+      </a>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="../experience.html">Resume</a></li>
+          <li><a href="../index.html#work">Portfolio</a></li>
+          <li><a href="../playground/index.html">Playground</a></li>
+          <li><a href="../index.html#about">About</a></li>
+          <li><a href="mailto:javier.alonso@docker.com">Contact</a></li>
+          <li><a class="cryz" href="../cryz.html" aria-label="cryz"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 11h.01"/><path d="M14 6h.01"/><path d="M18 6h.01"/><path d="M6.5 13.1h.01"/><path d="M22 5c0 9-4 12-6 12s-6-3-6-12c0-2 2-3 6-3s6 1 6 3"/><path d="M17.4 9.9c-.8.8-2 .8-2.8 0"/><path d="M10.1 7.1C9 7.2 7.7 7.7 6 8.6c-3.5 2-4.7 3.9-3.7 5.6 4.5 7.8 9.5 8.4 11.2 7.4.9-.5 1.9-2.1 1.9-4.7"/><path d="M9.1 16.5c.3-1.1 1.4-1.7 2.4-1.4"/></svg>cryz</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+    <main class="detail">
+    <div class="wrap">
+
+      <p class="eyebrow" style="margin-bottom:8px">Case 03 / 05 — Selected Work</p>
+      <h1>Docker Model Runner</h1>
+      <p class="sub">Local inference 0→1, with the coded model cards that help developers pick the right model.</p>
+
+      <div class="leader"><b>Docker · Design lead + front-end (model cards)</b><i aria-hidden="true"></i><span class="mono">2025</span></div>
+      <div class="leader"><b>Ana · Priya · Sam</b><i aria-hidden="true"></i><span class="mono">pick-right-model · agent eng · newcomer</span></div>
+
+      <section aria-label="Context">
+        <h2>Context</h2>
+        <p>Developers wanted to run LLMs locally through Docker, but local inference had no first-class UX, and with ~18K models on Hub, choosing was overwhelming: size, quantization, task fit and hardware needs were opaque. A wrong pick wastes a big download and erodes trust.</p>
+      </section>
+
+      <section aria-label="Research">
+        <h2>Research</h2>
+        <p>Hub hosted ~18K models, but choosing one was guesswork: size, quantization, context window, VRAM needs and task fit were buried in READMEs. Pull telemetry showed heavy trial-and-error, and interviews with <b>Ana</b> and <b>Sam</b> confirmed the cost: a wrong pick means a multi-gigabyte download, a failed run, and lost trust in local inference.</p>
+        <p>The baseline question for the project: what is the minimum honest information that makes the download decision feel safe?</p>
+      </section>
+
+      <section aria-label="Conceptualization">
+        <h2>Conceptualization</h2>
+        <p>Two concepts carried the work. First, the <b>model card as decision surface</b>: a comparable table of variants (parameters, quantization, context, VRAM, tool calling) plus characteristics and benchmarks, designed and coded directly in docker/model-cards. Second, the <b>AI Model Flow</b>: task-first questions that narrow 18K models to a shortlist, for users who don't know what they don't know.</p>
+        <p>The trade-off: exposing more attributes helps comparison but raises cognitive load. The card answers for people who know what they want; the flow answers for people who don't.</p>
+      </section>
+
+      <section aria-label="Use cases">
+        <h2>UX use cases</h2>
+        <p>Each card defines the job, the design response, the objective, the measured outcome, and the trade-off made.</p>
+        <article class="usecase"><h3>Hub model cards (designed and coded in docker/model-cards) exposing size, quantization and task fit; comparable at a glance.</h3><p class="uc-job">&ldquo;Find a model that fits my task and my hardware&rdquo;</p><dl><dt>Objective</dt><dd>Make the commit decision (which model to download) cheap and reversible-looking.</dd><dt>Outcome</dt><dd>Discovery spread across ~18,200 distinct models with ~2.1M total pulls; top cards (nomic-embed-text ~313K, Qwen2.5-Coder ~304K, gemma3 ~170K) show varied picks, not one default.</dd><dt>Trade-off</dt><dd>More exposed attributes mean denser cards and cognitive load, traded against trial-and-error downloads.</dd></dl></article>
+        <article class="usecase"><h3>CLI inference UX aligned to the pull/run mental model.</h3><p class="uc-job">&ldquo;Pull and run a model like any image&rdquo;</p><dl><dt>Objective</dt><dd>Reuse Docker's oldest promise so local AI needs no new concepts.</dd><dt>Outcome</dt><dd>~91.5K distinct users and ~124.2K Desktop instances ran models through the familiar loop.</dd><dt>Trade-off</dt><dd>Treating models as images hides inference-specific needs (VRAM, context length), compensated in the cards.</dd></dl></article>
+        <article class="usecase"><h3>Model Runner UI: list, pull, run, delete without leaving the GUI.</h3><p class="uc-job">&ldquo;Manage local models inside Desktop&rdquo;</p><dl><dt>Objective</dt><dd>Give GUI-first developers (Sam) a safe home for what starts as a CLI experiment.</dd><dt>Outcome</dt><dd>Peak ~10,085 monthly active model users (Apr 2026).</dd><dt>Trade-off</dt><dd>Desktop surface area grows; accepted to keep inference discoverable next to containers.</dd></dl></article>
+        <article class="usecase"><h3>AI Model Flow selector: task-first questions narrowing to concrete candidates.</h3><p class="uc-job">&ldquo;Decide between similar models without guessing&rdquo;</p><dl><dt>Objective</dt><dd>Convert overwhelming choice into a shortlist.</dd><dt>Outcome</dt><dd>Part of the pull spread above; the selector repo and Miro documented for handoff continuity.</dd><dt>Trade-off</dt><dd>A guided flow slows expert users, who keep the raw catalog as the escape hatch.</dd></dl></article>
+      </section>
+
+      <section aria-label="Measurement">
+        Success was measured as decision quality, not just volume: pull spread across distinct models (~18.2K pulled), repeat-pull behavior, and Desktop model users over time (peak ~10,085 monthly). A healthy long tail with varied top cards indicates the cards and flow are actually helping people choose.
+        <div class="stats"><div class="stat"><b>~2.1M</b><span>model pulls since launch (Feb 2025)</span></div><div class="stat"><b>~18.2K</b><span>distinct models pulled</span></div><div class="stat"><b>~91.5K</b><span>distinct users</span></div><div class="stat"><b>~10,085</b><span>peak monthly model users</span></div></div>
+        <p class="caveat" style="margin-top:24px">Code-level authorship of docker/model-cards evidenced from Slack/Notion, not public GitHub (internal repos inaccessible). Sigma: PRES_PRODUCT__DESKTOP_MODEL_RUNNER_PULLS_DAILY.</p>
+      </section>
+
+      <section aria-label="Reflection">
+        <h2>Reflection</h2>
+        <p>The card outgrew its container: it became the reference layout for model metadata across Hub. Good decision surfaces keep working after the launch party ends.</p>
+      </section>
+
+      <section aria-label="Design screens">
+        <h2>Design screens</h2>
+        <p>Exported from the original Figma files with figx.</p>
+        <div class="screens">
+        <figure><img src="../assets/ux/model-runner/model-card.png" alt="Hub model card: characteristics, variants with VRAM, benchmarks (shipped)" loading="lazy"><figcaption>Hub model card: characteristics, variants with VRAM, benchmarks (shipped)</figcaption></figure>
+        <figure><img src="../assets/ux/model-runner/cli-model-info.png" alt="docker model info with hardware-fit output (CLI UX)" loading="lazy"><figcaption>docker model info with hardware-fit output (CLI UX)</figcaption></figure>
+        <figure><img src="../assets/ux/model-runner/cli-images-compact.png" alt="Compact image listing aligned to the same system" loading="lazy"><figcaption>Compact image listing aligned to the same system</figcaption></figure>
+        </div>
+      </section>
+
+      <hr class="dash">
+
+      <nav class="back-nav" aria-label="Project navigation">
+        <a href="mcp.html">← Previous: MCP Toolkit &amp; Catalog</a>
+        <a href="cagent.html">Next: Agentic Platform / cagent →</a>
+      </nav>
+
+    </div>
+  </main>
+
+  <footer class="bottom">
+    <div class="wrap bottom-inner">
+      <span>javier-alonso · № 07 Hello</span>
+      <nav aria-label="Footer">
+        <a href="mailto:javier.alonso@docker.com">email</a>
+        <a href="https://www.linkedin.com/in/javieralonsogomez/" target="_blank" rel="noopener">linkedin</a>
+        <a href="https://x.com/oyabun" target="_blank" rel="noopener">twitter</a>
+        <a href="../index.html#work">work</a>
+      </nav>
+      <a class="to-top" href="#">↑</a>
+    </div>
+  </footer>
+
+  <script src="../cryz.js" defer></script>
+</body>
+</html>

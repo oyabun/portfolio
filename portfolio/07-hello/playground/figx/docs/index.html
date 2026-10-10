@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Figx — Open .fig files, the cute way.</title>
+  <link rel="icon" type="image/png" href="assets/fig.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Inter:wght@400;500;600&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ---- embedded figx viewer, scoped under #figx-app ----
+       Every selector here is prefixed so nothing leaks onto (or clashes
+       with) this page's own marketing styles. The one real collision with
+       styles.css was .btn (renamed .fx-btn here) and the --ink/--muted/--line
+       custom properties (both files defined them on :root — scoped onto
+       #figx-app instead of :root, which is what avoids the clash: children
+       of #figx-app resolve var(--ink) etc. from the closer definition). */
+    /* Four themes: two families (Clean = neutral gray, Figx = the landing
+       page's plum/rose palette) x two modes (light/dark). Always set
+       explicitly via data-theme by applyTheme() — 'clean-dark' is just the
+       fallback if #figx-app somehow has no attribute yet. */
+    #figx-app,
+    #figx-app[data-theme="clean-dark"] {
+      color-scheme: dark;
+      --bg:#0b0b0d; --panel:#151518; --panel2:#1b1b1f; --line:#26262b; --ink:#e7e7ea;
+      --muted:#8a8a92; --accent:#7c5cff; --accent2:#18a0fb; --sidebar:264px; --tokens-width:300px;
+      --stage-a:#0e0e10; --stage-b:#141418; --overlay-bg:rgba(21,21,24,.85);
+      --dropline:#3a3a44; --menu-shadow:0 14px 36px rgba(0,0,0,.5);
+      position:fixed; inset:0; z-index:999; display:none;
+      background:var(--bg); color:var(--ink);
+      font:13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      overflow:hidden;
+    }
+    #figx-app[data-theme="clean-light"] {
+      color-scheme: light;
+      --bg:#f3f3f6; --panel:#ffffff; --panel2:#eeeef2; --line:#e2e2e8; --ink:#1c1c22;
+      --muted:#75757f; --accent:#6f4fe0; --accent2:#0d7fd6;
+      --stage-a:#f7f7fa; --stage-b:#ececf1; --overlay-bg:rgba(255,255,255,.9);
+      --dropline:#cfcfd8; --menu-shadow:0 14px 36px rgba(20,20,30,.16);
+    }
+    /* Figx Light — the landing page's own cream/plum/rose palette. */
+    #figx-app[data-theme="figx-light"] {
+      color-scheme: light;
+      --bg:#fdf8f4; --panel:#fffcfa; --panel2:#f6ece6; --line:#eadfe4; --ink:#2e1a2b;
+      --muted:#8a7480; --accent:#a86078; --accent2:#e8a83e;
+      --stage-a:#fdf8f4; --stage-b:#f3e6e0; --overlay-bg:rgba(253,248,244,.9);
+      --dropline:#eadfe4; --menu-shadow:0 14px 36px rgba(92,47,71,.16);
+    }
+    /* Figx Dark — a moody dark-plum take on the same family. */
+    #figx-app[data-theme="figx-dark"] {
+      color-scheme: dark;
+      --bg:#1c1018; --panel:#2a1620; --panel2:#331b26; --line:#4a2735; --ink:#f5e6ea;
+      --muted:#b09aa5; --accent:#d89090; --accent2:#e8a83e;
+      --stage-a:#1c1018; --stage-b:#241420; --overlay-bg:rgba(42,22,32,.85);
+      --dropline:#4a2735; --menu-shadow:0 14px 36px rgba(0,0,0,.5);
+    }
+    #figx-app * { box-sizing:border-box; }
+    #figx-app a { color:var(--accent2); text-decoration:none; }
+
+    #figx-app .logo { flex:0 0 auto; display:flex; align-items:center; justify-content:center; color:var(--ink); }
+    #figx-app .logo svg { width:100%; height:100%; }
+
+    #viewer { position:absolute; inset:0; display:none; }
+    #bar { position:absolute; top:0; left:0; right:0; height:64px; display:flex; gap:12px;
+      align-items:center; padding:10px 20px; background:var(--panel); border-bottom:1px solid var(--line); z-index:3; }
+    #bar .logo { width:26px; height:24px; }
+    #bar b { font-size:13px; } #bar .muted { color:var(--muted); font-size:12px; }
+    #bar .spacer { margin-left:auto; }
+    #bar .bar-sep { width:1px; height:20px; background:var(--line); flex:0 0 auto; }
+    #bar .bar-title { font-size:13px; white-space:nowrap; }
+    #bar .bar-title .bar-brand { color:var(--muted); }
+    #bar .demo-credit { white-space:nowrap; }
+    #bar .demo-credit a { color:var(--accent2); text-decoration:none; }
+    #bar .demo-credit a:hover { text-decoration:underline; }
+    #figx-app .fx-btn { padding:6px 11px; border:1px solid var(--line); border-radius:8px; background:var(--panel2);
+      color:var(--ink); font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+    #figx-app .fx-btn:hover { border-color:var(--dropline); }
+    #figx-app .fx-btn:disabled { opacity:.4; cursor:default; }
+    #figx-app .fx-btn:disabled:hover { border-color:var(--line); }
+    #figx-app .fx-btn.icon-only { padding:6px; }
+    #figx-app .fx-btn svg { width:14px; height:14px; flex:0 0 14px; }
+
+    #side { position:absolute; top:64px; bottom:0; left:0; width:var(--sidebar);
+      background:var(--panel); border-right:1px solid var(--line); display:flex; flex-direction:column;
+      z-index:2; transition:transform .18s; }
+    #side.hidden { transform:translateX(calc(-1 * var(--sidebar))); }
+    #figx-app .sec { border-bottom:1px solid var(--line); display:flex; flex-direction:column; min-height:0; }
+    #figx-app .sec.pages { flex:0 0 auto; max-height:42%; }
+    #figx-app .sec.layers { flex:1 1 auto; }
+    #figx-app .sec.collapsed { flex:0 0 auto !important; }
+    #figx-app .sec.collapsed .list { display:none; }
+    #figx-app .sec-head { display:flex; align-items:center; gap:7px; padding:10px 14px; cursor:pointer; user-select:none; flex:0 0 auto; }
+    #figx-app .sec-head:hover { background:var(--panel2); }
+    #figx-app .sec-title { flex:1 1 auto; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+    #figx-app .sec-count { font-size:10.5px; color:var(--muted); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    #figx-app .list { overflow:auto; padding:2px 6px 8px; }
+    /* chevron that rotates 90° when its section is expanded — shared by the
+       left sidebar's Pages/Layers and the right panel's accordion below */
+    #figx-app .acc-chevron { flex:0 0 auto; display:flex; color:var(--muted); transition:transform .12s; }
+    #figx-app .acc-chevron svg { width:11px; height:11px; }
+    #figx-app .sec:not(.collapsed) .acc-chevron, #figx-app .acc.open .acc-chevron { transform:rotate(90deg); }
+    #figx-app .row { display:flex; align-items:center; gap:7px; padding:5px 8px; border-radius:7px;
+      cursor:pointer; white-space:nowrap; color:var(--ink); }
+    #figx-app .row:hover { background:var(--panel2); }
+    #figx-app .row.active { background:rgba(124,92,255,.18); }
+    #figx-app .row.selected { background:rgba(124,92,255,.3); }
+    #figx-app .row .ic { width:14px; flex:0 0 14px; color:var(--muted); display:flex; align-items:center; justify-content:center; }
+    #figx-app .row .ic svg { width:14px; height:14px; }
+    #figx-app .row .nm { overflow:hidden; text-overflow:ellipsis; flex:1 1 auto; }
+    #figx-app .row.hidden .nm { color:var(--muted); opacity:.6; }
+    #figx-app .row.userhidden { opacity:.45; }
+    #figx-app .caret { width:12px; flex:0 0 12px; display:flex; align-items:center; justify-content:center;
+      color:var(--muted); cursor:pointer; user-select:none; transition:transform .12s; }
+    #figx-app .caret svg { width:11px; height:11px; }
+    #figx-app .caret.none { visibility:hidden; }
+    #figx-app .sep { height:1px; background:var(--line); margin:9px 12px; flex:0 0 auto; }
+
+    #stage { position:absolute; top:64px; bottom:0; left:var(--sidebar); right:0; overflow:hidden; cursor:grab;
+      background:var(--stage-a) repeating-conic-gradient(var(--stage-b) 0% 25%, transparent 0% 50%) 0/22px 22px; transition:left .18s, right .18s; }
+    #stage.full { left:0; }
+    #stage.tokens-open { right:var(--tokens-width); }
+    #stage.drag { cursor:grabbing; }
+
+    #tokensPanel { position:absolute; top:64px; bottom:0; right:0; width:var(--tokens-width);
+      background:var(--panel); border-left:1px solid var(--line); display:flex; flex-direction:column;
+      z-index:2; transform:translateX(100%); transition:transform .18s; }
+    #tokensPanel.open { transform:translateX(0); }
+    #tokensPanel .tp-head { display:flex; align-items:center; gap:6px; padding:10px 12px; border-bottom:1px solid var(--line); flex:0 0 auto; }
+    #tokensPanel .tp-head h3 { margin:0; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); flex:1 1 auto; }
+    /* A panel-dismiss "×", not a toolbar action — no border/fill until
+       hovered, so it doesn't compete with "Design Tokens"/"Modes" etc. */
+    #tokensPanel #tokensPanelClose { border-color:transparent; background:none; color:var(--muted); }
+    #tokensPanel #tokensPanelClose:hover { background:var(--panel2); color:var(--ink); }
+    #tokensPanel .tp-body { overflow:auto; flex:1 1 auto; }
+
+    /* ---- right-panel accordion (Properties / Modes / Design Tokens) ---- */
+    #tokensPanel .acc { border-bottom:1px solid var(--line); }
+    #tokensPanel .acc-head { display:flex; align-items:center; gap:7px; padding:11px 12px; cursor:pointer; user-select:none; }
+    #tokensPanel .acc-head:hover { background:var(--panel2); }
+    #tokensPanel .acc-title { flex:1 1 auto; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+    #tokensPanel .acc-count { font-size:10.5px; color:var(--muted); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    #tokensPanel .acc-body { display:none; padding:2px 12px 14px; }
+    #tokensPanel .acc.open .acc-body { display:block; }
+
+    #tokensPanel .tp-group { margin-top:14px; }
+    #tokensPanel .tp-group:first-child { margin-top:0; }
+    #tokensPanel .tp-group h4 { margin:0 0 4px; font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); }
+    #tokensPanel .tp-row { display:flex; align-items:center; gap:8px; padding:3px 0; font-size:12px; color:var(--ink); }
+    #tokensPanel .tp-swatch { width:15px; height:15px; border-radius:4px; border:1px solid var(--line); flex:0 0 auto; }
+    #tokensPanel .tp-nm { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1 1 auto; }
+    #tokensPanel .tp-val { color:var(--muted); font-size:10.5px; flex:0 0 auto; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    #tokensPanel .tp-empty { color:var(--muted); font-size:12px; padding:6px 0; }
+
+    #tokensPanel .prop-row { display:flex; justify-content:space-between; align-items:baseline; gap:10px; padding:3px 0; font-size:12px; }
+    #tokensPanel .prop-row .prop-k { color:var(--muted); flex:0 0 auto; }
+    #tokensPanel .prop-row .prop-v { color:var(--ink); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right; }
+
+    #tokensPanel .mode-row { display:flex; align-items:center; gap:8px; padding:6px 7px; margin:0 -7px; border-radius:6px;
+      cursor:pointer; font-size:12px; color:var(--ink); }
+    #tokensPanel .mode-row:hover { background:var(--panel2); }
+    #tokensPanel .mode-row.active { color:var(--accent); font-weight:600; }
+    #tokensPanel .mode-row .mode-check { width:14px; flex:0 0 14px; display:flex; color:var(--accent); visibility:hidden; }
+    #tokensPanel .mode-row.active .mode-check { visibility:visible; }
+    #tokensPanel .mode-row .mode-check svg { width:13px; height:13px; }
+    #canvas { transform-origin:0 0; position:absolute; top:0; left:0; will-change:transform; contain:layout style paint; }
+    #canvas svg { display:block; }
+    #canvas [data-id] { cursor:pointer; }
+    #canvas .sel-overlay { pointer-events:none; }
+    #canvas .sel-dim { fill:rgba(0,0,0,.45); pointer-events:none; }
+    #canvas .sel-halo { fill:none; stroke:rgba(0,0,0,.65); stroke-width:4; vector-effect:non-scaling-stroke; pointer-events:none; }
+    #canvas .sel-ants { fill:none; stroke:var(--accent); stroke-width:2.25; stroke-dasharray:5 4; vector-effect:non-scaling-stroke;
+      pointer-events:none; animation:selAnts .5s linear infinite; }
+    @keyframes selAnts { to { stroke-dashoffset:-9; } }
+    @media (prefers-reduced-motion: reduce) { #canvas .sel-ants { animation:none; } }
+    #figx-app .hint { position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
+      color:var(--muted); font-size:11px; background:var(--overlay-bg); padding:5px 12px; border-radius:20px; z-index:2; }
+
+    #figx-app .confirm-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1100;
+      display:flex; align-items:center; justify-content:center; }
+    #figx-app .confirm-modal { background:var(--panel); border:1px solid var(--line); border-radius:12px;
+      padding:20px; width:320px; max-width:90vw; box-shadow:var(--menu-shadow); }
+    #figx-app .confirm-modal h4 { margin:0 0 8px; font-size:15px; color:var(--ink); }
+    #figx-app .confirm-modal p { margin:0 0 18px; font-size:12.5px; color:var(--muted); line-height:1.5; }
+    #figx-app .confirm-modal .row { display:flex; justify-content:flex-end; gap:8px; }
+    /* Cancel recedes (no fill — .fx-btn's default background made both
+       buttons read as one solid bar); the confirmed action is the one that
+       should draw the eye, so it's inverted (ink-on-bg, guaranteed readable
+       in every theme) rather than sharing Cancel's neutral panel fill. */
+    #figx-app .confirm-modal #confirmCancel { background:none; border-color:transparent; }
+    #figx-app .confirm-modal #confirmCancel:hover { background:var(--panel2); }
+    #figx-app .confirm-modal #confirmOk { background:var(--ink); border-color:var(--ink); color:var(--bg); }
+    #figx-app .confirm-modal #confirmOk:hover { filter:brightness(1.12); border-color:var(--ink); }
+
+    #ctxmenu { position:fixed; z-index:1000; background:var(--panel); border:1px solid var(--line);
+      border-radius:10px; padding:5px; min-width:196px; box-shadow:var(--menu-shadow); display:none; }
+    #ctxmenu.open { display:block; }
+    #ctxmenu .item { padding:7px 9px; border-radius:7px; font-size:12.5px; cursor:pointer;
+      display:flex; align-items:center; gap:9px; color:var(--ink); white-space:nowrap; }
+    #ctxmenu .item:hover { background:var(--panel2); }
+    #ctxmenu .item.disabled { color:var(--muted); cursor:default; pointer-events:none; opacity:.5; }
+    #ctxmenu .item .ic { width:14px; flex:0 0 14px; display:flex; color:var(--muted); }
+    #ctxmenu .item .ic svg { width:14px; height:14px; }
+    #ctxmenu .csep { height:1px; background:var(--line); margin:5px 6px; }
+  </style>
+  <script src="../../chrome.js" data-root="../.." data-name="Figx" data-type="Web" defer></script>
+</head>
+<body>
+
+  <!-- ============ Header ============ -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#">
+        <svg class="brand-mark" viewBox="0 0 1387 1247" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill-rule="evenodd" clip-rule="evenodd" fill="currentColor" d="M1307.81 153.87C1280.65 111.905 1191.77 125.482 1186.83 124.248C1181.9 123.013 1213.99 77.3454 1184.36 60.0657C1144.86 29.2089 1051.04 77.3454 1051.04 77.3454C1066.63 52.5343 1072.3 25.8765 1048.57 5.75775C974.505 -17.6934 882.227 28.6636 752.3 178.556C734.08 179.37 705.39 174.032 700.452 166.213C695.515 158.394 710.328 143.582 710.328 97.0937C710.328 50.6051 563.711 36.0402 547.501 97.0937L545.033 156.339C545.033 227.106 452.758 366.032 401.709 393.319C-99.0677 661 -226.068 1214.5 574.932 1245.5C851.433 1256.2 1040.06 1173 1048.57 944C1059.68 645.307 797.674 449.021 747.362 358.759C689.343 254.667 697.85 266.444 695.514 208.178C710.493 204.676 721.228 207.845 742.424 218.052C742.424 303.395 855.106 403.78 925.126 435.284C969.323 458.305 981.8 438.498 984.381 351.354C997.393 458.365 1076.97 506.872 1117.7 489.592C1147.62 474.781 1149.8 443.924 1139.92 405.662C1228.81 495.763 1268.31 405.662 1359.66 408.13C1372 408.13 1384.35 390.85 1384.35 390.85C1392.48 357.352 1381.95 337.798 1344.85 301.983C1360.35 281.878 1364.83 271.572 1364.6 255.08C1352.93 229.168 1336.39 219.053 1290.53 208.178C1311.27 188.06 1334.97 195.835 1307.81 153.87ZM781.928 190.898C936.282 181.817 1075.81 195.004 1204.12 289.64C1060.44 230.874 940.044 207.964 784.397 215.584C768.348 215.584 760.941 194.601 781.928 190.898ZM601.819 89.6881C638.903 82.854 656.133 84.6507 680.825 97.0937C692.553 105.994 687.883 111.411 661.073 121.779C642.845 122.823 645.025 131.24 609.225 121.779C573.426 112.319 572.438 100.979 601.819 89.6881Z" />
+        </svg>
+        <span class="brand-name">Figx</span>
+      </a>
+      <nav class="site-nav">
+        <a href="https://github.com/oyabun/figx#commands" class="nav-link" target="_blank" rel="noopener">Docs</a>
+        <a href="https://github.com/oyabun/figx" class="nav-link" target="_blank" rel="noopener">GitHub</a>
+        <div class="cli-install">
+          <button class="cli-btn" id="cliInstallBtn" aria-expanded="false" aria-haspopup="true">
+            <span>Get the CLI</span>
+            <svg class="cli-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="cli-panel" id="cliPanel">
+            <code class="cli-cmd" id="cliCmd">npm install -g github:oyabun/figx</code>
+            <a class="cli-action" href="https://github.com/oyabun/figx" target="_blank" rel="noopener">
+              <svg class="cli-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0c6.63 0 12 5.276 12 11.79-.001 5.067-3.29 9.567-8.175 11.187-.6.118-.825-.25-.825-.56 0-.398.015-1.665.015-3.242 0-1.105-.375-1.813-.81-2.181 2.67-.295 5.475-1.297 5.475-5.822 0-1.297-.465-2.344-1.23-3.169.12-.295.54-1.503-.12-3.125 0 0-1.005-.324-3.3 1.209a11.32 11.32 0 00-3-.398c-1.02 0-2.04.133-3 .398-2.295-1.518-3.3-1.209-3.3-1.209-.66 1.622-.24 2.83-.12 3.125-.765.825-1.23 1.887-1.23 3.169 0 4.51 2.79 5.527 5.46 5.822-.345.294-.66.81-.765 1.577-.69.31-2.415.81-3.495-.973-.225-.354-.9-1.223-1.845-1.209-1.005.015-.405.56.015.781.51.28 1.095 1.327 1.23 1.666.24.663 1.02 1.93 4.035 1.385 0 .988.015 1.916.015 2.196 0 .31-.225.664-.825.56C3.303 21.374-.003 16.867 0 11.791 0 5.276 5.37 0 12 0z"/></svg>
+              View GitHub repository
+            </a>
+            <button class="cli-action" id="cliCopyBtn" type="button">
+              <svg class="cli-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              <span id="cliCopyLabel">Copy the command</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ============ Hero ============ -->
+  <main>
+    <section class="hero container">
+      <p class="eyebrow">A design file opener for everyone</p>
+      <h1 class="hero-title">Open .fig files, the cute way.</h1>
+      <p class="hero-sub">
+        Figx helps you read and extract layers, components, variables,<br />
+        styles, assets and metadata from your .fig design files — locally, in your browser.
+      </p>
+
+      <div class="drop-wrap">
+        <p class="note note-drop">Just<br />drop a .fig file!</p>
+        <svg class="heart heart-drop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+        </svg>
+        <svg class="arrow arrow-down" viewBox="0 0 60 70" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M50 4 C 30 14, 18 34, 12 58" />
+          <path d="M6 50 L 12 58 L 20 54" />
+        </svg>
+        <div class="dropzone" id="dropzone">
+          <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          <p class="drop-label" id="drop-label">Drag and drop a .fig file here</p>
+          <div class="or"><span></span>or<span></span></div>
+          <div class="drop-actions">
+            <button type="button" class="btn btn-dark" id="choose-btn">Choose a file</button>
+            <button type="button" class="btn btn-outline" id="demo-trigger">Try a demo file</button>
+          </div>
+          <p class="drop-note">Nothing gets uploaded. Runs entirely in your browser.</p>
+          <input type="file" id="file-input" accept=".fig" hidden />
+        </div>
+
+        <!-- hand-drawn decorations -->
+        <div class="note note-left">
+          <p>Design files<br />made friendly<br />again.</p>
+          <svg class="heart heart-fill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+          </svg>
+          <svg class="swash" viewBox="0 0 90 34" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 6 C 18 26, 52 34, 84 20" />
+            <path d="M76 16 L 84 20 L 77 26" />
+          </svg>
+        </div>
+
+        <div class="fig-character" aria-hidden="true">
+          <div class="mascot" id="mascot">
+            <div class="mascot-inner">
+              <img class="mascot-base" src="assets/mascot-base.webp" alt="Cute fig mascot" />
+              <div class="mascot-face" id="mascot-face">
+              <div class="m-part m-blush m-blush-l" aria-hidden="true"></div>
+              <div class="m-part m-blush m-blush-r" aria-hidden="true"></div>
+              <svg class="m-part m-eye m-eye-l" viewBox="0 0 200 210" aria-hidden="true">
+                <defs>
+                  <linearGradient id="irisL" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#241021"/>
+                    <stop offset=".35" stop-color="#4a2342"/>
+                    <stop offset=".6" stop-color="#8a4a6e"/>
+                    <stop offset=".82" stop-color="#e8a83e"/>
+                    <stop offset="1" stop-color="#ffd98a"/>
+                  </linearGradient>
+                  <radialGradient id="glowL" cx=".5" cy=".9" r=".6">
+                    <stop offset="0" stop-color="#ffe9a8" stop-opacity=".95"/>
+                    <stop offset=".5" stop-color="#f0a844" stop-opacity=".5"/>
+                    <stop offset="1" stop-color="#f0a844" stop-opacity="0"/>
+                  </radialGradient>
+                  <clipPath id="clipL"><ellipse cx="100" cy="105" rx="83" ry="93"/></clipPath>
+                </defs>
+                <g transform="rotate(-6 100 105)">
+                  <ellipse cx="100" cy="105" rx="86" ry="96" fill="#ffffff"/>
+                  <g clip-path="url(#clipL)">
+                    <g class="m-iris">
+                      <ellipse cx="100" cy="112" rx="66" ry="76" fill="url(#irisL)"/>
+                      <ellipse cx="100" cy="182" rx="52" ry="40" fill="url(#glowL)"/>
+                      <circle cx="62" cy="62" r="21" fill="#ffffff"/>
+                      <circle cx="93" cy="90" r="7" fill="#ffffff" opacity=".92"/>
+                      <path d="M138 104 C141 120 143 122 158 125 C143 128 141 130 138 146 C135 130 133 128 118 125 C133 122 135 120 138 104 Z" fill="#f7e8c8"/>
+                      <path d="M104 158 C106 171 108 173 120 174 C108 176 106 178 104 190 C102 178 100 176 88 174 C100 173 102 171 104 158 Z" fill="#f2ddb0"/>
+                      <circle cx="52" cy="122" r="4.5" fill="#b06fd8" opacity=".8"/>
+                      <circle cx="148" cy="152" r="3.5" fill="#ffd98a"/>
+                      <circle cx="68" cy="158" r="2.8" fill="#f0a844"/>
+                    </g>
+                    <ellipse cx="100" cy="48" rx="64" ry="34" fill="#1c0b1a" opacity=".45"/>
+                  </g>
+                  <ellipse cx="100" cy="105" rx="86" ry="96" fill="none" stroke="#2a0f26" stroke-width="5"/>
+                  <path d="M16 80 C 40 8, 160 0, 188 60" fill="none" stroke="#3a1230" stroke-width="18" stroke-linecap="round"/>
+                  <path d="M182 52 C 194 44, 199 32, 197 20 C 208 36, 202 54, 186 62 Z" fill="#3a1230"/>
+                </g>
+              </svg>
+              <svg class="m-part m-eye m-eye-r" viewBox="0 0 200 210" aria-hidden="true">
+                <defs>
+                  <linearGradient id="irisR" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#241021"/>
+                    <stop offset=".35" stop-color="#4a2342"/>
+                    <stop offset=".6" stop-color="#8a4a6e"/>
+                    <stop offset=".82" stop-color="#e8a83e"/>
+                    <stop offset="1" stop-color="#ffd98a"/>
+                  </linearGradient>
+                  <radialGradient id="glowR" cx=".5" cy=".9" r=".6">
+                    <stop offset="0" stop-color="#ffe9a8" stop-opacity=".95"/>
+                    <stop offset=".5" stop-color="#f0a844" stop-opacity=".5"/>
+                    <stop offset="1" stop-color="#f0a844" stop-opacity="0"/>
+                  </radialGradient>
+                  <clipPath id="clipR"><ellipse cx="100" cy="105" rx="83" ry="93"/></clipPath>
+                </defs>
+                <g transform="rotate(-6 100 105)">
+                  <ellipse cx="100" cy="105" rx="86" ry="96" fill="#ffffff"/>
+                  <g clip-path="url(#clipR)">
+                    <g class="m-iris">
+                      <ellipse cx="100" cy="112" rx="66" ry="76" fill="url(#irisR)"/>
+                      <ellipse cx="100" cy="182" rx="52" ry="40" fill="url(#glowR)"/>
+                      <circle cx="62" cy="62" r="21" fill="#ffffff"/>
+                      <circle cx="93" cy="90" r="7" fill="#ffffff" opacity=".92"/>
+                      <path d="M138 104 C141 120 143 122 158 125 C143 128 141 130 138 146 C135 130 133 128 118 125 C133 122 135 120 138 104 Z" fill="#f7e8c8"/>
+                      <path d="M104 158 C106 171 108 173 120 174 C108 176 106 178 104 190 C102 178 100 176 88 174 C100 173 102 171 104 158 Z" fill="#f2ddb0"/>
+                      <circle cx="52" cy="122" r="4.5" fill="#b06fd8" opacity=".8"/>
+                      <circle cx="148" cy="152" r="3.5" fill="#ffd98a"/>
+                      <circle cx="68" cy="158" r="2.8" fill="#f0a844"/>
+                    </g>
+                    <ellipse cx="100" cy="48" rx="64" ry="34" fill="#1c0b1a" opacity=".45"/>
+                  </g>
+                  <ellipse cx="100" cy="105" rx="86" ry="96" fill="none" stroke="#2a0f26" stroke-width="5"/>
+                  <path d="M16 80 C 40 8, 160 0, 188 60" fill="none" stroke="#3a1230" stroke-width="18" stroke-linecap="round"/>
+                  <path d="M182 52 C 194 44, 199 32, 197 20 C 208 36, 202 54, 186 62 Z" fill="#3a1230"/>
+                </g>
+              </svg>
+              <img class="m-part m-eye-happy m-eye-happy-l" src="assets/parts/eye-left.webp" alt="" />
+              <img class="m-part m-eye-happy m-eye-happy-r" src="assets/parts/eye-right.webp" alt="" />
+              <svg class="m-part m-mouth-closed" viewBox="0 0 100 60" aria-hidden="true">
+                <path d="M25 22 C 38 40, 62 40, 75 22" fill="none" stroke="#2a0f26" stroke-width="9" stroke-linecap="round"/>
+              </svg>
+              <svg class="m-part m-mouth" viewBox="0 0 140 120" aria-hidden="true">
+                <defs>
+                  <linearGradient id="mouthIn" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#160812"/>
+                    <stop offset=".55" stop-color="#2e1128"/>
+                    <stop offset="1" stop-color="#4a1f33"/>
+                  </linearGradient>
+                  <linearGradient id="tongueG" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#e05a52"/>
+                    <stop offset="1" stop-color="#f5a08a"/>
+                  </linearGradient>
+                  <clipPath id="mouthClip">
+                    <path d="M10 26 C 10 17, 34 11, 70 11 C 106 11, 130 17, 130 26 C 130 72, 106 109, 70 109 C 34 109, 10 72, 10 26 Z"/>
+                  </clipPath>
+                </defs>
+                <path d="M10 26 C 10 17, 34 11, 70 11 C 106 11, 130 17, 130 26 C 130 72, 106 109, 70 109 C 34 109, 10 72, 10 26 Z" fill="url(#mouthIn)"/>
+                <g clip-path="url(#mouthClip)">
+                  <ellipse cx="70" cy="16" rx="58" ry="15" fill="#000000" opacity=".38"/>
+                  <ellipse cx="72" cy="101" rx="44" ry="26" fill="url(#tongueG)"/>
+                  <ellipse cx="58" cy="91" rx="17" ry="7" fill="#ffffff" opacity=".5" transform="rotate(-8 58 91)"/>
+                </g>
+                <path d="M10 26 C 10 17, 34 11, 70 11 C 106 11, 130 17, 130 26 C 130 72, 106 109, 70 109 C 34 109, 10 72, 10 26 Z" fill="none" stroke="#24101f" stroke-width="7" stroke-linejoin="round"/>
+              </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Features ============ -->
+    <section class="features container">
+      <div class="feature">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <line x1="21" y1="21" x2="16.5" y2="16.5" />
+        </svg>
+        <div>
+          <h3>Inspect</h3>
+          <p>Browse the complete structure of your .fig file.</p>
+        </div>
+      </div>
+      <div class="feature">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polygon points="12 2 2 7 12 12 22 7 12 2" />
+          <polyline points="2 12 12 17 22 12" />
+          <polyline points="2 17 12 22 22 17" />
+        </svg>
+        <div>
+          <h3>Extract</h3>
+          <p>Get layers, components, variables, styles, assets and metadata.</p>
+        </div>
+      </div>
+      <div class="feature">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+        </svg>
+        <div>
+          <h3>Export JSON</h3>
+          <p>Download clean, structured data for your own tools.</p>
+        </div>
+      </div>
+      <div class="feature">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <polyline points="9 11 11.5 13.5 15.5 9" />
+        </svg>
+        <div>
+          <h3>Local-first</h3>
+          <p>Everything runs in your browser. Your files never leave your device.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Code showcase ============ -->
+    <section class="showcase container">
+      <div class="code-card">
+        <span class="code-lang">JSON</span>
+        <pre><code><span class="ln">1</span><span class="pn">{</span>
+<span class="ln">2</span>    <span class="k">"name"</span><span class="pn">:</span> <span class="s">"Landing Page"</span><span class="pn">,</span>
+<span class="ln">3</span>    <span class="k">"type"</span><span class="pn">:</span> <span class="s">"FRAME"</span><span class="pn">,</span>
+<span class="ln">4</span>    <span class="k">"id"</span><span class="pn">:</span> <span class="s">"123:456"</span><span class="pn">,</span>
+<span class="ln">5</span>    <span class="k">"children"</span><span class="pn">: [</span>
+<span class="ln">6</span>        <span class="pn">{</span>  <span class="k">"type"</span><span class="pn">:</span> <span class="s">"COMPONENT"</span><span class="pn">,</span>
+<span class="ln">7</span>           <span class="k">"name"</span><span class="pn">:</span> <span class="s">"Button / Primary"</span><span class="pn">,</span>
+<span class="ln">8</span>           <span class="k">"fills"</span><span class="pn">: [{</span> <span class="k">"type"</span><span class="pn">:</span> <span class="g">"SOLID"</span><span class="pn">,</span> <span class="k">"color"</span><span class="pn">:</span> <span class="s">"#6366F1"</span> <span class="pn">}] }</span>
+<span class="ln">9</span>        <span class="pn">]</span>
+<span class="ln">10</span><span class="pn">}</span></code></pre>
+      </div>
+      <p class="note note-real">Real data<br />from a .fig file
+        <svg class="arrow arrow-left" viewBox="0 0 60 40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M52 6 C 36 22, 20 30, 4 32" />
+          <path d="M12 26 L 4 32 L 13 37" />
+        </svg>
+      </p>
+    </section>
+
+    <img class="branch" src="assets/branch-1.webp" alt="" aria-hidden="true" />
+
+    <!-- ============ CLI for agents ============ -->
+    <section class="cli container">
+      <div class="cli-copy">
+        <p class="eyebrow left">Built for your agents</p>
+        <h2>Works over a plain CLI.</h2>
+        <p>
+          Wire Figx into any agent pipeline with pipes, flags and JSON on
+          stdout. No MCP servers, no plugins — nothing to install in your
+          editor. If it can run a command, it can read a .fig file.
+        </p>
+      </div>
+      <div class="terminal" aria-hidden="true">
+        <div class="term-bar"><span></span><span></span><span></span></div>
+        <pre><code><span class="t-p">$</span> figx open landing.fig --json | jq '.children[0].name'
+<span class="t-o">"Button / Primary"</span>
+
+<span class="t-p">$</span> figx tokens landing.fig --format css > tokens.css
+<span class="t-ok">✓</span> <span class="t-o">42 variables → tokens.css</span>
+
+<span class="t-p">$</span> figx tree landing.fig --depth 2
+<span class="t-o">FRAME  Landing Page
+└─ COMPONENT  Button / Primary</span></code></pre>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ Footer ============ -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <a class="footer-brand" href="#top">
+        <svg class="footer-mark" viewBox="0 0 1387 1247" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill-rule="evenodd" clip-rule="evenodd" fill="currentColor" d="M1307.81 153.87C1280.65 111.905 1191.77 125.482 1186.83 124.248C1181.9 123.013 1213.99 77.3454 1184.36 60.0657C1144.86 29.2089 1051.04 77.3454 1051.04 77.3454C1066.63 52.5343 1072.3 25.8765 1048.57 5.75775C974.505 -17.6934 882.227 28.6636 752.3 178.556C734.08 179.37 705.39 174.032 700.452 166.213C695.515 158.394 710.328 143.582 710.328 97.0937C710.328 50.6051 563.711 36.0402 547.501 97.0937L545.033 156.339C545.033 227.106 452.758 366.032 401.709 393.319C-99.0677 661 -226.068 1214.5 574.932 1245.5C851.433 1256.2 1040.06 1173 1048.57 944C1059.68 645.307 797.674 449.021 747.362 358.759C689.343 254.667 697.85 266.444 695.514 208.178C710.493 204.676 721.228 207.845 742.424 218.052C742.424 303.395 855.106 403.78 925.126 435.284C969.323 458.305 981.8 438.498 984.381 351.354C997.393 458.365 1076.97 506.872 1117.7 489.592C1147.62 474.781 1149.8 443.924 1139.92 405.662C1228.81 495.763 1268.31 405.662 1359.66 408.13C1372 408.13 1384.35 390.85 1384.35 390.85C1392.48 357.352 1381.95 337.798 1344.85 301.983C1360.35 281.878 1364.83 271.572 1364.6 255.08C1352.93 229.168 1336.39 219.053 1290.53 208.178C1311.27 188.06 1334.97 195.835 1307.81 153.87ZM781.928 190.898C936.282 181.817 1075.81 195.004 1204.12 289.64C1060.44 230.874 940.044 207.964 784.397 215.584C768.348 215.584 760.941 194.601 781.928 190.898ZM601.819 89.6881C638.903 82.854 656.133 84.6507 680.825 97.0937C692.553 105.994 687.883 111.411 661.073 121.779C642.845 122.823 645.025 131.24 609.225 121.779C573.426 112.319 572.438 100.979 601.819 89.6881Z" />
+        </svg>
+        Figx
+      </a>
+      <span>© <span id="fYear"></span> · Apache 2.0 licensed · built with <a href="https://useden.ai">den</a></span>
+      <span class="foot-right">
+        <span class="vline" aria-hidden="true"></span>
+        <a href="#" class="foot-src">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0c6.63 0 12 5.276 12 11.79-.001 5.067-3.29 9.567-8.175 11.187-.6.118-.825-.25-.825-.56 0-.398.015-1.665.015-3.242 0-1.105-.375-1.813-.81-2.181 2.67-.295 5.475-1.297 5.475-5.822 0-1.297-.465-2.344-1.23-3.169.12-.295.54-1.503-.12-3.125 0 0-1.005-.324-3.3 1.209a11.32 11.32 0 00-3-.398c-1.02 0-2.04.133-3 .398-2.295-1.518-3.3-1.209-3.3-1.209-.66 1.622-.24 2.83-.12 3.125-.765.825-1.23 1.887-1.23 3.169 0 4.51 2.79 5.527 5.46 5.822-.345.294-.66.81-.765 1.577-.69.31-2.415.81-3.495-.973-.225-.354-.9-1.223-1.845-1.209-1.005.015-.405.56.015.781.51.28 1.095 1.327 1.23 1.666.24.663 1.02 1.93 4.035 1.385 0 .988.015 1.916.015 2.196 0 .31-.225.664-.825.56C3.303 21.374-.003 16.867 0 11.791 0 5.276 5.37 0 12 0z"/></svg>
+          figx.dev
+        </a>
+        <span>· runs entirely in your browser</span>
+      </span>
+    </div>
+  </footer>
+
+  <!-- ============ Demo picker modal ============ -->
+  <div class="demo-backdrop" id="demo-backdrop" hidden>
+    <div class="demo-modal" role="dialog" aria-modal="true" aria-labelledby="demo-modal-title">
+      <div class="demo-modal-head">
+        <h3 id="demo-modal-title">Try a demo file</h3>
+        <button type="button" class="demo-close" id="demo-close" aria-label="Close" title="Close"></button>
+      </div>
+      <div class="demo-modal-body" id="demo-list">
+        <p class="demo-loading">Loading demos…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Embedded viewer (shown full-screen once a .fig file decodes) ============ -->
+  <div id="figx-app">
+    <section id="viewer">
+      <div id="bar">
+        <button class="fx-btn icon-only" id="toggle" title="Toggle sidebar"></button>
+        <span class="bar-sep"></span>
+        <div class="logo" id="brandLogo"></div>
+        <span class="bar-title"><span class="bar-brand">Figx</span> / <b id="fname">design</b></span>
+        <span class="muted" id="info"></span>
+        <span class="muted demo-credit" id="demoCredit" style="display:none"></span>
+        <div class="spacer"></div>
+        <button class="fx-btn" id="fit"></button>
+        <button class="fx-btn" id="exportBtn"></button>
+        <button class="fx-btn icon-only" id="themeToggle" title="Toggle theme"></button>
+        <span class="bar-sep"></span>
+        <button class="fx-btn icon-only" id="tokensBtn" title="Panel" style="display:none"></button>
+        <button class="fx-btn" id="closeApp"></button>
+      </div>
+      <aside id="side">
+        <div class="sec pages" id="secPages">
+          <div class="sec-head"><span class="acc-chevron"></span><span class="sec-title">Pages</span><span class="sec-count" id="pagesCount"></span></div>
+          <div class="list" id="pages"></div>
+        </div>
+        <div class="sec layers" id="secLayers">
+          <div class="sec-head"><span class="acc-chevron"></span><span class="sec-title">Layers</span><span class="sec-count" id="layersCount"></span></div>
+          <div class="list" id="layers"></div>
+        </div>
+      </aside>
+      <div id="stage"><div id="canvas"></div></div>
+      <aside id="tokensPanel">
+        <div class="tp-head">
+          <h3>Inspector</h3>
+          <button class="fx-btn icon-only" id="tokensPanelClose" title="Close"></button>
+        </div>
+        <div class="tp-body">
+          <div class="acc" id="accProperties">
+            <div class="acc-head"><span class="acc-chevron"></span><span class="acc-title">Properties</span></div>
+            <div class="acc-body" id="propsBody"></div>
+          </div>
+          <div class="acc" id="accModes">
+            <div class="acc-head"><span class="acc-chevron"></span><span class="acc-title">Modes</span><span class="acc-count" id="modesCount"></span></div>
+            <div class="acc-body" id="modesBody"></div>
+          </div>
+          <div class="acc" id="accTokens">
+            <div class="acc-head"><span class="acc-chevron"></span><span class="acc-title">Design Tokens</span><span class="acc-count" id="tokensCount"></span></div>
+            <div class="acc-body" id="tokensGroupsBody"></div>
+          </div>
+        </div>
+      </aside>
+      <div class="hint">scroll = zoom · drag = pan · double-click = fit · click a layer to locate it</div>
+    </section>
+  </div>
+
+  <script type="module">
+    import { decodeFig, pageList, renderSvg, extractVariables, extractStyles, tokensToCss } from './libs/figx-engine.js';
+
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file-input');
+    const dropLabel = document.getElementById('drop-label');
+    const mascot = document.getElementById('mascot');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    // The mascot is otherwise static — the only expression it shows is the
+    // happy-eyes/blush/giggle swap in CSS (.drop-wrap:hover), which fires on
+    // its own when the pointer is over the character or the drop zone.
+
+    document.getElementById('choose-btn').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) {
+        dropLabel.textContent = 'Selected: ' + fileInput.files[0].name;
+        load(fileInput.files[0]);
+      }
+    });
+
+    ['dragenter', 'dragover'].forEach(ev =>
+      dropzone.addEventListener(ev, e => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      })
+    );
+    ['dragleave', 'drop'].forEach(ev =>
+      dropzone.addEventListener(ev, e => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+      })
+    );
+    dropzone.addEventListener('drop', e => {
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        dropLabel.textContent = 'Selected: ' + file.name;
+        load(file);
+      }
+    });
+
+    // ---- demo picker ----
+    // demos/demos.json + each demo's own .fig/.webp are real, deliberately
+    // committed files (see .gitignore) — fetched once and cached, same as
+    // any other static asset on this page.
+    const demoBackdrop = document.getElementById('demo-backdrop');
+    const demoList = document.getElementById('demo-list');
+    let demosCache = null;
+
+    const escapeHtml = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+    // Brand/generic icons for the two link lines below — Figma's own mark
+    // (source: Simple Icons, CC0) always identifies the "View on Figma"
+    // line; the source-code line picks GitHub's mark when the link is
+    // actually a GitHub repo (matches the footer's own GitHub icon path)
+    // and a plain globe otherwise (a docs site, a company page, ...).
+    const ICON_FIGMA_PATH = 'M15.852 8.981h-4.588V0h4.588c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.491-4.49 4.491zM12.735 7.51h3.117c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-3.117V7.51zm0 1.471H8.148c-2.476 0-4.49-2.014-4.49-4.49S5.672 0 8.148 0h4.588v8.981zm-4.587-7.51c-1.665 0-3.019 1.355-3.019 3.019s1.354 3.02 3.019 3.02h3.117V1.471H8.148zm4.587 15.019H8.148c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h4.588v8.98zM8.148 8.981c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h3.117V8.981H8.148zM8.172 24c-2.489 0-4.515-2.014-4.515-4.49s2.014-4.49 4.49-4.49h4.588v4.441c0 2.503-2.047 4.539-4.563 4.539zm-.024-7.51a3.023 3.023 0 0 0-3.019 3.019c0 1.665 1.365 3.019 3.044 3.019 1.705 0 3.093-1.376 3.093-3.068v-2.97H8.148zm7.704 0h-.098c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h.098c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.49-4.49 4.49zm-.097-7.509c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h.098c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-.098z';
+    const ICON_GITHUB_PATH = 'M12 0c6.63 0 12 5.276 12 11.79-.001 5.067-3.29 9.567-8.175 11.187-.6.118-.825-.25-.825-.56 0-.398.015-1.665.015-3.242 0-1.105-.375-1.813-.81-2.181 2.67-.295 5.475-1.297 5.475-5.822 0-1.297-.465-2.344-1.23-3.169.12-.295.54-1.503-.12-3.125 0 0-1.005-.324-3.3 1.209a11.32 11.32 0 00-3-.398c-1.02 0-2.04.133-3 .398-2.295-1.518-3.3-1.209-3.3-1.209-.66 1.622-.24 2.83-.12 3.125-.765.825-1.23 1.887-1.23 3.169 0 4.51 2.79 5.527 5.46 5.822-.345.294-.66.81-.765 1.577-.69.31-2.415.81-3.495-.973-.225-.354-.9-1.223-1.845-1.209-1.005.015-.405.56.015.781.51.28 1.095 1.327 1.23 1.666.24.663 1.02 1.93 4.035 1.385 0 .988.015 1.916.015 2.196 0 .31-.225.664-.825.56C3.303 21.374-.003 16.867 0 11.791 0 5.276 5.37 0 12 0z';
+    const iconFillSvg = (path) => `<svg class="demo-link-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="${path}"/></svg>`;
+    const ICON_GLOBE_SVG = '<svg class="demo-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>';
+    const isGithubUrl = (url) => { try { return new URL(url).hostname.replace(/^www\./, '') === 'github.com'; } catch { return false; } };
+
+    function demoCardHtml(d) {
+      const features = (d.features || []).map(f => `<li>${escapeHtml(f)}</li>`).join('');
+      const sourceIcon = isGithubUrl(d.sourceUrl) ? iconFillSvg(ICON_GITHUB_PATH) : ICON_GLOBE_SVG;
+      return `
+        <article class="demo-card" data-id="${escapeHtml(d.id)}">
+          <img class="demo-thumb" src="demos/${encodeURIComponent(d.screenshot)}" alt="${escapeHtml(d.title)} preview" loading="lazy" />
+          <div class="demo-card-body">
+            <div class="demo-card-top">
+              <span class="demo-title">${escapeHtml(d.title)}</span>
+              <span class="demo-author">by ${escapeHtml(d.author)}</span>
+            </div>
+            <a class="demo-license" href="${escapeHtml(d.licenseUrl || '#')}" target="_blank" rel="noopener">${escapeHtml(d.license)}</a>
+            <p class="demo-about">${escapeHtml(d.about)}</p>
+            ${features ? `<ul class="demo-features">${features}</ul>` : ''}
+            <!-- d.note (fuller context, e.g. paid-vs-free) is intentionally
+                 not shown here — the card is a "which of these do I want"
+                 pick, not the full write-up; source link has the rest. -->
+            <div class="demo-card-actions">
+              <div class="demo-links">
+                ${d.communityUrl ? `<a class="demo-link-line" href="${escapeHtml(d.communityUrl)}" target="_blank" rel="noopener">${iconFillSvg(ICON_FIGMA_PATH)}<span>View on Figma</span></a>` : ''}
+                <a class="demo-link-line" href="${escapeHtml(d.sourceUrl)}" target="_blank" rel="noopener">${sourceIcon}<span>${escapeHtml(d.sourceLabel || d.sourceUrl)}</span></a>
+              </div>
+              <button type="button" class="btn btn-dark btn-sm demo-load-btn" data-id="${escapeHtml(d.id)}">Load this file</button>
+            </div>
+          </div>
+        </article>`;
+    }
+
+    async function openDemoModal() {
+      demoBackdrop.hidden = false;
+      document.body.style.overflow = 'hidden';
+      if (!demosCache) {
+        try {
+          const res = await fetch('demos/demos.json');
+          if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+          demosCache = await res.json();
+        } catch (e) {
+          demoList.innerHTML = `<p class="demo-error">Couldn't load the demo list: ${escapeHtml(e.message || e)}</p>`;
+          return;
+        }
+      }
+      demoList.innerHTML = demosCache.map(demoCardHtml).join('');
+      demoList.querySelectorAll('.demo-load-btn').forEach(btn => {
+        btn.addEventListener('click', () => loadDemo(btn.dataset.id));
+      });
+    }
+
+    function closeDemoModal() {
+      demoBackdrop.hidden = true;
+      document.body.style.overflow = '';
+    }
+
+    async function loadDemo(id) {
+      const demo = demosCache && demosCache.find(d => d.id === id);
+      if (!demo) return;
+      const btn = demoList.querySelector(`.demo-load-btn[data-id="${CSS.escape(id)}"]`);
+      const prevLabel = btn && btn.textContent;
+      if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+      try {
+        const res = await fetch('demos/' + encodeURIComponent(demo.file));
+        if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+        const blob = await res.blob();
+        const file = new File([blob], demo.file, { type: 'application/octet-stream' });
+        closeDemoModal();
+        await load(file, demo);
+      } catch (e) {
+        if (btn) { btn.disabled = false; btn.textContent = prevLabel; }
+        demoList.insertAdjacentHTML('afterbegin', `<p class="demo-error">Couldn't load "${escapeHtml(demo.title)}": ${escapeHtml(e.message || e)}</p>`);
+      }
+    }
+
+    document.getElementById('demo-trigger').addEventListener('click', openDemoModal);
+    document.getElementById('demo-close').addEventListener('click', closeDemoModal);
+    demoBackdrop.addEventListener('click', e => { if (e.target === demoBackdrop) closeDemoModal(); });
+    addEventListener('keydown', e => { if (e.key === 'Escape' && !demoBackdrop.hidden) closeDemoModal(); });
+
+    // Slight head-tilt + iris tracking, but only while the pointer is over
+    // the character/drop-wrap itself (not the whole page) — the mascot
+    // otherwise sits still.
+    const dropWrap = document.querySelector('.drop-wrap');
+    if (!reduceMotion.matches && dropWrap) {
+      let pending = null;
+      dropWrap.addEventListener('mousemove', ev => {
+        if (pending) return;
+        pending = requestAnimationFrame(() => {
+          pending = null;
+          const r = mascot.getBoundingClientRect();
+          const clamp = v => Math.max(-1, Math.min(1, v));
+          mascot.style.setProperty('--px', clamp((ev.clientX - r.left - r.width / 2) / (r.width * 1.5)).toFixed(2));
+          mascot.style.setProperty('--py', clamp((ev.clientY - r.top - r.height / 2) / (r.height * 1.5)).toFixed(2));
+        });
+      });
+      dropWrap.addEventListener('mouseleave', () => {
+        mascot.style.setProperty('--px', 0);
+        mascot.style.setProperty('--py', 0);
+      });
+    }
+
+    document.getElementById('fYear').textContent = new Date().getFullYear();
+
+    // ---- "Get the CLI" install button ----
+    (function () {
+      const wrap = document.getElementById('cliInstallBtn').closest('.cli-install');
+      const btn = document.getElementById('cliInstallBtn');
+      const copyBtn = document.getElementById('cliCopyBtn');
+      const copyLabel = document.getElementById('cliCopyLabel');
+      const cmd = document.getElementById('cliCmd');
+
+      function closePanel() {
+        wrap.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const willOpen = !wrap.classList.contains('open');
+        wrap.classList.toggle('open', willOpen);
+        btn.setAttribute('aria-expanded', String(willOpen));
+      });
+      document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) closePanel(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePanel(); });
+
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(cmd.textContent);
+        } catch {
+          // clipboard API unavailable (e.g. insecure context) -- fall back
+          // to selecting the text so the user can copy it manually
+          const range = document.createRange();
+          range.selectNodeContents(cmd);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+        const prev = copyLabel.textContent;
+        copyLabel.textContent = 'Copied!';
+        setTimeout(() => { copyLabel.textContent = prev; }, 1500);
+      });
+    })();
+
+    // ============================================================
+    // Embedded viewer — decode/render runs entirely client-side via the
+    // bundled engine (docs/libs/figx-engine.js, built by
+    // scripts/build-docs-engine.mjs from src/decode.js + src/render.js).
+    // No server involved, which is what makes this deployable as a static
+    // GitHub Pages site.
+    // ============================================================
+    const $ = (id) => document.getElementById(id);
+    const figxApp = $('figx-app'), viewer = $('viewer');
+    const stage = $('stage'), canvas = $('canvas');
+    let scale = 1, tx = 0, ty = 0, currentName = 'design', pagesMeta = [], pageIndex = 0;
+    let currentDecoded = null, currentMode = null, cachedTokens = null;
+    let currentDemo = null;
+    const demoCreditEl = document.getElementById('demoCredit');
+    // Each page's SVG is only rendered the first time it's actually viewed
+    // (pageList() gives name/nodes/layers for all pages up front — cheap —
+    // but the SVG itself is the expensive part, ~500ms+ per page on a large
+    // file, so rendering all of them up front wastes that on pages nobody
+    // looks at). Cleared whenever the variable mode changes, since that
+    // changes every page's resolved colors.
+    let pageSvgCache = new Map();
+
+    let applyQueued = false;
+    function apply() {
+      if (applyQueued) return;
+      applyQueued = true;
+      requestAnimationFrame(() => { applyQueued = false; canvas.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')'; });
+    }
+
+    // Inline Lucide icons (ISC license, unpkg.com/lucide-static) — inner markup only.
+    const ICON_PATHS = {
+      FRAME: '<line x1="22" x2="2" y1="6" y2="6"/><line x1="22" x2="2" y1="18" y2="18"/><line x1="6" x2="6" y1="2" y2="22"/><line x1="18" x2="18" y1="2" y2="22"/>',
+      GROUP: '<path d="M5 3a2 2 0 0 0-2 2"/><path d="M19 3a2 2 0 0 1 2 2"/><path d="M21 19a2 2 0 0 1-2 2"/><path d="M5 21a2 2 0 0 1-2-2"/><path d="M9 3h1"/><path d="M9 21h1"/><path d="M14 3h1"/><path d="M14 21h1"/><path d="M3 9v1"/><path d="M21 9v1"/><path d="M3 14v1"/><path d="M21 14v1"/>',
+      SECTION: '<line x1="22" x2="2" y1="6" y2="6"/><line x1="22" x2="2" y1="18" y2="18"/><line x1="6" x2="6" y1="2" y2="22"/><line x1="18" x2="18" y1="2" y2="22"/>',
+      TEXT: '<path d="M12 4v16"/><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"/><path d="M9 20h6"/>',
+      INSTANCE: '<path d="M2.7 10.3a2.41 2.41 0 0 0 0 3.41l7.59 7.59a2.41 2.41 0 0 0 3.41 0l7.59-7.59a2.41 2.41 0 0 0 0-3.41l-7.59-7.59a2.41 2.41 0 0 0-3.41 0Z"/>',
+      SYMBOL: '<path d="M2.7 10.3a2.41 2.41 0 0 0 0 3.41l7.59 7.59a2.41 2.41 0 0 0 3.41 0l7.59-7.59a2.41 2.41 0 0 0 0-3.41l-7.59-7.59a2.41 2.41 0 0 0-3.41 0Z"/>',
+      COMPONENT: '<path d="M2.7 10.3a2.41 2.41 0 0 0 0 3.41l7.59 7.59a2.41 2.41 0 0 0 3.41 0l7.59-7.59a2.41 2.41 0 0 0 0-3.41l-7.59-7.59a2.41 2.41 0 0 0-3.41 0Z"/>',
+      COMPONENT_SET: '<path d="M15.536 11.293a1 1 0 0 0 0 1.414l2.376 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414l-2.377-2.377a1 1 0 0 0-1.414 0z"/><path d="M2.297 11.293a1 1 0 0 0 0 1.414l2.377 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414L6.088 8.916a1 1 0 0 0-1.414 0z"/><path d="M8.916 17.912a1 1 0 0 0 0 1.415l2.377 2.376a1 1 0 0 0 1.414 0l2.377-2.376a1 1 0 0 0 0-1.415l-2.377-2.376a1 1 0 0 0-1.414 0z"/><path d="M8.916 4.674a1 1 0 0 0 0 1.414l2.377 2.376a1 1 0 0 0 1.414 0l2.377-2.376a1 1 0 0 0 0-1.414l-2.377-2.377a1 1 0 0 0-1.414 0z"/>',
+      VECTOR: '<path d="M15.707 21.293a1 1 0 0 1-1.414 0l-1.586-1.586a1 1 0 0 1 0-1.414l5.586-5.586a1 1 0 0 1 1.414 0l1.586 1.586a1 1 0 0 1 0 1.414z"/><path d="m18 13-1.375-6.874a1 1 0 0 0-.746-.776L3.235 2.028a1 1 0 0 0-1.207 1.207L5.35 15.879a1 1 0 0 0 .776.746L13 18"/><path d="m2.3 2.3 7.286 7.286"/><circle cx="11" cy="11" r="2"/>',
+      RECTANGLE: '<rect width="18" height="18" x="3" y="3" rx="2"/>',
+      ROUNDED_RECTANGLE: '<rect width="18" height="18" x="3" y="3" rx="4"/>',
+      ELLIPSE: '<circle cx="12" cy="12" r="10"/>',
+      LINE: '<path d="M22 2 2 22"/>',
+      STAR: '<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/>',
+      REGULAR_POLYGON: '<path d="M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>',
+      BOOLEAN_OPERATION: '<path d="M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.7.7 0 0 1 1.198-.043L16.3 8.9a.7.7 0 0 1-.572 1.1Z"/><rect x="3" y="14" width="7" height="7" rx="1"/><circle cx="17.5" cy="17.5" r="3.5"/>',
+      CANVAS: '<path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/>',
+    };
+    const CHEVRON = '<path d="m9 18 6-6-6-6"/>';
+    const UI_ICONS = {
+      SUN: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+      MOON: '<path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/>',
+      SCAN: '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>',
+      FOLD: '<path d="m7 20 5-5 5 5"/><path d="m7 4 5 5 5-5"/>',
+      UNFOLD: '<path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/>',
+      EYE: '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/>',
+      EYE_OFF: '<path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/>',
+      DOWNLOAD: '<path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/>',
+      MAXIMIZE: '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>',
+      IMAGE: '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
+      FOLDER_OPEN: '<path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>',
+      PANEL_LEFT: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/>',
+      PANEL_RIGHT: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/>',
+      CHEVRON_DOWN: '<path d="m6 9 6 6 6-6"/>',
+      X: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+      CONTRAST: '<circle cx="12" cy="12" r="10"/><path d="M12 18a6 6 0 0 0 0-12z" fill="currentColor" stroke="none"/>',
+      TAG: '<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
+    };
+    const svgIcon = (inner, cls) =>
+      '<svg class="' + (cls || '') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+      'stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>';
+    const icon = (t) => svgIcon(ICON_PATHS[t] || ICON_PATHS.RECTANGLE, 'node-ic');
+    const uiIcon = (t) => svgIcon(UI_ICONS[t] || '', 'ui-ic');
+
+    // ---- theme (scoped to #figx-app's data-theme attribute) ----
+    // Two families (Clean = neutral gray, Figx = the landing page's own
+    // plum/rose palette) x two modes (light/dark) = 4 themes total.
+    const THEMES = [
+      { key: 'clean-light', label: 'Clean · Light', dark: false },
+      { key: 'clean-dark', label: 'Clean · Dark', dark: true },
+      { key: 'figx-light', label: 'Figx · Light', dark: false },
+      { key: 'figx-dark', label: 'Figx · Dark', dark: true },
+    ];
+    const DEFAULT_THEME = 'clean-dark';
+
+    function applyTheme(t) {
+      const theme = THEMES.find((x) => x.key === t) || THEMES.find((x) => x.key === DEFAULT_THEME);
+      figxApp.setAttribute('data-theme', theme.key);
+      $('themeToggle').innerHTML = uiIcon(theme.dark ? 'MOON' : 'SUN');
+      $('themeToggle').title = 'Theme: ' + theme.label;
+    }
+    applyTheme(localStorage.getItem('figx-theme'));
+    $('themeToggle').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const current = figxApp.getAttribute('data-theme') || DEFAULT_THEME;
+      const r = $('themeToggle').getBoundingClientRect();
+      openMenuAt(r.left, r.bottom + 6, THEMES.map((t) => ({
+        label: (t.key === current ? '✓ ' : '   ') + t.label,
+        onClick: () => { localStorage.setItem('figx-theme', t.key); applyTheme(t.key); },
+      })));
+    });
+
+    // static toolbar icons
+    $('brandLogo').innerHTML = '<svg viewBox="0 0 1387 1247" xmlns="http://www.w3.org/2000/svg" fill="currentColor">' +
+      '<path fill-rule="evenodd" clip-rule="evenodd" d="M1307.81 153.87C1280.65 111.905 1191.77 125.482 1186.83 124.248C1181.9 123.013 1213.99 77.3454 1184.36 60.0657C1144.86 29.2089 1051.04 77.3454 1051.04 77.3454C1066.63 52.5343 1072.3 25.8765 1048.57 5.75775C974.505 -17.6934 882.227 28.6636 752.3 178.556C734.08 179.37 705.39 174.032 700.452 166.213C695.515 158.394 710.328 143.582 710.328 97.0937C710.328 50.6051 563.711 36.0402 547.501 97.0937L545.033 156.339C545.033 227.106 452.758 366.032 401.709 393.319C-99.0677 661 -226.068 1214.5 574.932 1245.5C851.433 1256.2 1040.06 1173 1048.57 944C1059.68 645.307 797.674 449.021 747.362 358.759C689.343 254.667 697.85 266.444 695.514 208.178C710.493 204.676 721.228 207.845 742.424 218.052C742.424 303.395 855.106 403.78 925.126 435.284C969.323 458.305 981.8 438.498 984.381 351.354C997.393 458.365 1076.97 506.872 1117.7 489.592C1147.62 474.781 1149.8 443.924 1139.92 405.662C1228.81 495.763 1268.31 405.662 1359.66 408.13C1372 408.13 1384.35 390.85 1384.35 390.85C1392.48 357.352 1381.95 337.798 1344.85 301.983C1360.35 281.878 1364.83 271.572 1364.6 255.08C1352.93 229.168 1336.39 219.053 1290.53 208.178C1311.27 188.06 1334.97 195.835 1307.81 153.87ZM781.928 190.898C936.282 181.817 1075.81 195.004 1204.12 289.64C1060.44 230.874 940.044 207.964 784.397 215.584C768.348 215.584 760.941 194.601 781.928 190.898ZM601.819 89.6881C638.903 82.854 656.133 84.6507 680.825 97.0937C692.553 105.994 687.883 111.411 661.073 121.779C642.845 122.823 645.025 131.24 609.225 121.779C573.426 112.319 572.438 100.979 601.819 89.6881Z"/>' +
+      '</svg>';
+    $('toggle').innerHTML = uiIcon('PANEL_LEFT');
+    $('fit').innerHTML = uiIcon('MAXIMIZE') + '<span>Fit</span>';
+    $('exportBtn').innerHTML = uiIcon('DOWNLOAD') + '<span>Export</span>' + uiIcon('CHEVRON_DOWN');
+    $('closeApp').innerHTML = uiIcon('X') + '<span>Close</span>';
+
+    // Frame a box {x,y,w,h} given in the svg's viewBox coordinate space into
+    // the stage viewport, with a zoom cap so a tiny selected element doesn't
+    // zoom in absurdly far. `canvas`'s own CSS transform (scale/translate)
+    // operates in the svg's *rendered pixel* space, i.e. relative to the
+    // top-left of the <svg> element itself — which only coincides with the
+    // viewBox's origin when viewBox="0 0 …". A real design's content rarely
+    // starts at (0,0), so we have to subtract the viewBox's own (x,y) before
+    // using box.x/box.y as a pixel offset — otherwise every pan/zoom (fit,
+    // click-to-select) lands off by exactly that origin, worse the farther
+    // the target sits from it.
+    function zoomToBox(box, opts) {
+      const sw = stage.clientWidth, sh = stage.clientHeight;
+      const pad = (opts && opts.pad) != null ? opts.pad : 0.92;
+      const maxScale = (opts && opts.maxScale) || 16;
+      const svg = canvas.querySelector('svg');
+      const vb = svg ? svg.viewBox.baseVal : { x: 0, y: 0 };
+      const bx = box.x - vb.x, by = box.y - vb.y;
+      scale = Math.min(sw / box.w, sh / box.h, maxScale) * pad;
+      tx = (sw - box.w * scale) / 2 - bx * scale;
+      ty = (sh - box.h * scale) / 2 - by * scale;
+      apply();
+    }
+
+    function fit() {
+      const svg = canvas.querySelector('svg'); if (!svg) return;
+      const vb = svg.viewBox.baseVal;
+      zoomToBox({ x: vb.x, y: vb.y, w: vb.width, h: vb.height });
+    }
+
+    function elementBox(svgRoot, el) {
+      let bbox; try { bbox = el.getBBox(); } catch { return null; }
+      if (!bbox.width && !bbox.height) return null;
+      const ctm = el.getCTM(); if (!ctm) return null;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const [x, y] of [[bbox.x, bbox.y], [bbox.x + bbox.width, bbox.y], [bbox.x, bbox.y + bbox.height], [bbox.x + bbox.width, bbox.y + bbox.height]]) {
+        const pt = svgRoot.createSVGPoint(); pt.x = x; pt.y = y;
+        const p = pt.matrixTransform(ctm);
+        if (p.x < minX) minX = p.x; if (p.y < minY) minY = p.y; if (p.x > maxX) maxX = p.x; if (p.y > maxY) maxY = p.y;
+      }
+      // getCTM() maps into the svg's local *render-pixel* space (post-viewBox
+      // mapping, origin at the svg's own top-left corner) — but every other
+      // box in this app (the svg's own child x/y attributes, the selection
+      // overlay <rect>, fit()'s viewBox-based box) is in *viewBox* space.
+      // Shift by the viewBox's own origin once here so callers can treat
+      // this uniformly.
+      const vb = svgRoot.viewBox.baseVal;
+      return { x: minX + vb.x, y: minY + vb.y, w: maxX - minX, h: maxY - minY };
+    }
+
+    function unionBox(a, b) {
+      if (!a) return b; if (!b) return a;
+      const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y);
+      return { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y };
+    }
+
+    function idBox(svgRoot, id) {
+      const els = svgRoot.querySelectorAll('[data-id="' + CSS.escape(id) + '"]');
+      let box = null;
+      els.forEach(el => { const b = elementBox(svgRoot, el); if (b) box = unionBox(box, b); });
+      return { box, els };
+    }
+
+    function subtreeBox(svgRoot, node) {
+      let box = null;
+      for (const id of collectIds(node, new Set())) {
+        const r = idBox(svgRoot, id);
+        box = unionBox(box, r.box);
+      }
+      return box;
+    }
+
+    const isSeparatorName = (name) => /^-{2,}$/.test((name || '').trim());
+
+    function renderPagesList() {
+      const box = $('pages'); box.innerHTML = '';
+      $('pagesCount').textContent = pagesMeta.length;
+      pagesMeta.forEach((p, i) => {
+        if (isSeparatorName(p.name)) { const s = document.createElement('div'); s.className = 'sep'; box.appendChild(s); return; }
+        const row = document.createElement('div'); row.className = 'row' + (i === pageIndex ? ' active' : '');
+        row.innerHTML = '<span class="caret none"></span><span class="ic">' + icon('CANVAS') + '</span><span class="nm"></span>';
+        row.querySelector('.nm').textContent = p.name;
+        row.title = p.name; row.onclick = () => showPage(i);
+        box.appendChild(row);
+      });
+    }
+
+    let expandedIds = new Set();
+    let hiddenIds = new Set();
+
+    function buildLayerRows(list, depth, target) {
+      for (const n of (list || [])) {
+        const row = document.createElement('div');
+        row.className = 'row' + (n.hidden ? ' hidden' : '') + (hiddenIds.has(n.id) ? ' userhidden' : '');
+        row.style.paddingLeft = (6 + depth * 14) + 'px';
+        row.dataset.rowId = n.id;
+        const hasKids = n.children && n.children.length;
+        const open = expandedIds.has(n.id);
+        row.innerHTML = '<span class="caret' + (hasKids ? '' : ' none') + '"' + (open ? ' style="transform:rotate(90deg)"' : '') + '>' +
+          (hasKids ? svgIcon(CHEVRON) : '') + '</span><span class="ic">' + icon(n.type) + '</span><span class="nm"></span>';
+        row.querySelector('.nm').textContent = n.name;
+        row.title = n.type + ': ' + n.name;
+        const caret = row.querySelector('.caret');
+        row.onclick = (e) => { if (!caret.contains(e.target)) selectNode(n.id, { zoom: true }); };
+        row.addEventListener('contextmenu', e => {
+          e.preventDefault(); e.stopPropagation();
+          selectNode(n.id, { zoom: false });
+          openCtxMenu(e.clientX, e.clientY, n.id);
+        });
+        if (hasKids) caret.onclick = (e) => { e.stopPropagation(); toggleFold(n.id); };
+        target.appendChild(row);
+        if (hasKids && open) buildLayerRows(n.children, depth + 1, target);
+      }
+    }
+
+    function renderLayers() {
+      const box = $('layers'); box.innerHTML = '';
+      buildLayerRows(pagesMeta[pageIndex]?.layers || [], 0, box);
+      $('layersCount').textContent = pagesMeta[pageIndex]?.nodes ?? '';
+    }
+
+    function toggleFold(id) {
+      if (expandedIds.has(id)) expandedIds.delete(id); else expandedIds.add(id);
+      renderLayers();
+      const row = document.querySelector('#layers .row[data-row-id="' + CSS.escape(id) + '"]');
+      if (row) row.scrollIntoView({ block: 'nearest' });
+    }
+
+    function applyHidden() {
+      const svgRoot = canvas.querySelector('svg'); if (!svgRoot) return;
+      svgRoot.querySelectorAll('[data-id]').forEach(el => {
+        el.style.display = hiddenIds.has(el.dataset.id) ? 'none' : '';
+      });
+    }
+
+    function toggleHide(id) {
+      const node = findNode(id, pagesMeta[pageIndex]?.layers || []) || { id };
+      const ids = collectIds(node, new Set());
+      const nowHiding = !hiddenIds.has(id);
+      ids.forEach(i => nowHiding ? hiddenIds.add(i) : hiddenIds.delete(i));
+      applyHidden();
+      renderLayers();
+    }
+
+    function findNode(id, list) {
+      for (const n of (list || [])) {
+        if (n.id === id) return n;
+        if (n.children) { const f = findNode(id, n.children); if (f) return f; }
+      }
+      return null;
+    }
+
+    // Ancestor ids (root-first, not including `id` itself), or null if `id`
+    // isn't in the tree at all.
+    function findPath(id, list, trail) {
+      for (const n of (list || [])) {
+        if (n.id === id) return trail;
+        if (n.children) { const p = findPath(id, n.children, [...trail, n.id]); if (p) return p; }
+      }
+      return null;
+    }
+    function collectIds(node, set) {
+      set.add(node.id);
+      (node.children || []).forEach(c => collectIds(c, set));
+      return set;
+    }
+
+    let selectedId = null;
+    let selectedBox = null;
+    let selectedNode = null;
+
+    // A plain stroked rect got lost against busy/similarly-colored content, so
+    // the selection is now three layered pieces: a scrim that dims everything
+    // *outside* the box (via an SVG mask with a cutout over it), a dark halo
+    // for contrast against any background color, and an animated dashed line
+    // ("marching ants") on top so it reads as "selected", not just outlined.
+    function drawSelectionOverlay(box) {
+      const prev = canvas.querySelector('.sel-overlay'); if (prev) prev.remove();
+      const svgRoot = canvas.querySelector('svg'); if (!svgRoot || !box) return;
+      const vb = svgRoot.viewBox.baseVal;
+      const NS = 'http://www.w3.org/2000/svg';
+      const rect = (cls, x, y, w, h) => {
+        const r = document.createElementNS(NS, 'rect');
+        if (cls) r.setAttribute('class', cls);
+        r.setAttribute('x', x); r.setAttribute('y', y);
+        r.setAttribute('width', w); r.setAttribute('height', h);
+        return r;
+      };
+
+      const g = document.createElementNS(NS, 'g');
+      g.setAttribute('class', 'sel-overlay');
+
+      const mask = document.createElementNS(NS, 'mask');
+      mask.setAttribute('id', 'selDimMask');
+      mask.setAttribute('maskUnits', 'userSpaceOnUse');
+      // The mask element's own x/y/width/height default to -10%/120% of the
+      // *viewport*, not the viewBox — without setting them explicitly the
+      // dim scrim below gets clipped to a near-arbitrary region instead of
+      // covering the whole page.
+      mask.setAttribute('x', vb.x); mask.setAttribute('y', vb.y);
+      mask.setAttribute('width', vb.width); mask.setAttribute('height', vb.height);
+      const maskBg = rect(null, vb.x, vb.y, vb.width, vb.height); maskBg.setAttribute('fill', 'white');
+      const maskHole = rect(null, box.x, box.y, box.w, box.h); maskHole.setAttribute('fill', 'black');
+      mask.append(maskBg, maskHole);
+
+      const dim = rect('sel-dim', vb.x, vb.y, vb.width, vb.height);
+      dim.setAttribute('mask', 'url(#selDimMask)');
+
+      g.append(mask, dim, rect('sel-halo', box.x, box.y, box.w, box.h), rect('sel-ants', box.x, box.y, box.w, box.h));
+      svgRoot.appendChild(g);
+    }
+
+    function clearSelection() {
+      const prev = canvas.querySelector('.sel-overlay'); if (prev) prev.remove();
+      document.querySelectorAll('#layers .row.selected').forEach(e => e.classList.remove('selected'));
+    }
+
+    function selectNode(id, opts) {
+      const svgRoot = canvas.querySelector('svg');
+      clearSelection();
+      if (!id || !svgRoot) { selectedId = null; selectedBox = null; selectedNode = null; renderPropertiesSection(); renderTokensSection(); return; }
+      selectedId = id;
+      const node = findNode(id, pagesMeta[pageIndex]?.layers || []);
+      const box = subtreeBox(svgRoot, node || { id });
+      selectedBox = box; selectedNode = node;
+      drawSelectionOverlay(box);
+
+      // Expand every ancestor group so the corresponding row actually exists
+      // in the DOM — buildLayerRows only renders a group's children while
+      // it's expanded, so selecting a deeply-nested element via a canvas
+      // click would otherwise leave no visible row to show it was selected.
+      const ancestors = findPath(id, pagesMeta[pageIndex]?.layers || [], []);
+      if (ancestors) {
+        let changed = false;
+        for (const a of ancestors) if (!expandedIds.has(a)) { expandedIds.add(a); changed = true; }
+        if (changed) renderLayers();
+      }
+
+      const row = document.querySelector('#layers .row[data-row-id="' + CSS.escape(id) + '"]');
+      if (row) { row.classList.add('selected'); row.scrollIntoView({ block: 'nearest' }); }
+      if (box && opts && opts.zoom) zoomToBox(box, { pad: 0.6, maxScale: 16 });
+      renderPropertiesSection();
+      renderTokensSection();
+      openRightPanel();
+    }
+
+    function triggerDownload(blob, filename) {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+    }
+
+    function svgToPngBlob(svgString, w, h) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' }));
+        img.onload = () => {
+          const scale = 2;
+          const cnv = document.createElement('canvas');
+          cnv.width = Math.max(1, Math.round(w * scale)); cnv.height = Math.max(1, Math.round(h * scale));
+          cnv.getContext('2d').drawImage(img, 0, 0, cnv.width, cnv.height);
+          URL.revokeObjectURL(url);
+          cnv.toBlob(b => b ? resolve(b) : reject(new Error('PNG encode failed')), 'image/png');
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('could not rasterize SVG')); };
+        img.src = url;
+      });
+    }
+
+    async function downloadAs(svgString, baseName, format, w, h) {
+      if (format === 'png') {
+        try { triggerDownload(await svgToPngBlob(svgString, w, h), baseName + '.png'); }
+        catch (e) { dropLabel.textContent = 'PNG export failed: ' + (e.message || e); }
+      } else {
+        triggerDownload(new Blob([svgString], { type: 'image/svg+xml' }), baseName + '.svg');
+      }
+    }
+
+    function buildNodeSvg(id) {
+      const svgRoot = canvas.querySelector('svg'); if (!svgRoot || !id) return null;
+      const node = findNode(id, pagesMeta[pageIndex]?.layers || []);
+      const ids = collectIds(node || { id }, new Set());
+      const all = [...svgRoot.querySelectorAll('[data-id]')].filter(e => ids.has(e.dataset.id));
+      if (!all.length) return null;
+
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const el of all) {
+        const b = elementBox(svgRoot, el); if (!b) continue;
+        if (b.x < minX) minX = b.x; if (b.y < minY) minY = b.y; if (b.x + b.w > maxX) maxX = b.x + b.w; if (b.y + b.h > maxY) maxY = b.y + b.h;
+      }
+      if (!isFinite(minX)) return null;
+      const pad = 8, vb = { x: minX - pad, y: minY - pad, w: (maxX - minX) + pad * 2, h: (maxY - minY) + pad * 2 };
+
+      const defsRoot = svgRoot.querySelector('defs');
+      const needed = new Set();
+      const refRe = /#([A-Za-z0-9_]+)/g;
+      const scan = (html) => { let m; while ((m = refRe.exec(html))) needed.add(m[1]); };
+      all.forEach(el => scan(el.outerHTML));
+      let grew = true;
+      while (grew) {
+        grew = false;
+        for (const rid of [...needed]) {
+          const def = defsRoot && defsRoot.querySelector('#' + CSS.escape(rid));
+          if (def) { const before = needed.size; scan(def.outerHTML); if (needed.size !== before) grew = true; }
+        }
+      }
+      const defsOut = [...needed].map(rid => { const d = defsRoot && defsRoot.querySelector('#' + CSS.escape(rid)); return d ? d.outerHTML : ''; }).join('');
+      const bodyOut = all.map(el => el.outerHTML).join('');
+      const svgString = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + vb.x + ' ' + vb.y + ' ' + vb.w + ' ' + vb.h + '" width="' + Math.round(vb.w) + '" height="' + Math.round(vb.h) + '">' +
+        '<defs>' + defsOut + '</defs>' + bodyOut + '</svg>';
+      return { svgString, w: vb.w, h: vb.h, name: (node && node.name) || id };
+    }
+
+    function exportNode(id, format) {
+      const built = buildNodeSvg(id); if (!built) return;
+      const safe = built.name.replace(/[/\\?%*:|"<>]/g, '-');
+      downloadAs(built.svgString, safe, format, built.w, built.h);
+    }
+
+    function exportAll(format) {
+      const svg = canvas.querySelector('svg'); if (!svg) return;
+      const vb = svg.viewBox.baseVal;
+      const safe = (currentName + ' - ' + (pagesMeta[pageIndex]?.name || 'page')).replace(/[/\\?%*:|"<>]/g, '-');
+      downloadAs(svg.outerHTML, safe, format, vb.width, vb.height);
+    }
+
+    const ctxMenu = document.createElement('div');
+    ctxMenu.id = 'ctxmenu';
+    figxApp.appendChild(ctxMenu);
+
+    function closeCtxMenu() { ctxMenu.classList.remove('open'); }
+    addEventListener('mousedown', e => { if (!ctxMenu.contains(e.target)) closeCtxMenu(); });
+    addEventListener('scroll', closeCtxMenu, true);
+    addEventListener('keydown', e => { if (e.key === 'Escape') closeCtxMenu(); });
+    addEventListener('resize', closeCtxMenu);
+
+    function menuItem(label, uiIconKey, onClick, disabled) {
+      const el = document.createElement('div');
+      el.className = 'item' + (disabled ? ' disabled' : '');
+      el.innerHTML = '<span class="ic">' + (uiIconKey ? uiIcon(uiIconKey) : '') + '</span><span>' + label + '</span>';
+      if (!disabled) el.onclick = (e) => { e.stopPropagation(); closeCtxMenu(); onClick(); };
+      return el;
+    }
+    function menuSep() { const d = document.createElement('div'); d.className = 'csep'; return d; }
+
+    function openMenuAt(x, y, items) {
+      ctxMenu.innerHTML = '';
+      for (const it of items) ctxMenu.appendChild(it === 'sep' ? menuSep() : menuItem(it.label, it.icon, it.onClick, it.disabled));
+      ctxMenu.style.left = x + 'px'; ctxMenu.style.top = y + 'px';
+      ctxMenu.classList.add('open');
+      requestAnimationFrame(() => {
+        const r = ctxMenu.getBoundingClientRect();
+        if (r.right > innerWidth) ctxMenu.style.left = Math.max(4, innerWidth - r.width - 8) + 'px';
+        if (r.bottom > innerHeight) ctxMenu.style.top = Math.max(4, innerHeight - r.height - 8) + 'px';
+      });
+    }
+
+    function openCtxMenu(x, y, id) {
+      const svgRoot = canvas.querySelector('svg');
+      const node = findNode(id, pagesMeta[pageIndex]?.layers || []) || { id };
+      const hasKids = node.children && node.children.length > 0;
+      const box = svgRoot && subtreeBox(svgRoot, node);
+      const isHidden = hiddenIds.has(id);
+      const isOpen = expandedIds.has(id);
+      openMenuAt(x, y, [
+        { label: 'Center in screen', icon: 'SCAN', onClick: () => selectNode(id, { zoom: true }), disabled: !box },
+        'sep',
+        { label: 'Unfold', icon: 'UNFOLD', onClick: () => toggleFold(id), disabled: !hasKids || isOpen },
+        { label: 'Fold', icon: 'FOLD', onClick: () => toggleFold(id), disabled: !hasKids || !isOpen },
+        'sep',
+        { label: isHidden ? 'Show' : 'Hide', icon: isHidden ? 'EYE' : 'EYE_OFF', onClick: () => toggleHide(id) },
+        'sep',
+        { label: 'Export "' + node.name + '" as SVG', icon: 'DOWNLOAD', onClick: () => exportNode(id, 'svg') },
+        { label: 'Export "' + node.name + '" as PNG', icon: 'IMAGE', onClick: () => exportNode(id, 'png') },
+      ]);
+    }
+
+    function openExportMenu(anchorEl) {
+      const r = anchorEl.getBoundingClientRect();
+      const hasSel = !!selectedId;
+      const tokens = getTokens();
+      const hasTokens = !!tokens && (tokens.variables.collections.some((c) => c.variables.length) ||
+        Object.values(tokens.styles).some((arr) => arr.length));
+      openMenuAt(r.left, r.bottom + 6, [
+        { label: 'Export selection as SVG', icon: 'DOWNLOAD', onClick: () => exportNode(selectedId, 'svg'), disabled: !hasSel },
+        { label: 'Export selection as PNG', icon: 'IMAGE', onClick: () => exportNode(selectedId, 'png'), disabled: !hasSel },
+        'sep',
+        { label: 'Export all as SVG', icon: 'DOWNLOAD', onClick: () => exportAll('svg') },
+        { label: 'Export all as PNG', icon: 'IMAGE', onClick: () => exportAll('png') },
+        'sep',
+        { label: 'Export tokens as JSON', icon: 'TAG', onClick: () => downloadTokens('json'), disabled: !hasTokens },
+        { label: 'Export tokens as CSS', icon: 'TAG', onClick: () => downloadTokens('css'), disabled: !hasTokens },
+      ]);
+    }
+
+    // Renders (and caches) a page's SVG on first visit only — see
+    // pageSvgCache's declaration above for why.
+    function getPageSvg(i) {
+      if (!pageSvgCache.has(i)) {
+        pageSvgCache.set(i, renderSvg(currentDecoded, { page: i, mode: currentMode || undefined }));
+      }
+      return pageSvgCache.get(i);
+    }
+
+    function showPage(i) {
+      if (!pagesMeta[i]) return;
+      pageIndex = i;
+      canvas.innerHTML = getPageSvg(i);
+      $('info').textContent = '· ' + (pagesMeta[i].nodes || '?') + ' nodes';
+      selectedId = null; selectedBox = null; selectedNode = null; expandedIds = new Set(); hiddenIds = new Set();
+      renderPagesList(); renderLayers(); fit();
+      renderPropertiesSection();
+    }
+
+    // Decode client-side (no network request — this is what makes the whole
+    // page work as a static GitHub Pages site) and get page metadata, but
+    // defer actually rendering any page's SVG until showPage() needs it.
+    // `demo`, when set (see loadDemo() above), is that file's demos.json
+    // entry — shown as a small credit in the toolbar for as long as it's
+    // the loaded file, since its license requires attribution.
+    async function load(file, demo = null) {
+      if (!file) return;
+      if (!/\.fig$/i.test(file.name)) { dropLabel.textContent = 'Please choose a .fig file.'; return; }
+      dropLabel.textContent = 'Decoding ' + file.name + '…';
+      try {
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        const decoded = decodeFig(bytes);
+        const meta = pageList(decoded) || [];
+        if (!meta.length) throw new Error('no drawable pages found');
+        currentDecoded = decoded; currentMode = null; cachedTokens = null;
+        pagesMeta = meta; pageSvgCache = new Map();
+        currentName = demo ? demo.title : file.name.replace(/\.fig$/i, '');
+        $('fname').textContent = currentName;
+        currentDemo = demo;
+        demoCreditEl.innerHTML = demo
+          ? `· Demo by ${escapeHtml(demo.author)} · <a href="${escapeHtml(demo.licenseUrl || '#')}" target="_blank" rel="noopener">${escapeHtml(demo.license)}</a> · <a href="${escapeHtml(demo.sourceUrl)}" target="_blank" rel="noopener">source</a>`
+          : '';
+        demoCreditEl.style.display = demo ? '' : 'none';
+        document.body.style.overflow = 'hidden';
+        figxApp.style.display = 'block'; viewer.style.display = 'block';
+        setUpRightPanelButton();
+        showPage(0);
+      } catch (e) {
+        dropLabel.textContent = 'Could not read that file: ' + (e.message || e);
+      }
+    }
+
+    function closeApp() {
+      figxApp.style.display = 'none'; viewer.style.display = 'none';
+      document.body.style.overflow = '';
+      dropLabel.textContent = 'Drag and drop a .fig file here';
+      fileInput.value = '';
+      currentDecoded = null; currentMode = null; cachedTokens = null;
+      pagesMeta = []; pageSvgCache = new Map();
+      selectedId = null; selectedBox = null; selectedNode = null;
+      currentDemo = null;
+      demoCreditEl.style.display = 'none';
+    }
+
+    // A small custom confirm dialog for in-app actions (closing the loaded
+    // file) — unlike the browser's own reload/tab-close prompt below, this
+    // one really can be styled, since it's just DOM we control rather than a
+    // native dialog. Resolves true/false; Escape or clicking the backdrop
+    // cancels.
+    function confirmModal(title, message, confirmLabel) {
+      return new Promise((resolve) => {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'confirm-backdrop';
+        backdrop.innerHTML = '<div class="confirm-modal"><h4></h4><p></p>' +
+          '<div class="row"><button class="fx-btn" id="confirmCancel">Cancel</button>' +
+          '<button class="fx-btn" id="confirmOk"></button></div></div>';
+        backdrop.querySelector('h4').textContent = title;
+        backdrop.querySelector('p').textContent = message;
+        backdrop.querySelector('#confirmOk').textContent = confirmLabel;
+        figxApp.appendChild(backdrop);
+        const done = (result) => { backdrop.remove(); document.removeEventListener('keydown', onKey); resolve(result); };
+        const onKey = (e) => { if (e.key === 'Escape') done(false); };
+        document.addEventListener('keydown', onKey);
+        backdrop.addEventListener('click', (e) => { if (e.target === backdrop) done(false); });
+        backdrop.querySelector('#confirmCancel').addEventListener('click', () => done(false));
+        backdrop.querySelector('#confirmOk').addEventListener('click', () => done(true));
+      });
+    }
+
+    // Losing the loaded file means re-dropping it in, so guard both exits:
+    // an in-app "Close" gets a real custom modal (above); an actual reload
+    // or tab close can only ever show the browser's own native prompt —
+    // browsers have refused to let a page customize that text since ~2011
+    // (a security measure against fake "you have unsaved changes" scams),
+    // so there's no way to make *that* one a styled dialog.
+    addEventListener('beforeunload', (e) => {
+      if (viewer.style.display !== 'block') return;
+      e.preventDefault();
+      e.returnValue = '';
+    });
+
+    // ---- variables (modes) + design-token extraction ----
+    // Re-derived per file: extractVariables/extractStyles are pure functions
+    // over the decoded document, so cache the result until a new file loads
+    // (see load()/closeApp() resetting cachedTokens) rather than recomputing
+    // on every menu open or download.
+    function getTokens() {
+      if (!cachedTokens && currentDecoded) {
+        cachedTokens = { variables: extractVariables(currentDecoded), styles: extractStyles(currentDecoded) };
+      }
+      return cachedTokens;
+    }
+
+    function availableModeNames(variables) {
+      const names = [];
+      for (const c of variables.collections) for (const m of c.modes) if (!names.includes(m)) names.push(m);
+      return names;
+    }
+
+    // Switch to a different variable mode (e.g. "Dark Mode") instead of the
+    // file's baked default. Every page's cached SVG is stale once colors can
+    // change, but only the currently-visible one is actually worth
+    // re-rendering right now — showPage() re-renders the rest lazily,
+    // whenever (if ever) the user actually visits them.
+    function applyMode(modeName) {
+      currentMode = modeName;
+      pageSvgCache = new Map();
+      showPage(Math.min(pageIndex, pagesMeta.length - 1));
+      renderModesSection(); renderTokensSection(); // active mode + swatches both depend on it
+    }
+
+    function downloadTokens(format) {
+      const tokens = getTokens();
+      const content = format === 'css' ? tokensToCss(tokens, currentMode) : JSON.stringify(tokens, null, 2);
+      const mime = format === 'css' ? 'text/css' : 'application/json';
+      triggerDownload(new Blob([content], { type: mime }), currentName + '-tokens.' + format);
+    }
+
+    const colorCss = (c) => (c ? 'rgba(' + Math.round(c.r * 255) + ',' + Math.round(c.g * 255) + ',' + Math.round(c.b * 255) + ',' + (c.a ?? 1) + ')' : null);
+
+    function tpRow(swatchColor, name, value) {
+      const row = document.createElement('div'); row.className = 'tp-row';
+      if (swatchColor) {
+        const sw = document.createElement('div'); sw.className = 'tp-swatch'; sw.style.background = swatchColor;
+        row.appendChild(sw);
+      }
+      const nm = document.createElement('span'); nm.className = 'tp-nm'; nm.textContent = name; nm.title = name;
+      row.appendChild(nm);
+      if (value) { const v = document.createElement('span'); v.className = 'tp-val'; v.textContent = value; row.appendChild(v); }
+      return row;
+    }
+
+    function tpGroup(title, rows) {
+      const group = document.createElement('div'); group.className = 'tp-group';
+      const h = document.createElement('h4'); h.textContent = title; group.appendChild(h);
+      for (const r of rows) group.appendChild(r);
+      return group;
+    }
+
+    function propRow(k, v) {
+      const row = document.createElement('div'); row.className = 'prop-row';
+      const kEl = document.createElement('span'); kEl.className = 'prop-k'; kEl.textContent = k;
+      const vEl = document.createElement('span'); vEl.className = 'prop-v'; vEl.textContent = v; vEl.title = v;
+      row.append(kEl, vEl);
+      return row;
+    }
+
+    // The layer tree only carries id/name/type/hidden (see layerTree() in
+    // render.js) — no fills/strokes/effects without a deeper backend change —
+    // but position/size come for free from the same world-space box already
+    // computed for the selection overlay, so show what's genuinely available
+    // rather than nothing.
+    function renderPropertiesSection() {
+      const body = $('propsBody'); if (!body) return;
+      body.innerHTML = '';
+      if (!selectedId || !selectedNode) {
+        body.innerHTML = '<div class="tp-empty">Click an element on the canvas or in Layers to inspect it.</div>';
+        return;
+      }
+      body.appendChild(propRow('Name', selectedNode.name || '—'));
+      body.appendChild(propRow('Type', selectedNode.type || '—'));
+      if (selectedBox) {
+        const r = (n) => Math.round(n * 10) / 10;
+        body.appendChild(propRow('Position', r(selectedBox.x) + ', ' + r(selectedBox.y)));
+        body.appendChild(propRow('Size', r(selectedBox.w) + ' × ' + r(selectedBox.h)));
+      }
+
+      // Fill/stroke/opacity/corner-radius, plus font-family/weight/size/
+      // line-height/letter-spacing for text — read straight off this exact
+      // node's own data-css attribute (see cssProps() in render.js) rather
+      // than re-deriving paint/text resolution client-side. Design Tokens
+      // below covers "what variable/style does this use"; this is "what
+      // does it actually look like".
+      const svgRoot = canvas.querySelector('svg');
+      const el = svgRoot && svgRoot.querySelector('[data-id="' + CSS.escape(selectedId) + '"]');
+      let style = [];
+      if (el && el.dataset.css) { try { style = JSON.parse(el.dataset.css); } catch {} }
+      if (style.length) {
+        const rows = style.map(([k, v]) => {
+          const swatch = k === 'fill' ? v : k === 'stroke' ? v.split(' / ')[0] : null;
+          return tpRow(swatch, k, v);
+        });
+        body.appendChild(tpGroup('Style', rows));
+      }
+    }
+
+    function modeRow(name, isActive, onClick) {
+      const row = document.createElement('div'); row.className = 'mode-row' + (isActive ? ' active' : '');
+      row.innerHTML = '<span class="mode-check">' + svgIcon('<path d="M20 6 9 17l-5-5"/>') + '</span><span class="mode-nm"></span>';
+      row.querySelector('.mode-nm').textContent = name;
+      row.addEventListener('click', onClick);
+      return row;
+    }
+
+    // Lists every variable mode across every collection as a flat, clickable
+    // list — switching applies it file-wide (see applyMode()) rather than
+    // per-collection, which matches how most files only ever use one
+    // meaningful axis (e.g. Light/Dark) even when several collections each
+    // define their own modes.
+    function renderModesSection() {
+      const body = $('modesBody'); if (!body) return;
+      const tokens = cachedTokens;
+      const modes = tokens ? availableModeNames(tokens.variables) : [];
+      $('accModes').style.display = modes.length ? '' : 'none';
+      if (!modes.length) return;
+      $('modesCount').textContent = modes.length;
+      body.innerHTML = '';
+      body.appendChild(modeRow('Default', currentMode == null, () => applyMode(null)));
+      for (const name of modes) body.appendChild(modeRow(name, currentMode === name, () => applyMode(name)));
+    }
+
+    // Renders the Design Tokens accordion body from the (already-cached)
+    // extracted tokens, using whichever variable mode is currently active so
+    // color swatches match what's actually on screen right now.
+    // Every variable/style used anywhere in a node's subtree (itself
+    // included), deduped — reads each descendant's own data-css/data-tokens
+    // rather than re-deriving anything. A leaf's "subtree" is just itself,
+    // so this covers both "select one shape" and "select a whole component"
+    // with the same code path.
+    function collectSubtreeTokens(node) {
+      const svgRoot = canvas.querySelector('svg'); if (!svgRoot || !node) return [];
+      const seen = new Set(); const out = [];
+      for (const id of collectIds(node, new Set())) {
+        const el = svgRoot.querySelector('[data-id="' + CSS.escape(id) + '"]');
+        if (!el || !el.dataset.tokens) continue;
+        let refs; try { refs = JSON.parse(el.dataset.tokens); } catch { continue; }
+        for (const r of refs) {
+          const key = r.kind + '|' + r.slot + '|' + r.name;
+          if (seen.has(key)) continue;
+          seen.add(key); out.push(r);
+        }
+      }
+      return out;
+    }
+
+    // Finds a named variable across every collection, for a color swatch —
+    // O(n) over the file's variables, fine at the sizes a selection's own
+    // token list runs to (a handful, not hundreds).
+    function findVariableByName(name) {
+      for (const c of cachedTokens.variables.collections) {
+        const v = c.variables.find((v) => v.name === name);
+        if (v) return { v, c };
+      }
+      return null;
+    }
+
+    function renderTokensSection() {
+      const body = $('tokensGroupsBody'); if (!body) return;
+      const tokens = cachedTokens;
+      const hasTokens = !!tokens && (tokens.variables.collections.some((c) => c.variables.length) ||
+        Object.values(tokens.styles).some((arr) => arr.length));
+      $('accTokens').style.display = hasTokens ? '' : 'none';
+      if (!hasTokens) return;
+      body.innerHTML = '';
+
+      // A selection narrows this section to only what it (or its subtree)
+      // actually uses — "design tokens at the component/individual level" —
+      // rather than dumping the whole file's palette every time.
+      if (selectedId && selectedNode) {
+        const refs = collectSubtreeTokens(selectedNode);
+        $('tokensCount').textContent = refs.length;
+        if (!refs.length) { body.innerHTML = '<div class="tp-empty">No variables or styles used by this selection.</div>'; return; }
+        const rows = refs.map((r) => {
+          if (r.kind === 'variable') {
+            const found = findVariableByName(r.name);
+            let swatch = null;
+            if (found && found.v.type === 'COLOR') {
+              const modeName = (currentMode && found.c.modes.includes(currentMode)) ? currentMode : found.c.modes[0];
+              swatch = colorCss(found.v.valuesByMode[modeName]);
+            }
+            return tpRow(swatch, r.name, r.slot);
+          }
+          return tpRow(null, r.name, 'style · ' + r.slot);
+        });
+        body.appendChild(tpGroup('Used by "' + (selectedNode.name || selectedId) + '"', rows));
+        return;
+      }
+
+      const varCount = tokens.variables.collections.reduce((n, c) => n + c.variables.length, 0);
+      const styleCount = Object.values(tokens.styles).reduce((n, arr) => n + arr.length, 0);
+      $('tokensCount').textContent = varCount + styleCount;
+
+      for (const c of tokens.variables.collections) {
+        if (!c.variables.length) continue;
+        const modeName = (currentMode && c.modes.includes(currentMode)) ? currentMode : c.modes[0];
+        const rows = c.variables.map((v) => {
+          const val = v.valuesByMode[modeName];
+          return v.type === 'COLOR'
+            ? tpRow(colorCss(val), v.name, null)
+            : tpRow(null, v.name, val == null ? '' : String(val));
+        });
+        body.appendChild(tpGroup(c.name, rows));
+      }
+
+      const styleGroups = [['fill', 'Fill Styles'], ['text', 'Text Styles'], ['effect', 'Effect Styles'], ['grid', 'Grid Styles']];
+      for (const [key, label] of styleGroups) {
+        const arr = tokens.styles[key]; if (!arr.length) continue;
+        const rows = arr.map((s) => {
+          if (key === 'fill') {
+            const solid = s.paints.find((p) => p.type === 'SOLID' && p.color);
+            return tpRow(solid ? colorCss(solid.color) : null, s.name, null);
+          }
+          if (key === 'text') return tpRow(null, s.name, [s.fontFamily, s.fontSize ? s.fontSize + 'px' : null].filter(Boolean).join(' '));
+          return tpRow(null, s.name, null);
+        });
+        body.appendChild(tpGroup(label, rows));
+      }
+    }
+
+    function renderRightPanel() {
+      renderPropertiesSection();
+      renderModesSection();
+      renderTokensSection();
+    }
+
+    async function toggleTokensPanel() {
+      const panel = $('tokensPanel');
+      const opening = !panel.classList.contains('open');
+      if (opening) { await getTokens(); renderRightPanel(); }
+      panel.classList.toggle('open', opening);
+      stage.classList.toggle('tokens-open', opening);
+    }
+
+    // Selecting something is the whole reason to look at the panel, so it
+    // opens itself rather than making the user remember to click "Panel"
+    // first; a no-op if it's already open. Deselecting never force-closes it
+    // — only opening on "here's something to show" avoids fighting a user
+    // who closed it on purpose while still poking around the canvas.
+    async function openRightPanel() {
+      const panel = $('tokensPanel');
+      if (panel.classList.contains('open')) return;
+      await getTokens();
+      renderRightPanel();
+      panel.classList.add('open');
+      stage.classList.add('tokens-open');
+    }
+
+    // The panel itself always shows (Properties has something to say even
+    // with no variables/styles); Modes/Tokens hide their own accordion
+    // section when this file doesn't have any, via renderModesSection() /
+    // renderTokensSection() above.
+    function setUpRightPanelButton() {
+      $('tokensBtn').style.display = '';
+    }
+
+    // Independent accordion — each section opens/closes on its own rather
+    // than collapsing its neighbors, matching how Pages/Layers already
+    // coexist in the left sidebar.
+    document.querySelectorAll('#tokensPanel .acc-head').forEach((head) => {
+      head.addEventListener('click', () => head.parentElement.classList.toggle('open'));
+    });
+    $('accProperties').classList.add('open');
+    document.querySelectorAll('#tokensPanel .acc-chevron, #side .acc-chevron').forEach((c) => { c.innerHTML = svgIcon(CHEVRON); });
+
+    // Pages/Layers collapse the same way (chevron + click), just without the
+    // "independent accordion" framing — they're always the same two.
+    document.querySelectorAll('#side .sec-head').forEach((head) => {
+      head.addEventListener('click', () => head.parentElement.classList.toggle('collapsed'));
+    });
+
+    $('tokensBtn').innerHTML = uiIcon('PANEL_RIGHT');
+    $('tokensPanelClose').innerHTML = uiIcon('X');
+    $('tokensBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleTokensPanel(); });
+    $('tokensPanelClose').addEventListener('click', (e) => { e.stopPropagation(); toggleTokensPanel(); });
+
+    $('toggle').addEventListener('click', () => { $('side').classList.toggle('hidden'); stage.classList.toggle('full'); });
+    $('closeApp').addEventListener('click', async () => {
+      if (await confirmModal('Close this file?', 'You’ll need to drop it in again to view it.', 'Close')) closeApp();
+    });
+    $('fit').addEventListener('click', fit);
+    $('exportBtn').addEventListener('click', (e) => { e.stopPropagation(); openExportMenu($('exportBtn')); });
+
+    let dragging = false, didDrag = false, lx = 0, ly = 0;
+    stage.addEventListener('mousedown', e => { dragging = true; didDrag = false; lx = e.clientX; ly = e.clientY; stage.classList.add('drag'); });
+    addEventListener('mouseup', () => { dragging = false; stage.classList.remove('drag'); });
+    addEventListener('mousemove', e => { if (!dragging) return;
+      if (Math.abs(e.clientX - lx) > 2 || Math.abs(e.clientY - ly) > 2) didDrag = true;
+      tx += e.clientX - lx; ty += e.clientY - ly; lx = e.clientX; ly = e.clientY; apply(); });
+    canvas.addEventListener('click', e => {
+      if (didDrag) return;
+      const el = e.target.closest('[data-id]');
+      selectNode(el ? el.dataset.id : null, { zoom: false });
+    });
+    canvas.addEventListener('contextmenu', e => {
+      const el = e.target.closest('[data-id]');
+      if (!el) return;
+      e.preventDefault();
+      selectNode(el.dataset.id, { zoom: false });
+      openCtxMenu(e.clientX, e.clientY, el.dataset.id);
+    });
+    stage.addEventListener('wheel', e => { e.preventDefault();
+      const r = stage.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+      const k = Math.exp(-e.deltaY * 0.0015), ns = Math.max(0.02, Math.min(64, scale * k));
+      tx = mx - (mx - tx) * (ns / scale); ty = my - (my - ty) * (ns / scale); scale = ns; apply();
+    }, { passive: false });
+    stage.addEventListener('dblclick', fit);
+    addEventListener('resize', () => { if (viewer.style.display === 'block') fit(); });
+  </script>
+</body>
+</html>

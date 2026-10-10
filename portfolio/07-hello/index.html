@@ -1,17 +1,20 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <script>(function(){try{var p=JSON.parse(localStorage.getItem('cryz-prefs'))||{};var e=document.documentElement;e.setAttribute('data-theme',p.theme||'system');e.setAttribute('data-accent',p.accent||'pink');if(p.mono)e.classList.add('cryz-mono');if(p.field)e.classList.add('cryz-field');if(p.tilt===false)e.classList.add('cryz-no-tilt');if(p.heroBg===false)e.classList.add('cryz-no-hero-bg');if(p.heroIcons===false)e.classList.add('cryz-no-hero-icons');}catch(_){}})();</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <title>Javier Alonso — Selected Work</title>
-  <meta name="description" content="Principal Product Designer, Head of Design for AI & Developer Products at Docker. Gordon, MCP Toolkit & Catalog, Model Runner, Agentic Platform, CLI Design System, Den.">
+  <meta name="description" content="Staff Product Designer & AI/Agentic UX Lead at Docker. Gordon, MCP Toolkit & Catalog, Model Runner, Agentic Platform, CLI Design System, Den.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+  <canvas id="field" aria-hidden="true"></canvas>
 
   <header class="top">
     <div class="wrap top-inner">
@@ -20,9 +23,12 @@
       </a>
       <nav aria-label="Primary">
         <ul>
-          <li><a href="#work">Work</a></li>
+          <li><a href="experience.html">Resume</a></li>
+          <li><a href="#work">Portfolio</a></li>
+          <li><a href="playground/index.html">Playground</a></li>
           <li><a href="#about">About</a></li>
           <li><a href="mailto:javier.alonso@docker.com">Contact</a></li>
+          <li><a class="cryz" href="cryz.html" aria-label="crzy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 11h.01"/><path d="M14 6h.01"/><path d="M18 6h.01"/><path d="M6.5 13.1h.01"/><path d="M22 5c0 9-4 12-6 12s-6-3-6-12c0-2 2-3 6-3s6 1 6 3"/><path d="M17.4 9.9c-.8.8-2 .8-2.8 0"/><path d="M10.1 7.1C9 7.2 7.7 7.7 6 8.6c-3.5 2-4.7 3.9-3.7 5.6 4.5 7.8 9.5 8.4 11.2 7.4.9-.5 1.9-2.1 1.9-4.7"/><path d="M9.1 16.5c.3-1.1 1.4-1.7 2.4-1.4"/></svg>crzy</a></li>
         </ul>
       </nav>
     </div>
@@ -35,34 +41,21 @@
 
         <div class="hero-card">
           <h1 class="hero-title">
-            Hi, I&rsquo;m <strong>Javier Alonso</strong> a
-            <span class="chip chip-role" id="role-chip" role="button" tabindex="0" aria-expanded="false" aria-haspopup="listbox" title="See all roles"><span class="role-view" id="role-view"><span class="role-word active">AI Product Designer</span><span class="role-word">Product Builder</span><span class="role-word">Founder</span><span class="role-word">Speaker</span><span class="role-word">Mentor</span><span class="role-word">Sketchnoter</span><span class="role-sizer" aria-hidden="true">AI Product Designer</span></span><svg class="role-caret" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg><ul class="role-list" id="role-list" role="listbox" aria-label="Roles"><li role="option" aria-selected="true" class="active">AI Product Designer</li><li role="option">Product Builder</li><li role="option">Founder</li><li role="option">Speaker</li><li role="option">Mentor</li><li role="option">Sketchnoter</li></ul></span><br>
-            <span class="hero-dim">Taking AI &amp; developer products</span>
-            <span class="chip chip-mono">0→1</span>
-            <span class="hero-dim">at</span>
-            <span class="chip chip-icon chip-icon-accent" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h3v3H4zM8.5 13h3v3h-3zM13 13h3v3h-3zM8.5 9.5h3v3h-3zM13 9.5h3v3h-3zM17.5 13h3v3h-3z"></path><path d="M2.5 17.5c1.5 1.8 4 2.5 7.5 2.5 6 0 9.5-3 11-7"></path></svg></span>
-            <strong class="accent">Docker</strong>.
+            Hi! <span class="hero-wave" aria-hidden="true">👋🏻</span> I&rsquo;m <img class="hero-face" src="assets/memoji.png" alt="" width="42" height="42"><strong>Javier Alonso</strong>, <span class="role-article" id="role-article">a</span>
+            <span class="chip chip-role" id="role-chip" role="button" tabindex="0" aria-expanded="false" aria-haspopup="listbox" title="See all roles"><img class="role-icon" id="role-icon" src="assets/icons/ai-product-designer.png" alt="" width="28" height="28"><span class="role-view" id="role-view"><span class="role-word active" data-article="an">AI Product Designer</span><span class="role-word" data-article="a">Product Builder</span><span class="role-word" data-article="a">Founder</span><span class="role-word" data-article="a">Speaker</span><span class="role-word" data-article="a">Mentor</span><span class="role-word" data-article="a">Sketchnoter</span><span class="role-word" data-article="a">Design Engineer</span><span class="role-word" data-article="an">Interaction Designer</span><span class="role-word" data-article="a">Forward Deployed Designer</span><span class="role-word" data-article="a">Design Technologist</span><span class="role-word" data-article="a">Systems thinker</span><span class="role-word" data-article="a">Futurist</span><span class="role-word" data-article="a">Design Leader</span><span class="role-sizer" aria-hidden="true">Forward Deployed Designer</span></span><svg class="role-caret" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg><ul class="role-list" id="role-list" role="listbox" aria-label="Roles"><li role="option" aria-selected="true" class="active">AI Product Designer</li><li role="option">Product Builder</li><li role="option">Founder</li><li role="option">Speaker</li><li role="option">Mentor</li><li role="option">Sketchnoter</li><li role="option">Design Engineer</li><li role="option">Interaction Designer</li><li role="option">Forward Deployed Designer</li><li role="option">Design Technologist</li><li role="option">Systems thinker</li><li role="option">Futurist</li><li role="option">Design Leader</li></ul></span><br>
+            based in <a class="hero-loc" href="https://www.google.com/maps/place/C%C3%A1ceres/@39.484396,-6.3674453,8308a,35y,180h,3.24t/data=!3m1!1e3!4m6!3m5!1s0xd15dfe1495a2363:0x690bbafe8741c23!8m2!3d39.4755328!4d-6.3734664!16zL20vMDEyNTNk!5m1!1e1?entry=ttu&amp;g_ep=EgoyMDI2MTAwNi4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">C&aacute;ceres, Spain<i class="loc-ext" data-lucide="external-link" aria-hidden="true"></i></a>,<br>
+            currently shipping AI &amp; developer products 0→1 at
+            <button class="docker-chip shader-btn" id="docker-btn" type="button" aria-label="Docker"><canvas></canvas><svg xmlns="http://www.w3.org/2000/svg" width="38" height="30" viewBox="0 0 38 30" version="1.1" aria-hidden="true"><path d="M37.413,12.315c-0.933,-0.627 -3.382,-0.896 -5.163,-0.415c-0.097,-1.774 -1.012,-3.27 -2.685,-4.573l-0.619,-0.416l-0.414,0.624c-0.811,1.232 -1.153,2.873 -1.032,4.366c0.095,0.92 0.415,1.953 1.032,2.703c-2.318,1.345 -4.455,1.039 -13.919,1.039l-14.61,0c-0.042,2.137 0.302,6.248 2.915,9.593c0.289,0.37 0.604,0.727 0.948,1.072c2.126,2.128 5.336,3.689 10.138,3.693c7.325,0.007 13.601,-3.953 17.419,-13.527c1.257,0.02 4.572,0.225 6.195,-2.911c0.039,-0.052 0.413,-0.831 0.413,-0.831l-0.618,-0.415l0,-0.002Zm-27.875,-1.953l-4.108,0l-0,4.108l4.108,0l0,-4.108Zm5.308,0l-4.108,0l-0,4.108l4.108,0l0,-4.108Zm5.308,0l-4.108,0l-0,4.108l4.108,0l0,-4.108Zm5.308,0l-4.108,0l-0,4.108l4.108,0l0,-4.108Zm-21.232,0l-4.108,0l-0,4.108l4.108,0l0,-4.108Zm5.308,-5.19l-4.108,-0l-0,4.108l4.108,0l0,-4.108Zm5.308,-0l-4.108,-0l-0,4.108l4.108,0l0,-4.108Zm5.308,-0l-4.108,-0l-0,4.108l4.108,0l0,-4.108Zm0,-5.19l-4.108,0l-0,4.109l4.108,-0l0,-4.109Z" style="fill:#fff;fill-rule:nonzero;"></path></svg><span>Docker</span></button>
           </h1>
 
-          <p class="hero-whisper"><strong>Head of Design — AI &amp; Developer Products.</strong> I define the primitives, run the research to de-risk them, ship the working prototype, and move the numbers — Gordon, Model Runner, MCP Toolkit &amp; Catalog, the Agentic Platform.</p>
+          <div class="hero-rule" aria-hidden="true"></div>
+          <p class="hero-whisper"><strong>Staff Product Designer &amp; AI/Agentic UX Lead.</strong> I specialize in extremely complex environments for developers, like <span class="term" tabindex="0" data-tip="High-performance computing: scientific, simulation and large-scale compute workloads.">HPC</span>, <span class="term" tabindex="0" data-tip="Command-line interfaces: the terminal tools developers live in all day.">CLI</span>, <span class="term" tabindex="0" data-tip="Agentic frameworks, AI apps, MCPs, inference engines and tools for AI developers.">AI environments</span> and <span class="term" tabindex="0" data-tip="Server monitoring, vulnerabilities, incident response and the tooling that keeps systems safe.">Security</span>. I studied computer science and started as a developer before moving into design. I founded and sold my first company, grew from frontend engineering into product leadership as CEO and CPO, and spent years designing remotely for Silicon Valley companies.</p>
 
-          <div class="hero-pills">
-            <a class="pill pill-dark" href="mailto:javier.alonso@docker.com">Discuss a project <span class="arrow" aria-hidden="true">→</span></a>
-            <span class="pill pill-open"><i class="dot" aria-hidden="true"></i>Cáceres, Spain · open to conversations</span>
-          </div>
-
-          <ul class="hero-skills" aria-label="Practice areas">
-            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 3 8l9 5 9-5-9-5ZM3 13l9 5 9-5" transform="translate(0,-2)"></path></svg>0→1 products</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="m20 20-4.5-4.5"></path></svg>Research-led</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"></rect><path d="M7 9l3 3-3 3M12.5 15H17"></path></svg>Design systems</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M13.5 6l-3 12"></path></svg>HTML / Swift prototypes</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="7" width="16" height="12" rx="3"></rect><path d="M9 12v2M15 12v2M12 3v4"></path></svg>Agent &amp; safety UX</li>
-          </ul>
         </div>
 
         <div class="hero-cards">
           <a class="mini" href="experience.html">
-            <p class="mini-label"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2.5"></rect><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7M3 12.5h18"></path></svg>Experience</p>
+            <p class="mini-label"><i data-lucide="briefcase" aria-hidden="true"></i>Experience</p>
             <ul class="mini-scroll">
               <li><b>Docker.com</b><span>Staff Product Designer · AI &amp; Agentic UX Lead</span></li>
               <li><b>Metrist.io</b><span>Lead Product Designer</span></li>
@@ -74,29 +67,16 @@
               <li><b>Uvalent</b><span>CPO</span></li>
               <li><b>Liqueed Studio</b><span>Founder</span></li>
             </ul>
-            <span class="mini-cta">Full CV &amp; experience <span class="arrow" aria-hidden="true">→</span></span>
+            <span class="mini-cta">Resume <span class="arrow" aria-hidden="true">→</span></span>
           </a>
-
-          <div class="mini">
-            <p class="mini-label"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5M4 19h16M8 15v-4M12 15V8M16 15v-6M20 15v-9"></path></svg>What I&rsquo;m shipping</p>
-            <p class="mini-stat mono">69 → 119,739<small>Gordon MAU · Nov 2024 → Jun 2026</small></p>
-            <p class="mini-stat mono">~13.1M<small>MCP Toolkit &amp; Catalog pulls</small></p>
-          </div>
-
-          <div class="mini">
-            <p class="mini-label"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 5V3M12 21v-2M5 12H3M21 12h-2M6.8 6.8 5.4 5.4M18.6 18.6l-1.4-1.4M6.8 17.2l-1.4 1.4M18.6 5.4l-1.4 1.4"></path></svg>How I work</p>
-            <ol class="mini-steps">
-              <li class="active">01 Primitives</li>
-              <li>02 Research</li>
-              <li>03 Prototype</li>
-              <li>04 Ship &amp; measure</li>
-            </ol>
-          </div>
 
           <div class="mini mini-where">
             <img class="mini-photo" src="assets/caceres-es.jpg" alt="The old town of Cáceres, Spain, at golden hour" loading="lazy">
-            <p class="mini-label"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>Based in</p>
-            <p class="mini-big">Cáceres, Spain</p>
+            <p class="mini-label"><i data-lucide="map-pin" aria-hidden="true"></i>Based in</p>
+            <div class="mini-where-txt">
+              <p class="mini-big">Cáceres, Spain</p>
+              <p class="mini-from">from <a class="mini-map" href="https://www.google.com/maps/search/?api=1&amp;query=Vitoria-Gasteiz%2C%20Basque%20Country" target="_blank" rel="noopener noreferrer">Vitoria</a>, Basque Country</p>
+            </div>
           </div>
         </div>
 
@@ -105,10 +85,10 @@
 
     <section class="work work-tight" id="work" aria-label="Selected work">
       <div class="wrap">
-        <p class="eyebrow">Selected Work — № 07</p>
+        <p class="eyebrow">Selected Work</p>
         <div class="bento">
 
-          <a class="tile t-gordon" href="gordon.html">
+          <a class="tile t-gordon" href="portfolio/gordon.html">
             <div class="tile-top">
               <span class="tile-index">01 / 05 · Design lead · 0→1 → GA → monetization</span>
               <span class="tile-icon" aria-hidden="true">
@@ -127,9 +107,9 @@
             </div>
           </a>
 
-          <a class="tile t-wide" href="#work" aria-label="MCP Toolkit and Catalog. About 13.1 million pulls.">
+          <a class="tile t-wide" href="portfolio/mcp.html" aria-label="MCP Toolkit and Catalog. About 13.1 million pulls.">
             <div class="tile-top">
-              <span class="tile-index">02 · Design lead · net-new</span>
+              <span class="tile-index">02 / 05 · Design lead · net-new</span>
               <span class="tile-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M9 3v5M15 3v5M6 8h12v5a6 6 0 0 1-12 0V8ZM12 19v2"></path>
@@ -146,9 +126,9 @@
             </div>
           </a>
 
-          <a class="tile" href="#work" aria-label="Docker Model Runner. About 2.1 million pulls.">
+          <a class="tile" href="portfolio/model-runner.html" aria-label="Docker Model Runner. About 2.1 million pulls.">
             <div class="tile-top">
-              <span class="tile-index">03 · 0→1</span>
+              <span class="tile-index">03 / 05 · 0→1</span>
               <span class="tile-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="7" y="7" width="10" height="10" rx="2"></rect>
@@ -164,16 +144,16 @@
             </div>
           </a>
 
-          <a class="tile" href="#work" aria-label="Agentic Platform, about 20.7 million command events.">
+          <a class="tile" href="portfolio/cagent.html" aria-label="Agentic Platform and cagent, about 20.7 million command events.">
             <div class="tile-top">
-              <span class="tile-index">04 · 0→1</span>
+              <span class="tile-index">04 / 05 · 0→1</span>
               <span class="tile-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 3 3 8l9 5 9-5-9-5ZM3 13l9 5 9-5M3 18l9 5 9-5" transform="translate(0,-2.5)"></path>
                 </svg>
               </span>
             </div>
-            <h3>Agentic Platform / AI Cloud</h3>
+            <h3>Agentic Platform &amp; cagent</h3>
             <p class="blurb">Defined the product&rsquo;s primitives and IA before it had a name — sessions · sandboxes · kits.</p>
             <div class="tile-foot">
               <span class="tile-metric">~20.7M events</span>
@@ -181,9 +161,9 @@
             </div>
           </a>
 
-          <a class="tile" href="#work" aria-label="CLI Design System, adopted org-wide.">
+          <a class="tile" href="portfolio/cli-ds.html" aria-label="CLI Design System, adopted org-wide.">
             <div class="tile-top">
-              <span class="tile-index">05 · Creator</span>
+              <span class="tile-index">05 / 05 · Creator</span>
               <span class="tile-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="4" width="18" height="16" rx="3"></rect>
@@ -201,12 +181,13 @@
 
           <div class="tile t-x3 t-contact" id="contact">
             <div class="tile-top">
-              <span class="tile-index">Currently — Head of Design, AI &amp; Developer Products @ Docker</span>
+              <span class="tile-index">Currently — Staff Product Designer, AI &amp; Agentic UX @ Docker</span>
             </div>
             <h3>Let&rsquo;s talk</h3>
             <div class="lines">
               <a href="mailto:javier.alonso@docker.com"><span class="k">Email</span><i aria-hidden="true"></i>javier.alonso@docker.com</a>
-              <a href="#"><span class="k">LinkedIn</span><i aria-hidden="true"></i>/in/javier-alonso</a>
+              <a href="https://www.linkedin.com/in/javieralonsogomez/" target="_blank" rel="noopener"><span class="k">LinkedIn</span><i aria-hidden="true"></i>/in/javieralonsogomez</a>
+              <a href="https://x.com/oyabun" target="_blank" rel="noopener"><span class="k">Twitter</span><i aria-hidden="true"></i>@oyabun</a>
               <span><span class="k">Based</span><i aria-hidden="true"></i>Cáceres, Spain</span>
             </div>
           </div>
@@ -220,16 +201,16 @@
         <p class="eyebrow">Personal Projects — solo builds &amp; side quests</p>
         <div class="bento">
 
-          <a class="tile t-wide" href="explorations/den/index.html" aria-label="Den, the app for Docker Sandboxes — preview the landing page.">
+          <a class="tile t-wide" href="playground/den/index.html" aria-label="Den, the app for Docker Sandboxes — preview the landing page.">
             <div class="tile-top">
               <span class="tile-index">01 · macOS · Swift · Docker Sandboxes</span>
               <span class="tile-icon" aria-hidden="true">
-                <img class="tile-logo" src="explorations/den/resources/icon-light.svg" alt="">
-                <img class="tile-logo t-dark" src="explorations/den/resources/icon-dark.svg" alt="">
+                <img class="tile-logo" src="playground/den/resources/icon-light.svg" alt="">
+                <img class="tile-logo t-dark" src="playground/den/resources/icon-dark.svg" alt="">
               </span>
             </div>
             <span class="tile-preview"><img src="assets/previews/den-landing.webp" alt="Den landing page preview" loading="lazy"></span>
-            <h3>Den</h3>
+            <h3>Den <span class="cv-tag">archived</span></h3>
             <p class="blurb">Somewhere safe to let agents run wild — the app for Docker Sandboxes. Every coding agent gets a private microVM with its own filesystem, daemon and guarded network, so it can build, install and rewrite freely while your machine never stirs.</p>
             <div class="tile-foot">
               <span class="study">Preview <span class="arrow">→</span></span>
@@ -237,7 +218,7 @@
             </div>
           </a>
 
-          <a class="tile t-wide" href="explorations/vcr/index.html" aria-label="VCR — preview the landing page.">
+          <a class="tile t-wide" href="playground/vcr/index.html" aria-label="VCR — preview the landing page.">
             <div class="tile-top">
               <span class="tile-index">02 · Session replay · privacy-first</span>
               <span class="tile-icon" aria-hidden="true">
@@ -258,13 +239,15 @@
             </div>
           </a>
 
-          <a class="tile t-x4 xp-banner" href="explorations/" aria-label="All explorations — the full project catalog.">
+          <a class="tile t-x4 xp-banner" href="playground/" aria-label="All playground — the full project catalog.">
             <div class="tile-top">
               <span class="tile-index">Figx · TUI.Studio · HarbourMaster · ProteOS · Narwhal · tinyd · Conveyor · Crane · Loom · Graphic Recorder</span>
             </div>
-            <h3>All explorations</h3>
-            <p class="blurb">The full shelf — shipped apps, session tools, Figma plugins and terminal toys.</p>
-            <div class="tile-foot">
+            <div class="xp-main">
+              <div>
+                <h3>All playground</h3>
+                <p class="blurb">The full shelf — shipped apps, session tools, Figma plugins and terminal toys.</p>
+              </div>
               <span class="study">Browse <span class="arrow">→</span></span>
             </div>
           </a>
@@ -300,7 +283,8 @@
       <span>javier-alonso · № 07 Hello</span>
       <nav aria-label="Footer">
         <a href="mailto:javier.alonso@docker.com">email</a>
-        <a href="#">linkedin</a>
+        <a href="https://www.linkedin.com/in/javieralonsogomez/" target="_blank" rel="noopener">linkedin</a>
+        <a href="https://x.com/oyabun" target="_blank" rel="noopener">twitter</a>
         <a href="#work">work</a>
       </nav>
       <a class="to-top" href="#" aria-label="Back to top">↑</a>
@@ -316,6 +300,15 @@
       var items = document.querySelectorAll('#role-list li');
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       var idx = 0, open = false, timer = null;
+      var ICONS = ['ai-product-designer.png', 'builder.png', 'founder.png', 'speaker.png', 'Mentor.png', 'sketchnoter.png', 'design-engineer.png', 'interaction-design.png', 'forward-deployed-designer.png', 'design-technologist.png', 'system-thinker.png', 'futurist.png', 'growth.png'];
+      var iconEl = document.getElementById('role-icon');
+      ICONS.forEach(function (f) { var im = new Image(); im.src = 'assets/icons/' + f; });
+      for (var q = 0; q < items.length && q < ICONS.length; q++) {
+        var ico = document.createElement('img');
+        ico.className = 'role-li-ico'; ico.src = 'assets/icons/' + ICONS[q]; ico.alt = ''; ico.width = 22; ico.height = 22;
+        ico.style.animationDelay = (0.035 * q).toFixed(3) + 's';
+        items[q].insertBefore(ico, items[q].firstChild);
+      }
 
       function sizeTo() { view.style.width = words[idx].offsetWidth + 'px'; }
 
@@ -326,6 +319,9 @@
           items[j].classList.toggle('active', j === n);
           items[j].setAttribute('aria-selected', j === n ? 'true' : 'false');
         }
+        var artEl = document.getElementById('role-article');
+        if (artEl) artEl.textContent = words[n].getAttribute('data-article') || 'a';
+        if (iconEl && ICONS[n]) { iconEl.src = 'assets/icons/' + ICONS[n]; iconEl.classList.remove('swap'); void iconEl.offsetWidth; iconEl.classList.add('swap'); }
         sizeTo();
       }
 
@@ -359,5 +355,365 @@
     })();
   </script>
 
+
+  <script>
+  /* Dusk field, adapted from 04-terminal (8x8 Bayer ordered dither, pixelSize 4,
+     levels 7) — recolored to the 07 paper/hibiscus palette, light and dark. */
+  (function () {
+    "use strict";
+    var canvas = document.getElementById("field");
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var FIELD = { pixel: 4, noise: 1, levels: 7, speed: 1, curve: 1.35, top: 1.08, pos: -14, opacity: 1 };
+    var PIXEL_SIZE = FIELD.pixel, NOISE = FIELD.noise, LEVELS = FIELD.levels, SPEED = FIELD.speed;
+    var FRAG = "precision highp float;\n" +
+"uniform vec2 uRes;\nuniform float uTime;\nuniform float uNoise;\nuniform float uLevels;\n" +
+"float hash(vec2 p){ p = fract(p * vec2(127.1, 311.7)); p += dot(p, p + 34.23); return fract(p.x * p.y); }\n" +
+"float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);\n" +
+"  float a = hash(i), b = hash(i + vec2(1.0, 0.0)), c = hash(i + vec2(0.0, 1.0)), d = hash(i + vec2(1.0, 1.0));\n" +
+"  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y); }\n" +
+"float fbm(vec2 p){ float sum = 0.0, amp = 0.5;\n" +
+"  for (int i = 0; i < 5; i++){ sum += amp * vnoise(p); p = p * 2.03 + 11.7; amp *= 0.5; } return sum; }\n" +
+"float bayer2(vec2 a){ a = floor(a); return fract(a.x * 0.5 + a.y * a.y * 0.75); }\n" +
+"float bayer4(vec2 a){ return bayer2(a * 0.5) * 0.25 + bayer2(a); }\n" +
+"float bayer8(vec2 a){ return bayer4(a * 0.5) * 0.25 + bayer2(a); }\n" +
+"vec3 stop(float index){\n" +
+"  if (index < 0.5) return vec3(STOP0);\n" +
+"  if (index < 1.5) return vec3(STOP1);\n" +
+"  if (index < 2.5) return vec3(STOP2);\n" +
+"  if (index < 3.5) return vec3(STOP3);\n" +
+"  if (index < 4.5) return vec3(STOP4);\n" +
+"  if (index < 5.5) return vec3(STOP5);\n" +
+"  if (index < 6.5) return vec3(STOP6);\n" +
+"  return vec3(STOP7);\n}\n" +
+"void main(){\n" +
+"  vec2 uv = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y) / uRes;\n" +
+"  float t = uTime;\n" +
+"  vec2 cloud = vec2(uv.x * 3.4, uv.y * 2.1);\n" +
+"  float weather = fbm(cloud + vec2(t * 0.055, t * -0.021));\n" +
+"  weather = mix(weather, fbm(cloud * 1.9 + vec2(-t * 0.032, t * 0.044)), 0.42);\n" +
+"  float sky = smoothstep(0.98, 0.20, uv.y) * 0.36;\n" +
+"  float heat = smoothstep(0.60, 0.16, uv.y) * 0.32;\n" +
+"  float ground = smoothstep(0.26, 0.08, uv.y);\n" +
+"  float sun = smoothstep(0.38, 0.0, length((uv - vec2(0.5, 0.29)) * vec2(0.70, 1.5))) * 0.20;\n" +
+"  float field = 0.11 + sky + heat + sun - ground * 0.80 + (weather - 0.5) * 0.82 * uNoise;\n" +
+"  float grain = hash(floor(gl_FragCoord.xy) + floor(t * 12.0)) - 0.5;\n" +
+"  field += grain * 0.055 * uNoise;\n" +
+"  field *= 1.0 - 0.34 * smoothstep(0.45, 1.05, length((uv - vec2(0.5, 0.46)) * vec2(1.06, 1.0)));\n" +
+"  float levels = max(uLevels, 2.0);\n" +
+"  float dither = bayer8(gl_FragCoord.xy) - 0.5;\n" +
+"  float quantised = clamp(field + dither / levels, 0.0, 0.9999);\n" +
+"  gl_FragColor = vec4(stop(floor(quantised * levels) * (7.0 / (levels - 1.0))), 1.0);\n}";
+    var BASE_LIGHT = [0.961,0.957,0.949];
+    var BASE_DARK  = [0.125,0.133,0.169];
+    function hexToRgb(h) {
+      h = (h || '').trim().replace("#", "");
+      if (h.length === 3) h = h.split("").map(function (c) { return c + c; }).join("");
+      var n = parseInt(h, 16);
+      if (isNaN(n)) return [0.851,0.490,0.592];
+      return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+    }
+    function isDark() {
+      var t = document.documentElement.getAttribute("data-theme");
+      if (t === "dark") return true;
+      if (t === "light") return false;
+      return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+    function palette() {
+      var dark = isDark();
+      var base = dark ? BASE_DARK : BASE_LIGHT;
+      var accent = hexToRgb(getComputedStyle(document.documentElement).getPropertyValue("--link"));
+      var top = accent.map(function (v) { return dark ? Math.min(1, v * FIELD.top) : v * (2.02 - FIELD.top); });
+      var out = [];
+      for (var i = 0; i < 8; i++) {
+        var t = Math.pow(i / 7, FIELD.curve);
+        out.push([
+          base[0] + (top[0] - base[0]) * t,
+          base[1] + (top[1] - base[1]) * t,
+          base[2] + (top[2] - base[2]) * t
+        ]);
+      }
+      return out;
+    }
+    var gl = null, program = null;
+    try { gl = canvas.getContext("webgl", { antialias: false, alpha: false, depth: false, preserveDrawingBuffer: false }); } catch (e) {}
+    if (!gl) { canvas.style.display = "none"; return; }
+    function compile(stops) {
+      var src = FRAG;
+      for (var i = 0; i < 8; i++) src = src.split("STOP" + i).join(stops[i].map(function (v) { return v.toFixed(3); }).join(","));
+      var sh = gl.createShader(gl.FRAGMENT_SHADER); gl.shaderSource(sh, src); gl.compileShader(sh);
+      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) { console.warn(gl.getShaderInfoLog(sh)); return null; }
+      var vs = gl.createShader(gl.VERTEX_SHADER);
+      gl.shaderSource(vs, "attribute vec2 aPos; void main(){ gl_Position = vec4(aPos, 0.0, 1.0); }");
+      gl.compileShader(vs);
+      var p = gl.createProgram(); gl.attachShader(p, vs); gl.attachShader(p, sh); gl.linkProgram(p);
+      if (!gl.getProgramParameter(p, gl.LINK_STATUS)) return null;
+      return p;
+    }
+    var buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,3,-1,-1,3]), gl.STATIC_DRAW);
+    var width = 1, height = 1;
+    function resize() {
+      var w = Math.max(2, Math.round(window.innerWidth / PIXEL_SIZE));
+      var h = Math.max(2, Math.round(canvas.getBoundingClientRect().height / PIXEL_SIZE));
+      if (canvas.width === w && canvas.height === h) return;
+      width = w; height = h; canvas.width = w; canvas.height = h;
+      gl.viewport(0, 0, w, h);
+    }
+    var clock = 0, lastAt = performance.now();
+    function render(now) {
+      if (now === undefined) now = performance.now();
+      if (!document.documentElement.classList.contains("cryz-field")) return;
+      resize();
+      if (!reduce) { clock += Math.min(96, now - lastAt) * 0.001 * SPEED; lastAt = now; }
+      gl.useProgram(program);
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      var position = gl.getAttribLocation(program, "aPos");
+      gl.enableVertexAttribArray(position);
+      gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+      gl.uniform2f(gl.getUniformLocation(program, "uRes"), width, height);
+      gl.uniform1f(gl.getUniformLocation(program, "uTime"), clock);
+      gl.uniform1f(gl.getUniformLocation(program, "uNoise"), NOISE);
+      gl.uniform1f(gl.getUniformLocation(program, "uLevels"), LEVELS);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }
+    function setTheme() {
+      var p = compile(palette());
+      if (p) { if (program) gl.deleteProgram(program); program = p; }
+      resize(); render();
+    }
+    window.addEventListener("resize", function () { resize(); render(); });
+    new MutationObserver(function () { setTheme(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme", "data-accent"] });
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", setTheme);
+    setTheme();
+    window.duskField = {
+      params: FIELD,
+      apply: function () {
+        PIXEL_SIZE = FIELD.pixel; NOISE = FIELD.noise; LEVELS = FIELD.levels; SPEED = FIELD.speed;
+        document.documentElement.style.setProperty("--field-top", FIELD.pos + "vh");
+        document.documentElement.style.setProperty("--field-o", FIELD.opacity);
+        setTheme();
+      }
+    };
+    if (!reduce) (function frame(now) { render(now); requestAnimationFrame(frame); })(performance.now());
+  })();
+  </script>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script>
+  if (window.lucide) lucide.createIcons();
+  </script>
+
+  <script>
+  /* Shader button engine — ported from inspiration/shader-button.html (Framer shader button). */
+  (function () {
+    'use strict';
+    var FRAG = `
+precision highp float;
+uniform vec2  uRes, uLight;
+uniform float uTime, uClock, uSeed, uScale, uAmp, uFreq, uDef, uBands, uGlow, uGrain;
+uniform float uRot, uSpark, uSparkSize, uSparkDensity;
+uniform vec3  uColA, uColB, uBg;
+float hash(vec2 p){
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
+float noise(vec2 p){
+  vec2 i = floor(p), f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1,0)), u.x),
+             mix(hash(i + vec2(0,1)), hash(i + 1.0), u.x), u.y);
+}
+float fbm(vec2 p){
+  float v = 0.0, a = 0.5;
+  for (int i = 0; i < 5; i++){ v += a * noise(p); p = p * 2.03 + 1.7; a *= 0.5; }
+  return v;
+}
+mat2 rot(float a){ float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }
+float sparkles(vec2 fc){
+  vec2 sp = fc / uRes.y * uSparkDensity;
+  sp.y -= uClock * 0.25;
+  vec2 id = floor(sp), f = fract(sp) - 0.5;
+  float total = 0.0;
+  for (int y = -1; y <= 1; y++)
+  for (int x = -1; x <= 1; x++){
+    vec2 nb  = vec2(float(x), float(y));
+    vec2 cid = id + nb;
+    float h  = hash(cid + uSeed);
+    if (h > uSpark) continue;
+    vec2 pos = nb + (vec2(hash(cid + 1.7), hash(cid + 3.3)) - 0.5) * 0.8;
+    vec2 o   = (f - pos) / uSparkSize;
+    float d  = length(o);
+    float core = exp(-d * d * 250.0);
+    float arms = exp(-abs(o.x) * 28.0) * exp(-abs(o.y) * 260.0)
+               + exp(-abs(o.y) * 28.0) * exp(-abs(o.x) * 260.0);
+    float tw = pow(0.5 + 0.5 * sin(uClock * (1.5 + 3.0 * hash(cid + 7.1)) + h * 40.0), 6.0);
+    total += (core * 1.4 + arms * 0.9) * tw;
+  }
+  return total;
+}
+void main(){
+  vec2 uv = gl_FragCoord.xy / uRes;
+  vec2 p  = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y * uScale;
+  p  = rot(uRot * 0.6) * p;
+  p += uSeed * vec2(17.13, 9.71);
+  float t = uTime;
+  vec2 w = vec2(fbm(p * 0.8 + vec2(t * 0.30, 0.0)),
+                fbm(p * 0.8 + vec2(5.2, t * 0.25)));
+  vec2 q = p + uAmp * (w - 0.5) * 2.0;
+  float field = (q.x * 0.6 - q.y) * uBands
+              + 0.25 * sin(q.y * uFreq + t * 1.1)
+              + fbm(q * 0.4 - t * 0.08) * 0.9;
+  float band = pow(0.5 + 0.5 * cos(field * 6.2831), uDef);
+  vec2 lp = (uv - uLight) * vec2(uRes.x / uRes.y, 1.0);
+  lp = rot(uRot) * lp;
+  float dist = length(lp * vec2(0.36, 0.75)) + (w.y - 0.5) * 0.5;
+  float side = pow(1.0 - smoothstep(0.0, 1.0, dist), 1.3);
+  float lum  = side * (0.55 + 0.75 * band) * uGlow;
+  vec3 tint  = mix(uColB, uColA, smoothstep(0.1, 0.85, lum));
+  vec3 col   = uBg + tint * lum;
+  float s = sparkles(gl_FragCoord.xy) * mix(0.35, 1.3, side);
+  col += mix(vec3(1.0), uColA, 0.35) * s;
+  float g = hash(gl_FragCoord.xy + fract(t * 7.0) * 100.0) - 0.5;
+  col += g * uGrain * (0.35 + lum);
+  col = col / (1.0 + col * 0.6);
+  gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+}`;
+    var VERT = `attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }`;
+    function createShaderButton(button, opts){
+      var canvas = button.querySelector('canvas');
+      var gl = canvas.getContext('webgl', { premultipliedAlpha:false, antialias:false });
+      if (!gl) return null;
+      var sh = function(type, src){ var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(s)); return s; };
+      var prog = gl.createProgram();
+      gl.attachShader(prog, sh(gl.VERTEX_SHADER, VERT));
+      gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FRAG));
+      gl.linkProgram(prog); gl.useProgram(prog);
+      var buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+      var loc = gl.getAttribLocation(prog, 'a');
+      gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+      var names = ['uRes','uLight','uTime','uClock','uSeed','uScale','uAmp','uFreq','uDef','uBands','uGlow',
+                   'uGrain','uRot','uSpark','uSparkSize','uSparkDensity','uColA','uColB','uBg'];
+      var u = {}; names.forEach(function(n){ u[n] = gl.getUniformLocation(prog, n); });
+      var hex = function(h){ return [1,3,5].map(function(i){ return parseInt(h.slice(i, i+2), 16) / 255; }); };
+      var mixc = function(a,b,t){ return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t]; };
+      var rgb  = function(a){ return 'rgb('+Math.round(a[0]*255)+','+Math.round(a[1]*255)+','+Math.round(a[2]*255)+')'; };
+      var cA, cB, cBg, cBorder, hA, hB, hBg, hBorder;
+      function applyColors(o){
+        cA=hex(o.colorA); cB=hex(o.colorB); cBg=hex(o.background); cBorder=hex(o.borderColor);
+        hA=hex(o.hoverColorA||o.colorA); hB=hex(o.hoverColorB||o.colorB); hBg=hex(o.hoverBackground||o.background); hBorder=hex(o.hoverBorderColor||o.borderColor);
+      }
+      applyColors(opts);
+      button.__applyDockerColors = applyColors;
+      function resize(){
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        var r = button.getBoundingClientRect();
+        canvas.width = Math.max(1, r.width * dpr); canvas.height = Math.max(1, r.height * dpr);
+        gl.viewport(0, 0, canvas.width, canvas.height);
+      }
+      new ResizeObserver(resize).observe(button); resize();
+      var hover = 0, hoverTarget = 0, time = 0, clock = 0, angle = 0, last = performance.now();
+      var mouse = [0.5, 0.5], light = [0.75, 0.5];
+      button.addEventListener('pointerenter', function(){ hoverTarget = 1; });
+      button.addEventListener('pointerleave', function(){ hoverTarget = 0; });
+      button.addEventListener('pointermove', function(e){
+        var r = button.getBoundingClientRect();
+        mouse = [(e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height];
+      });
+      var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function frame(now){
+        var dt = Math.min((now - last) / 1000, 0.05); last = now;
+        hover += (hoverTarget - hover) * Math.min(dt * 6, 1);
+        if (!reduce){
+          time  += dt * opts.speed * (1 + hover * 0.8);
+          clock += dt * opts.drift;
+          angle += dt * opts.rotation * (1 + hover * 1.5);
+        }
+        var idle = [0.5 + 0.42 * Math.sin(clock), 0.5 + 0.45 * Math.sin(clock * 1.7 + 1.0)];
+        var k = Math.min(dt * (3 + hover * 5), 1);
+        for (var i = 0; i < 2; i++){
+          var target = idle[i] + (mouse[i] - idle[i]) * hover;
+          light[i] += (target - light[i]) * k;
+        }
+        gl.uniform2f(u.uRes, canvas.width, canvas.height);
+        gl.uniform2f(u.uLight, light[0], light[1]);
+        gl.uniform1f(u.uTime, time);
+        gl.uniform1f(u.uClock, now / 1000);
+        gl.uniform1f(u.uSeed, opts.seed);
+        gl.uniform1f(u.uScale, opts.scale);
+        gl.uniform1f(u.uAmp, opts.amplitude);
+        gl.uniform1f(u.uFreq, opts.frequency);
+        gl.uniform1f(u.uDef, opts.definition);
+        gl.uniform1f(u.uBands, opts.bands);
+        gl.uniform1f(u.uGlow, opts.glow * (1 + hover * 0.35));
+        gl.uniform1f(u.uGrain, opts.grain);
+        gl.uniform1f(u.uRot, angle);
+        gl.uniform1f(u.uSpark, opts.sparkles * (1 + hover * 0.5));
+        gl.uniform1f(u.uSparkSize, opts.sparkleSize);
+        gl.uniform1f(u.uSparkDensity, opts.sparkleDensity);
+        gl.uniform3fv(u.uColA, mixc(cA, hA, hover));
+        gl.uniform3fv(u.uColB, mixc(cB, hB, hover));
+        gl.uniform3fv(u.uBg, mixc(cBg, hBg, hover));
+        button.style.setProperty('--border', rgb(mixc(cBorder, hBorder, hover)));
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+      button.style.setProperty('--border', opts.borderColor);
+      button.style.setProperty('--border-w', opts.borderWidth + 'px');
+      return opts;
+    }
+    /* random, restrained tilts for the hero stickers on every load */
+    function tilt(sel, min, max) {
+      document.querySelectorAll(sel).forEach(function (el) {
+        var a = min + Math.random() * (max - min);
+        if (Math.random() < 0.5) a = -a;
+        el.style.setProperty('--tilt', a.toFixed(1) + 'deg');
+      });
+    }
+    tilt('.hero-face', 5, 10);
+    tilt('.hero-pin', 5, 10);
+    tilt('.docker-chip', 1.5, 4);
+
+    /* click to zoom the stickers further, click again to let go */
+    document.querySelectorAll('.hero-pin, .mini-photo').forEach(function (el) {
+      el.addEventListener('click', function () { el.classList.toggle('zoomed'); });
+    });
+
+    var btn = document.getElementById('docker-btn');
+    if (btn) createShaderButton(btn, {
+      seed: 3, speed: 0.4, scale: 1.0, amplitude: 0.8, frequency: 2.5,
+      definition: 1.6, bands: 0.55, glow: 1.5, grain: 0.22,
+      drift: 0.7, rotation: 0.35,
+      sparkles: 0.4, sparkleSize: 1.5, sparkleDensity: 7,
+      colorA: '#00AAFF', colorB: '#0054DB', background: '#000000',
+      hoverColorA: '#FF5FA8', hoverColorB: '#C01F6F', hoverBackground: '#12000A',
+      borderColor: '#00AAFF', borderWidth: 1.5, hoverBorderColor: '#FF5FA8' 
+    });
+
+    /* Docker chip colours follow the CRYZ accent (off = the signature blue -> pink) */
+    var DOCKER_PALETTES = {
+      bn:     { colorA:'#9aa0a6', colorB:'#3a3f45', background:'#000000', hoverColorA:'#cfd3d8', hoverColorB:'#6b7078', hoverBackground:'#0a0a0c', borderColor:'#9aa0a6', hoverBorderColor:'#cfd3d8' },
+      pink:   { colorA:'#00AAFF', colorB:'#0054DB', background:'#000000', hoverColorA:'#FF5FA8', hoverColorB:'#C01F6F', hoverBackground:'#12000A', borderColor:'#00AAFF', hoverBorderColor:'#FF5FA8' },
+      blue:   { colorA:'#00AAFF', colorB:'#0054DB', background:'#000000', hoverColorA:'#6d9bff', hoverColorB:'#2f6fed', hoverBackground:'#000814', borderColor:'#00AAFF', hoverBorderColor:'#6d9bff' },
+      green:  { colorA:'#2fbf71', colorB:'#0f6b3a', background:'#000000', hoverColorA:'#4cc97f', hoverColorB:'#1f9d57', hoverBackground:'#00120a', borderColor:'#2fbf71', hoverBorderColor:'#4cc97f' },
+      amber:  { colorA:'#f0a34e', colorB:'#8a4d12', background:'#000000', hoverColorA:'#f7c07a', hoverColorB:'#d98324', hoverBackground:'#140a00', borderColor:'#f0a34e', hoverBorderColor:'#f7c07a' },
+      violet: { colorA:'#a48bff', colorB:'#4b2fb0', background:'#000000', hoverColorA:'#c3b3ff', hoverColorB:'#7c5cff', hoverBackground:'#0a0014', borderColor:'#a48bff', hoverBorderColor:'#c3b3ff' }
+    };
+    function syncDocker(){
+      if (!btn || !btn.__applyDockerColors) return;
+      var id = document.documentElement.getAttribute('data-accent') || 'pink';
+      btn.__applyDockerColors(DOCKER_PALETTES[id] || DOCKER_PALETTES.pink);
+    }
+    syncDocker();
+    new MutationObserver(syncDocker).observe(document.documentElement, { attributes: true, attributeFilter: ['data-accent'] });
+  })();
+  </script>
+
+  <script src="cryz.js" defer></script>
 </body>
 </html>

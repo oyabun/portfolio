@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>(function(){try{var p=JSON.parse(localStorage.getItem('cryz-prefs'))||{};var e=document.documentElement;e.setAttribute('data-theme',p.theme||'system');e.setAttribute('data-accent',p.accent||'pink');if(p.mono)e.classList.add('cryz-mono');if(p.field)e.classList.add('cryz-field');if(p.tilt===false)e.classList.add('cryz-no-tilt');if(p.heroBg===false)e.classList.add('cryz-no-hero-bg');if(p.heroIcons===false)e.classList.add('cryz-no-hero-icons');}catch(_){}})();</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Agentic Platform & cagent — Javier Alonso</title>
+  <meta name="description" content="Agentic Platform and cagent: the agent app, the multi-agent runtime and the marketplace UX, shaped by an 11-session study. ~20.7M command events.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+  <header class="top">
+    <div class="wrap top-inner">
+      <a class="wordmark" href="../index.html" aria-label="Back to home">
+        Javier Alonso
+      </a>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="../experience.html">Resume</a></li>
+          <li><a href="../index.html#work">Portfolio</a></li>
+          <li><a href="../playground/index.html">Playground</a></li>
+          <li><a href="../index.html#about">About</a></li>
+          <li><a href="mailto:javier.alonso@docker.com">Contact</a></li>
+          <li><a class="cryz" href="../cryz.html" aria-label="cryz"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 11h.01"/><path d="M14 6h.01"/><path d="M18 6h.01"/><path d="M6.5 13.1h.01"/><path d="M22 5c0 9-4 12-6 12s-6-3-6-12c0-2 2-3 6-3s6 1 6 3"/><path d="M17.4 9.9c-.8.8-2 .8-2.8 0"/><path d="M10.1 7.1C9 7.2 7.7 7.7 6 8.6c-3.5 2-4.7 3.9-3.7 5.6 4.5 7.8 9.5 8.4 11.2 7.4.9-.5 1.9-2.1 1.9-4.7"/><path d="M9.1 16.5c.3-1.1 1.4-1.7 2.4-1.4"/></svg>cryz</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+    <main class="detail">
+    <div class="wrap">
+
+      <p class="eyebrow" style="margin-bottom:8px">Case 04 / 05 — Selected Work</p>
+      <h1>Agentic Platform &amp; cagent</h1>
+      <p class="sub">The agent app and the runtime beneath it, designed, researched, and validated in prototype.</p>
+
+      <div class="leader"><b>Docker · Lead designer (dagent/AP) · cagent = OSS runtime</b><i aria-hidden="true"></i><span class="mono">2025–2026</span></div>
+      <div class="leader"><b>Priya · Marco · Sam</b><i aria-hidden="true"></i><span class="mono">agent eng · governance · newcomer</span></div>
+
+      <section aria-label="Context">
+        <h2>Context</h2>
+        <p>Docker's bet on agents has two layers: <b>cagent</b>, the open-source CLI multi-agent runtime that Gordon and agents run on (~20.7M command events), and <b>dagent</b>, the agent app where developers create, run, import and share agents with a marketplace (&ldquo;Agent Fleet&rdquo;). This case is the design-and-research narrative of the app layer that fronts the runtime.</p>
+      </section>
+
+      <section aria-label="Research">
+        <h2>Research</h2>
+        <p>The platform was researched while it was built. The <b>Dagent UX Study</b> ran ~11 moderated think-aloud sessions (Oct 2025) covering agent creation, running, and sharing, plus a continuous feedback instrument ("get the Agents from users" via URL or .yaml upload). Findings were synthesized against personas <b>Priya</b> (agent engineer), <b>Marco</b> (governance) and <b>Sam</b> (newcomer).</p>
+        <p>The runtime side was measured through cagent command events (~20.7M), and the prototype itself became an instrument: 369 agents created, 2,144 runs, 475 pulls across 96 users.</p>
+      </section>
+
+      <section aria-label="Conceptualization">
+        <h2>Conceptualization</h2>
+        <p>Sessions research forced the core IA decision: what is a <b>session</b>, what is a <b>sandbox</b>, and how do kits and marketplace listings relate. The answer shaped the New Session Composer direction: sessions as first-class, observable units (steps, artifacts, token budgets), with cost visible inline rather than in a billing page after the fact.</p>
+        <p>For the runtime, the concept was agents-as-composable-units: YAML definitions that are git-friendly and portable, with the app layer (dagent) providing creation, sharing and governance on top.</p>
+      </section>
+
+      <section aria-label="Use cases">
+        <h2>UX use cases</h2>
+        <p>Each card defines the job, the design response, the objective, the measured outcome, and the trade-off made.</p>
+        <article class="usecase"><h3>cagent runtime with YAML-defined agents; the UX above it standardizes sessions, runs and logs.</h3><p class="uc-job">&ldquo;Run multi-agent workflows from the terminal&rdquo;</p><dl><dt>Objective</dt><dd>Make an agent team as composable and scriptable as an image.</dd><dt>Outcome</dt><dd>~20.7M command events on the runtime; the same primitives surface in the Agentic Platform sessions/sandboxes IA.</dd><dt>Trade-off</dt><dd>CLI-first maximizes composability and speed at the cost of discoverability, which the app layer answers.</dd></dl></article>
+        <article class="usecase"><h3>dagent lifecycle: create, edit, run, import/export, pull/push to the Agent Fleet marketplace.</h3><p class="uc-job">&ldquo;Create, run and share agents without building from scratch&rdquo;</p><dl><dt>Objective</dt><dd>Turn agents from one-off scripts into shareable artifacts.</dd><dt>Outcome</dt><dd>Prototype-scale validation: 369 agents created, 2,144 runs, 475 pulls across 96 users (Aug 2025 – Jun 2026).</dd><dt>Trade-off</dt><dd>Marketplace sharing before maturity risks low-quality listings; early scale accepted as the cost of learning the shape.</dd></dl></article>
+        <article class="usecase"><h3>Import by URL or .yaml upload (Qualtrics instrument: get the Agents from users with a URL or by uploading .yaml files).</h3><p class="uc-job">&ldquo;Bring an existing agent definition into Docker&rdquo;</p><dl><dt>Objective</dt><dd>Meet power users where their agents already live.</dd><dt>Outcome</dt><dd>90 imports logged in prototype; fed the sessions-vs-sandboxes modeling on the platform.</dd><dt>Trade-off</dt><dd>Accepting arbitrary YAML widens the failure surface; mitigated with validation feedback at import.</dd></dl></article>
+        <article class="usecase"><h3>The Dagent UX Study: ~11 moderated think-aloud sessions (Oct 2025) plus a continuous feedback form.</h3><p class="uc-job">&ldquo;Understand what people actually do with agents&rdquo;</p><dl><dt>Objective</dt><dd>Ground the platform's primitives in observed behavior, not opinion.</dd><dt>Outcome</dt><dd>Study findings shaped sessions/sandboxes, kits and the New Session Composer direction.</dd><dt>Trade-off</dt><dd>Prototype-scale metrics cannot carry the scale story; the study trades breadth for depth by design.</dd></dl></article>
+      </section>
+
+      <section aria-label="Measurement">
+        Measurement mixed scale and signal: runtime command events (~20.7M) show adoption; prototype telemetry (369 agents / 2,144 runs / 475 pulls) plus the study sessions show direction. The two are deliberately reported apart: prototype numbers are not scale numbers.
+        <div class="stats"><div class="stat"><b>~20.7M</b><span>cagent command events</span></div><div class="stat"><b>369 / 2,144</b><span>agents created / runs in dagent prototype</span></div><div class="stat"><b>~11</b><span>moderated UX-study sessions facilitated</span></div><div class="stat"><b>96</b><span>distinct dagent users (prototype)</span></div></div>
+        <p class="caveat" style="margin-top:24px">dagent numbers are prototype-phase by design (Sigma L1_DAGENT__AGENT); the runtime (cagent) is open source at github.com/docker/cagent. Naming: dagent = app, cagent = runtime, Gordon = embedded assistant.</p>
+      </section>
+
+      <section aria-label="Reflection">
+        <h2>Reflection</h2>
+        <p>The honest framing matters: this is a design-and-research narrative of a platform in motion. Primitives moved because observed behavior said so, not because the roadmap said so.</p>
+      </section>
+
+      <section aria-label="Design screens">
+        <h2>Design screens</h2>
+        <p>Exported from the original Figma files with figx.</p>
+        <div class="screens">
+        <figure><img src="../assets/ux/cagent/tui.png" alt="cagent TUI: diff review, TO-DO tracking, live token usage" loading="lazy"><figcaption>cagent TUI: diff review, TO-DO tracking, live token usage</figcaption></figure>
+        <figure><img src="../assets/ux/cagent/sessions.png" alt="Agentic Platform sessions: status, steps, artifacts, cost budgets" loading="lazy"><figcaption>Agentic Platform sessions: status, steps, artifacts, cost budgets</figcaption></figure>
+        <figure><img src="../assets/ux/cagent/cost-view.png" alt="Cost view: spend against budget per agent" loading="lazy"><figcaption>Cost view: spend against budget per agent</figcaption></figure>
+        <figure><img src="../assets/ux/cagent/marketplace.png" alt="Agents marketplace: publish, discover, pull" loading="lazy"><figcaption>Agents marketplace: publish, discover, pull</figcaption></figure>
+        </div>
+      </section>
+
+      <hr class="dash">
+
+      <nav class="back-nav" aria-label="Project navigation">
+        <a href="model-runner.html">← Previous: Docker Model Runner</a>
+        <a href="cli-ds.html">Next: CLI Design System →</a>
+      </nav>
+
+    </div>
+  </main>
+
+  <footer class="bottom">
+    <div class="wrap bottom-inner">
+      <span>javier-alonso · № 07 Hello</span>
+      <nav aria-label="Footer">
+        <a href="mailto:javier.alonso@docker.com">email</a>
+        <a href="https://www.linkedin.com/in/javieralonsogomez/" target="_blank" rel="noopener">linkedin</a>
+        <a href="https://x.com/oyabun" target="_blank" rel="noopener">twitter</a>
+        <a href="../index.html#work">work</a>
+      </nav>
+      <a class="to-top" href="#">↑</a>
+    </div>
+  </footer>
+
+  <script src="../cryz.js" defer></script>
+</body>
+</html>
