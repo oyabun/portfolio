@@ -12,7 +12,7 @@
 
   --font-sans: "Geist", "Geist Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
-  --font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --font-body: var(--font-sans);
 
   --wrap: 1180px;
   --measure: 840px;
@@ -1147,6 +1147,7 @@ a.tile:hover .tile-preview img { transform: scale(1.035); }
 .detail { padding-bottom: 140px; }
 
 .detail .wrap { width: min(92%, var(--measure)); }
+.detail.cv .wrap { width: min(92%, var(--wrap)); }
 
 .detail h1 {
   font-family: var(--font-sans);
@@ -1188,7 +1189,7 @@ a.tile:hover .tile-preview img { transform: scale(1.035); }
   margin: 0 0 16px;
 }
 .detail p { margin: 0 0 16px; line-height: 1.625; max-width: 68ch; }
-.detail ul { margin: 0; padding-left: 20px; }
+.detail ul { margin: 0; padding-left: 20px; max-width: 68ch; }
 .detail li { margin-bottom: 12px; line-height: 1.625; }
 .detail li a { color: var(--link); }
 
@@ -1295,8 +1296,10 @@ a.tile:hover .tile-preview img { transform: scale(1.035); }
 .cv-id h1 { margin: 0; }
 
 .cv-head .sub { font-size: 20px; margin-top: 14px; }
+.cv-aka { font-family: var(--font-mono); font-size: 13px; color: var(--link); margin-top: 8px; }
 
 .cv-summary { margin: 44px 0 0; max-width: 72ch; line-height: 1.625; font-size: 15.5px; color: var(--text-secondary); }
+.cv-summary-aka { margin-top: 10px; color: var(--text); }
 
 .cv-pills { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 34px; }
 .cv-pills a.pill-open { color: var(--text); }
@@ -1962,3 +1965,92 @@ html.cryz-mono {
 .screens img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 12px; border: 1px solid var(--dots); display: block; }
 .screens figcaption { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); margin-top: 8px; }
 @media (max-width: 640px) { .screens { grid-template-columns: 1fr; } .usecase dl { grid-template-columns: 1fr; gap: 4px; } .usecase dd { margin-bottom: 8px; } }
+
+/* ————— About: sketchnote postcards ————— */
+.snaps {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: calc(var(--gap) * 3);
+  margin-top: 24px;
+}
+.snap {
+  margin: 0;
+  background: var(--highlight);
+  border-radius: var(--radius-row);
+  padding: 10px 10px 12px;
+  box-shadow: 0 1px 2px rgba(32,32,44,.06), 0 10px 24px -12px rgba(32,32,44,.18);
+  transform: rotate(var(--tilt, 0deg));
+  transition: transform .35s var(--spring), box-shadow .35s var(--spring);
+}
+.snap:hover {
+  transform: rotate(0deg) translateY(-4px) scale(1.015);
+  box-shadow: 0 2px 4px rgba(32,32,44,.08), 0 18px 36px -14px rgba(32,32,44,.28);
+}
+html.cryz-no-tilt .snap { --tilt: 0deg; }
+.snap img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-image);
+  display: block;
+  background: var(--background);
+}
+.snap figcaption {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-top: 10px;
+  line-height: 1.45;
+}
+.snap figcaption a { color: var(--link); text-decoration: none; }
+.snap figcaption a:hover { text-decoration: underline; }
+
+/* ————— Work gate ————— */
+.gate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: var(--background);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.gate-card {
+  width: min(100%, 460px);
+  border: 1px dashed var(--leader);
+  border-radius: 14px;
+  background: var(--highlight);
+  padding: 28px;
+  margin: 24px 0 32px;
+}
+.gate-card h2 { font-size: 22px; margin: 6px 0 10px; letter-spacing: -0.4px; }
+.gate-card p { font-size: 14.5px; line-height: 1.6; color: var(--text-secondary); margin: 0 0 16px; }
+.gate-card a { color: var(--link); text-decoration: none; }
+.gate-form { display: flex; gap: 8px; }
+.gate-form input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--dots);
+  border-radius: 8px;
+  background: var(--background);
+  color: var(--text);
+}
+.gate-form input:focus { outline: 1px solid var(--link); border-color: var(--link); }
+.gate-form button {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 8px;
+  background: var(--text);
+  color: var(--background);
+  cursor: pointer;
+}
+.gate-form button:hover { background: var(--link); }
+.gate-err { min-height: 18px; margin: 10px 0 0; font-family: var(--font-mono); font-size: 12px; color: var(--link); }
+.gate-note { margin: 14px 0 0; font-size: 12px; }
+.gate-locked > *:not(.t-contact) { display: none; }
+html.work-locked .detail { display: none; }
+html.work-locked #work .bento { display: none; }

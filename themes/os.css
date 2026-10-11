@@ -1,0 +1,218 @@
+/* ————— skin: OS / Desktop —————
+   from examples/03-osdesktop: warm gray wallpaper, glass windows with
+   traffic lights, Signal Blue accent, a fixed menu bar. Always light. */
+
+:root[data-skin="os"] {
+  --background: #ececeb;
+  --highlight: rgba(255, 255, 255, 0.92);
+  --dots: rgba(22, 22, 22, 0.08);
+  --text: #161616;
+  --text-secondary: rgba(22, 22, 22, 0.6);
+  --link: #4f8dff;
+  --logo: #161616;
+  --leader: rgba(22, 22, 22, 0.3);
+  --glass: rgba(255, 255, 255, 0.82);
+  --hair: rgba(22, 22, 22, 0.08);
+  --win-shadow:
+    0 1px 2px rgba(22, 22, 22, 0.05),
+    0 10px 28px -10px rgba(22, 22, 22, 0.16),
+    0 36px 72px -28px rgba(22, 22, 22, 0.14);
+}
+
+:root[data-skin="os"] body {
+  background:
+    radial-gradient(1100px 620px at 50% 14%, rgba(79, 141, 255, 0.07), transparent 62%),
+    linear-gradient(180deg, #f4f4f3 0%, #ececeb 100%);
+  background-attachment: fixed;
+}
+
+/* dot grain becomes the menu bar */
+:root[data-skin="os"] body::before {
+  content: "▤  javier — portfolio";
+  background: rgba(244, 244, 243, 0.72);
+  background-image: none;
+  -webkit-mask-image: none;
+  mask-image: none;
+  inset: 0 0 auto 0;
+  height: 26px;
+  opacity: 1;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font: 500 11px/1 var(--font-mono);
+  letter-spacing: 0.03em;
+  color: rgba(22, 22, 22, 0.6);
+  border-bottom: 1px solid var(--hair);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+}
+
+:root[data-skin="os"] ::selection { background: rgba(79, 141, 255, 0.25); }
+
+/* glass windows with a title bar */
+:root[data-skin="os"] .hero-card,
+:root[data-skin="os"] .mini,
+:root[data-skin="os"] .usecase,
+:root[data-skin="os"] .xp-banner {
+  position: relative;
+  background: var(--glass);
+  border: 1px solid var(--hair);
+  border-radius: 12px;
+  box-shadow: var(--win-shadow);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+}
+
+:root[data-skin="os"] .hero-card::before,
+:root[data-skin="os"] .usecase::before,
+:root[data-skin="os"] .xp-banner::before {
+  content: "";
+  position: absolute;
+  top: 0; left: -1px; right: -1px;
+  height: 34px;
+  border-bottom: 1px solid var(--hair);
+  border-radius: 12px 12px 0 0;
+  background: rgba(244, 244, 243, 0.6);
+}
+
+:root[data-skin="os"] .hero-card::after,
+:root[data-skin="os"] .usecase::after,
+:root[data-skin="os"] .xp-banner::after {
+  content: "";
+  position: absolute;
+  top: 13px; left: 14px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #ff5f57;
+  box-shadow: 16px 0 0 #febc2e, 32px 0 0 #28c840;
+}
+
+:root[data-skin="os"] .hero-card { padding-top: 68px; }
+:root[data-skin="os"] .usecase { padding-top: 58px; }
+:root[data-skin="os"] .xp-banner { padding-top: 56px; }
+
+:root[data-skin="os"] .mini::before {
+  content: "";
+  position: absolute;
+  top: 10px; left: 12px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #ff5f57;
+  box-shadow: 12px 0 0 #febc2e, 24px 0 0 #28c840;
+}
+:root[data-skin="os"] .mini { padding-top: 42px; }
+
+:root[data-skin="os"] .bento .tile {
+  background: var(--glass);
+  border: 1px solid var(--hair);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(22, 22, 22, 0.05), 0 14px 34px -16px rgba(22, 22, 22, 0.2);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+}
+
+/* window titles: eyebrows & section labels in Plex-ish mono blue */
+:root[data-skin="os"] .eyebrow,
+:root[data-skin="os"] .mini-label { color: var(--link); }
+
+:root[data-skin="os"] .detail h2::before { content: "▸ "; color: var(--leader); }
+
+:root[data-skin="os"] .pill-dark { background: #161616; color: #f4f4f3; }
+
+:root[data-skin="os"] .screens figure img {
+  border: 1px solid var(--hair);
+  border-radius: 10px 10px 0 0;
+  box-shadow: 0 10px 26px -14px rgba(22, 22, 22, 0.3);
+}
+
+:root[data-skin="os"] .bottom {
+  background: var(--glass);
+  border: 1px solid var(--hair);
+  border-radius: 12px;
+  box-shadow: var(--win-shadow);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+}
+
+:root[data-skin="os"] hr.dash,
+:root[data-skin="os"] .detail hr.dash { border-top-style: solid; border-top-color: var(--hair); }
+
+@media (max-width: 720px) {
+  :root[data-skin="os"] .hero-card { padding-top: 58px; }
+  :root[data-skin="os"] .mini { padding-top: 38px; }
+}
+
+/* ————— layout: the nav becomes a bottom dock of app tiles ————— */
+/* header must escape the base z-index:1 stacking context, or main paints over the dock */
+:root[data-skin="os"] .top { z-index: 130; }
+
+:root[data-skin="os"] .top nav ul {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px 12px;
+  list-style: none;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 22px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 2px 6px rgba(22, 22, 22, 0.06),
+    0 18px 44px -14px rgba(22, 22, 22, 0.22);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  z-index: 130;
+  max-width: calc(100vw - 20px);
+}
+
+:root[data-skin="os"] .top nav a {
+  display: block;
+  font-size: 0; /* labels hide; the initial below becomes the icon */
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #fcfcfb 0%, #e9e9e8 100%);
+  border: 1px solid var(--hair);
+  box-shadow: 0 2px 5px rgba(22, 22, 22, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  transform-origin: 50% 100%;
+  transition: transform 0.18s var(--spring);
+  color: rgba(22, 22, 22, 0.6);
+}
+
+:root[data-skin="os"] .top nav a::first-letter {
+  font: 600 15px/52px var(--font-mono);
+  color: rgba(22, 22, 22, 0.6);
+}
+
+:root[data-skin="os"] .top nav a:hover,
+:root[data-skin="os"] .top nav a:focus-visible {
+  transform: translateY(-8px) scale(1.16);
+  text-decoration: none;
+  color: var(--link);
+}
+
+:root[data-skin="os"] .top nav a.cryz svg { display: none; }
+:root[data-skin="os"] .top { padding-bottom: 28px; }
+:root[data-skin="os"] body { padding-bottom: 110px; }
+
+:root[data-skin="os"] .hero-card::before,
+:root[data-skin="os"] .usecase::before,
+:root[data-skin="os"] .xp-banner::before { cursor: grab; }
+
+:root[data-skin="os"] .nan-win-drag { cursor: grabbing; }
+:root[data-skin="os"] .nan-win-drag,
+:root[data-skin="os"] .nan-win-drag::before { cursor: grabbing; }
+:root[data-skin="os"] .nan-win-drag {
+  box-shadow:
+    0 2px 4px rgba(22, 22, 22, 0.08),
+    0 30px 80px -20px rgba(22, 22, 22, 0.45) !important;
+}
+
+/* windows on a desktop: the two mini cards sit slightly askew */
+:root[data-skin="os"] .hero-cards .mini:nth-of-type(1) { transform: rotate(-0.5deg); }
+:root[data-skin="os"] .hero-cards .mini:nth-of-type(2) { transform: rotate(0.45deg); }

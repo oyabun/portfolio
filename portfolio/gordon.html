@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>(function(){try{var p=JSON.parse(localStorage.getItem('cryz-prefs'))||{};var e=document.documentElement;e.setAttribute('data-theme',p.theme||'system');e.setAttribute('data-accent',p.accent||'pink');if(p.mono)e.classList.add('cryz-mono');if(p.field)e.classList.add('cryz-field');if(p.tilt===false)e.classList.add('cryz-no-tilt');if(p.heroBg===false)e.classList.add('cryz-no-hero-bg');if(p.heroIcons===false)e.classList.add('cryz-no-hero-icons');}catch(_){}})();</script>
+  <script>(function(){try{if(localStorage.getItem('work-unlocked')!=='1')document.documentElement.classList.add('work-locked');}catch(_){document.documentElement.classList.add('work-locked');}})();</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Gordon: Designing Docker&rsquo;s AI Agent — Javier Alonso</title>
+  <meta name="description" content="Gordon, Docker's AI agent: from an early 2023 concept to a GA product across four surfaces. Interaction model, trust and permissions, the terminal experience, and first hands-on MCP experience.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <script src="../themes/skin.js"></script>
+</head>
+<body>
+
+  <header class="top">
+    <div class="wrap top-inner">
+      <a class="wordmark" href="../index.html" aria-label="Back to home">
+        Javier Alonso
+      </a>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="../resume.html">Resume</a></li>
+          <li><a href="../index.html#work">Portfolio</a></li>
+          <li><a href="../playground/index.html">Playground</a></li>
+          <li><a href="../about.html">About</a></li>
+          <li><a href="mailto:javier.alonso@docker.com">Contact</a></li>
+          <li><a class="cryz" href="../cryz.html" aria-label="cryz"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 11h.01"/><path d="M14 6h.01"/><path d="M18 6h.01"/><path d="M6.5 13.1h.01"/><path d="M22 5c0 9-4 12-6 12s-6-3-6-12c0-2 2-3 6-3s6 1 6 3"/><path d="M17.4 9.9c-.8.8-2 .8-2.8 0"/><path d="M10.1 7.1C9 7.2 7.7 7.7 6 8.6c-3.5 2-4.7 3.9-3.7 5.6 4.5 7.8 9.5 8.4 11.2 7.4.9-.5 1.9-2.1 1.9-4.7"/><path d="M9.1 16.5c.3-1.1 1.4-1.7 2.4-1.4"/></svg>cryz</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="detail">
+    <div class="wrap">
+
+      <p class="eyebrow" style="margin-bottom:8px">Case 01 / 06 — Selected Work</p>
+      <h1>Gordon</h1>
+      <p class="sub">Designing Docker&rsquo;s AI agent. From an early concept to a shipped product with free and paid plans.</p>
+
+      <div class="leader"><b>Docker Labs / GenAI · Sole design owner</b><i aria-hidden="true"></i><span class="mono">2023–2026</span></div>
+      <div class="leader"><b>CLI / TUI · Desktop · Hub · Docs</b><i aria-hidden="true"></i><span class="mono">one agent, four surfaces</span></div>
+
+      <div class="screens" style="margin-bottom:32px">
+        <figure style="grid-column:1/-1"><img src="gordon/gordon-cover.png" alt="Gordon as a first-class tab in Docker Desktop beside the robot mascot, over the prompt 'What should I build, check, or explain?'" loading="lazy"><figcaption>One agent, designed for where developers already work.</figcaption></figure>
+      </div>
+
+      <section aria-label="At a glance">
+        <h2>At a glance</h2>
+        <ul>
+          <li><b>Part of the origin story.</b> In 2023 I was in the team that created an early concept around an assistant for Docker; it helped make the case for building an agent. Its interaction model carried into Gordon: intent in, command proposed, developer reviews before it runs.</li>
+          <li><b>Owned design end to end.</b> The only designer on Gordon from first concept to general availability with free and paid plans.</li>
+          <li><b>Set the direction with evidence.</b> Organized and led field research, combined it with CLI usage data, and focused the product on three workflows.</li>
+          <li><b>Designed the system, not only the feature.</b> I created and own DDS-CLI, Docker&rsquo;s CLI design system, still used by Docker Build, Docker Compose and cagent. The CLI / TUI I designed became the base for Gordon in the terminal and for cagent, now docker-agent.</li>
+          <li><b>Defined the trust model.</b> Designed how developers review, approve and control an agent that can change their environment.</li>
+          <li><b>Extended into the business.</b> Gordon became its own SKU with real paying users. I designed the upgrade path, usage visibility and MCP onboarding, which made Gordon the first place Docker users could test MCP servers.</li>
+        </ul>
+      </section>
+
+      <section aria-label="The problem">
+        <h2>The problem: Docker knowledge arrives in steps</h2>
+        <p>Running one container is easy. Then come builds, dependencies, networking, volumes, Compose, security and optimization. Each step works until the next layer demands expertise the developer doesn&rsquo;t have yet.</p>
+        <p>Documentation answers general questions. It can&rsquo;t see the developer&rsquo;s container, project or error. The opportunity was help at the moment of friction, grounded in the developer&rsquo;s actual situation.</p>
+        <p><b>The question I framed for the team:</b> how do developers make progress without first mastering every Docker concept?</p>
+      </section>
+
+      <section aria-label="Origin">
+        <h2>Origin: an early concept that became the interaction model</h2>
+        <p>In 2023 I was in the team that created one concept around an assistant for Docker. It made the case for building an agent, and that is why I was brought in to design it.</p>
+        <p>Three ideas from that concept survived into the shipped product:</p>
+        <ul>
+          <li><b>Intent in, command out.</b> The developer states a goal (&ldquo;stop all my containers&rdquo;), and the agent proposes the exact Docker command.</li>
+          <li><b>Review before run.</b> Nothing executes until the developer sees and accepts it. This became the trust model.</li>
+          <li><b>Environment as context.</b> A question about a container is tied to that container and its state, not a blank chat.</li>
+        </ul>
+        <p>I then evolved the concept through Docker Ask and Docker WTF / WhaleTF, testing each live with developers.</p>
+        <div class="screens">
+          <figure><img src="gordon/gordon.png" alt="Gordon's robot mascot, a chrome head with two glowing blue eyes and an antenna" loading="lazy"><figcaption>Gordon, the robot the concept grew into.</figcaption></figure>
+        </div>
+      </section>
+
+      <section aria-label="Research">
+        <h2>Research: choosing where an agent earns its place</h2>
+        <p>A general assistant that answers anything would have been easy to ship and hard to trust. I pushed for focus: find the workflows where help matters most, and design deeply for those.</p>
+        <p>I organized and led field research with developers and tested early concepts live. I combined it with CLI usage data: the data showed <em>what</em> developers did; the sessions showed <em>why</em> they got stuck. Three workflows earned their place, with optimization alongside them as a follow-on task:</p>
+        <ul>
+          <li><b>Debug and troubleshoot.</b> Understand why something failed. Design focus: connect the failure to logs, state and a next step.</li>
+          <li><b>Build and containerize.</b> Get an app running in Docker. Design focus: make generated configuration understandable and reviewable.</li>
+          <li><b>Execute and manage.</b> Complete a Docker operation. Design focus: turn intent into a visible operation the developer can assess.</li>
+        </ul>
+      </section>
+
+      <section aria-label="Situational awareness">
+        <h2>Situational awareness: context as design material</h2>
+        <p>The core design principle I defined for Gordon was <em>agentic situational awareness</em>: the agent should understand the developer&rsquo;s situation before they explain it.</p>
+        <p>Where a request starts tells the agent most of what it needs. &ldquo;Explain this image&rdquo; from an image view, &ldquo;Why did this container exit?&rdquo; from a failed container, and &ldquo;Containerize this project&rdquo; from a working directory are different tasks. Each entry point carries the right context so the developer types less and gets a specific answer. I designed around five layers of context: <b>intent</b>, <b>surface and resource</b>, <b>project scope</b>, <b>runtime state and errors</b>, and <b>Docker knowledge</b>.</p>
+        <article class="usecase"><h3>Contextual entry points over a blank chat</h3><p class="uc-job">&ldquo;The agent should know what I'm looking at before I explain it&rdquo;</p><dl><dt>Options</dt><dd>Stay a chat, like most assistants, or go beyond it with entry points embedded where problems happen.</dd><dt>What I chose</dt><dd>Contextual entry points, placed next to failures and resources, with context attached automatically.</dd><dt>Why</dt><dd>People are often vague about what they want, and a chat box puts all the work of explaining on them. Situational awareness lets the agent fill in what the developer didn&rsquo;t say and work through that vagueness with them.</dd><dt>Trade-off</dt><dd>More engineering per surface, and less of the single-glass-box discoverability a global chat gets for free.</dd></dl></article>
+      </section>
+
+      <section aria-label="The terminal">
+        <h2>The terminal experience</h2>
+        <p>I did the full UI and UX of the CLI / TUI: a compelling way to work with multiple agents and multiple model providers from the command line. That design was reused in two places: Gordon in the terminal, and cagent (now docker-agent), Docker&rsquo;s framework for building and running agents. The patterns had to work for Gordon and for agents other teams and developers would build.</p>
+        <p>The core challenge was translating rich GUI interactions into a terminal without losing clarity. Many agents and providers in one stream; a keyboard model that doesn&rsquo;t claim every key and fight the developer&rsquo;s terminal habits; reviewing changes inline; and it all had to work on any OS and any theme, using only the ANSI color palette and basic Unicode for icons.</p>
+        <p>I didn&rsquo;t solve those constraints from scratch. Before Gordon, I led UX for Docker&rsquo;s CLI and created and owned <b>DDS-CLI</b>, the Docker Design System for the command line. Its premise: any point where people and software exchange information is an interface, so the terminal deserves the same care for learnability, discoverability, readability and ease of use as a GUI. Foundations, blocks, interaction patterns and adoption tools, including guidance for Bubbletea and Lipgloss, the libraries engineers build with. DDS-CLI was adopted by Docker Build, Docker Compose and cagent, and is still in use. When Gordon needed a terminal experience, the foundations were already in place.</p>
+        <p>As of October 2026, docker-agent has about 4,400 GitHub stars and 500 forks, and ships preinstalled in Docker Desktop. The TUI is one of its core features.</p>
+        <div class="screens">
+          <figure><img src="../assets/ux/gordon/agent-flow.png" alt="Ask Gordon with tools panel and agent flow canvas (exploration)" loading="lazy"><figcaption>Ask Gordon with the tools panel and agent flow canvas (exploration).</figcaption></figure>
+        </div>
+      </section>
+
+      <section aria-label="Four surfaces">
+        <h2>One agent, four surfaces</h2>
+        <p>I designed Gordon as one system across four surfaces, not four separate features. Each surface supplies different context and allows different actions, and the experience is honest about those limits.</p>
+        <ul>
+          <li><b>CLI / TUI.</b> Context: working directory, permitted environment access. Gordon can ask, propose and run actions after approval.</li>
+          <li><b>Docker Desktop.</b> Context: project scope, containers, images. Visual assistance and reviewed operations.</li>
+          <li><b>Docker Hub.</b> Context: repository, images, tags, metadata. Answers questions; hands off to Desktop to act.</li>
+          <li><b>Docker Docs.</b> Context: the page being read. Explains concepts.</li>
+        </ul>
+        <p><b>Hub hands off instead of acting.</b> Hub has no access to the local environment, so it answers questions and sends the developer to Desktop for anything that changes their setup. Other teams integrated Gordon into their own products, including Hub and Support; I set the patterns they built on and partnered with the Hub designers to fit them into Hub&rsquo;s format. One end-to-end task shows the system working: containerizing an app, where Gordon inspects the project, generates Dockerfile and Compose files for review, then builds and runs with approval.</p>
+      </section>
+
+      <section aria-label="Trust">
+        <h2>Trust: designing for an agent that can delete things</h2>
+        <p>Gordon can run <code>docker rm</code>, rewrite a Dockerfile, or prune volumes. A wrong action can destroy a developer&rsquo;s work. I designed the trust model that decides when Gordon acts, when it asks, and what the developer sees before saying yes. The principle: <b>an approval must be a real decision, not a reflex.</b> Every review shows what will run, which resource it affects, and whether it can be undone.</p>
+        <p>The model has three levels of control: <b>ask every time</b> (the default), <b>session approval</b>, and <b>auto-approve</b> for developers who want speed and accept the risk. Destructive operations get extra safeguards through command classification by danger, so routine reads pass quietly and risky operations demand a deliberate decision.</p>
+        <article class="usecase"><h3>From approving everything to a command classifier</h3><p class="uc-job">&ldquo;An approval must be a real decision, not a reflex&rdquo;</p><dl><dt>What I saw</dt><dd>The first version asked approval for every command, from a harmless <code>docker ps</code> to a destructive <code>docker system prune</code>. Permission fatigue set in: when everything asks, developers stop reading and approve by reflex, which defeats the point of asking.</dd><dt>What I changed</dt><dd>We shipped a command classifier with several risk levels. Safe commands run without interrupting, and approval is reserved for commands that change or destroy something. Each prompt now signals real risk.</dd><dt>Result</dt><dd>Less frustration, fewer complaints, and a higher NPS. Specific figures are under NDA; happy to discuss in conversation.</dd></dl></article>
+        <div class="screens">
+          <figure><img src="../assets/ux/gordon/permission-read.png" alt="Permission flow: temporary read grant" loading="lazy"><figcaption>Permission flow: temporary read grant, quiet by design.</figcaption></figure>
+          <figure><img src="../assets/ux/gordon/permission-write.png" alt="Permission flow: confirmation before replacing the Dockerfile" loading="lazy"><figcaption>Permission flow: the operation, the affected resource and the decision, before anything is replaced.</figcaption></figure>
+        </div>
+      </section>
+
+      <section aria-label="Beyond the interaction">
+        <h2>Beyond the interaction: product, business, research ops</h2>
+        <p><b>Docker&rsquo;s first hands-on MCP experience.</b> Gordon was the first experience where Docker users could test an MCP server. It was designed as a first-class MCP client, so developers could try their servers inside a real agent before relying on them. Add an MCP server in Docker Desktop, click once, and it&rsquo;s available in Gordon: no configuration files to edit, and a first-class UI for exploring servers. I designed the onboarding that removes the setup entirely. The broader catalog story lives in <a href="mcp.html">the MCP Toolkit case</a>.</p>
+        <p><b>Its own product, with paying users.</b> Gordon was sold as its own SKU, with free and paid plans and real paying customers. That made the experience around usage and value a design problem, not just a billing one. I designed usage and budget visibility and the upgrade path, so developers understood their remaining capacity and their next step before hitting a wall.</p>
+        <p><b>Research as an ongoing system.</b> Beyond the early field sessions, I built a Qualtrics feedback pipeline and authored a continuous research plan. The team kept learning after launch instead of relying on one round of research.</p>
+        <div class="screens">
+          <figure><img src="../assets/ux/gordon/new-chat.png" alt="New chat empty state with suggestions (shipped onboarding)" loading="lazy"><figcaption>New chat empty state with suggestions, the shipped onboarding.</figcaption></figure>
+        </div>
+      </section>
+
+      <section aria-label="Impact">
+        <h2>Impact</h2>
+        <div class="stats">
+          <div class="stat"><b>69 → 119,739</b><span>MAU, Nov 2024 → Jun 2026</span></div>
+          <div class="stat"><b>~13×</b><span>step-up at the Ask Gordon launch</span></div>
+          <div class="stat"><b>~193K → 4.3M</b><span>requests / month</span></div>
+          <div class="stat"><b>~4,400</b><span>GitHub stars on docker-agent</span></div>
+        </div>
+        <ul style="margin-top:24px">
+          <li><b>Concept to commercial product.</b> From an early internal concept to a GA agent across four surfaces, sold as its own SKU with paying users.</li>
+          <li><b>Beyond one product.</b> DDS-CLI is still used by Docker Build, Compose and cagent; the CLI / TUI design became the base for docker-agent, preinstalled in Docker Desktop; Gordon was Docker&rsquo;s first hands-on MCP experience, and other teams integrated it into their products.</li>
+          <li><b>A research-led product strategy.</b> Field research and usage data focused Gordon on debugging, containerization and operations instead of a general chat.</li>
+          <li><b>A trust model for agentic actions.</b> The multi-level command classifier ended permission fatigue; the permission pattern became the reference for other agent dialogs across Docker.</li>
+          <li><b>Continuous learning built in.</b> A feedback pipeline and research plan that outlived the launch.</li>
+        </ul>
+        <p class="caveat">Growth reflects many contributors; design was a necessary enabler. &ldquo;Requests&rdquo; include background agentic calls. Figures approximate, current to Jul 2026.</p>
+      </section>
+
+      <section aria-label="Reflection">
+        <h2>Reflection</h2>
+        <p>Designing an agent is designing a relationship of trust. The interface is only part of it. The rest is deciding what the agent knows, when it acts, and how the developer stays in control.</p>
+      </section>
+
+      <hr class="dash">
+
+      <nav class="back-nav" aria-label="Project navigation">
+        <a href="../index.html#work">← Back to work</a>
+        <a href="mcp.html">Next: MCP Toolkit &amp; Catalog →</a>
+      </nav>
+
+    </div>
+  </main>
+
+  <footer class="bottom">
+    <div class="wrap bottom-inner">
+      <span>javier-alonso · № 07 Hello</span>
+      <nav aria-label="Footer">
+        <a href="mailto:javier.alonso@docker.com">email</a>
+        <a href="https://www.linkedin.com/in/javieralonsogomez/" target="_blank" rel="noopener">linkedin</a>
+        <a href="https://x.com/oyabun" target="_blank" rel="noopener">twitter</a>
+        <a href="../index.html#work">work</a>
+      </nav>
+      <a class="to-top" href="#">↑</a>
+    </div>
+  </footer>
+
+  <script src="../cryz.js" defer></script>
+  <script src="../work-gate.js" defer></script>
+</body>
+</html>

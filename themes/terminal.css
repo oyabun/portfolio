@@ -1,0 +1,250 @@
+/* ————— skin: Terminal —————
+   from examples/04-terminal, taken further: phosphor green on a black
+   ground, CRT scanlines, zero-radius boxes with hard drop shadows,
+   block cursor, mono everywhere. */
+
+:root[data-skin="terminal"] {
+  --background: #050d08;
+  --highlight: #081410;
+  --dots: #164a2e;
+  --text: #41e77e;
+  --text-secondary: #1f9c52;
+  --link: #ffd34d;
+  --logo: #41e77e;
+  --leader: rgba(65, 231, 126, 0.35);
+  --font-sans: var(--font-mono);
+  --radius-row: 0px;
+  --radius-icon: 0px;
+  --radius-image: 0px;
+  --frame: rgba(65, 231, 126, 0.45);
+  --fill: rgba(8, 20, 13, 0.88);
+  --hard: 6px 6px 0 rgba(2, 8, 5, 0.7);
+}
+
+:root[data-skin="terminal"] body {
+  background: var(--background);
+  text-shadow: 0 0 6px rgba(65, 231, 126, 0.25);
+}
+
+/* dot grain becomes CRT scanlines + vignette */
+:root[data-skin="terminal"] body::before {
+  background-image:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0 1px, transparent 1px 3px),
+    radial-gradient(circle at 50% 46%, transparent 58%, rgba(0, 0, 0, 0.55) 100%);
+  background-size: auto, cover;
+  -webkit-mask-image: none;
+  mask-image: none;
+  inset: 0;
+  opacity: 0.55;
+  z-index: 95;
+}
+
+:root[data-skin="terminal"] ::selection { background: var(--link); color: #08120a; text-shadow: none; }
+
+:root[data-skin="terminal"] a:focus-visible { outline: 2px dashed var(--link); }
+
+/* framed windows everywhere */
+:root[data-skin="terminal"] .hero-card,
+:root[data-skin="terminal"] .mini,
+:root[data-skin="terminal"] .bento .tile,
+:root[data-skin="terminal"] .usecase,
+:root[data-skin="terminal"] .detail .stats,
+:root[data-skin="terminal"] .xp-banner,
+:root[data-skin="terminal"] .bottom {
+  background: var(--fill);
+  border: 1px solid var(--frame);
+  border-radius: 0;
+  box-shadow: var(--hard);
+}
+
+/* the hero runs a shell header */
+:root[data-skin="terminal"] .hero-card {
+  position: relative;
+  padding-top: 70px;
+}
+:root[data-skin="terminal"] .hero-card::before {
+  content: "[ javier@woztopus ]  ~ $ ./portfolio --all";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--frame);
+  overflow: hidden;
+  white-space: nowrap;
+  font: 400 11px/1 var(--font-mono);
+  letter-spacing: 0;
+  color: var(--text-secondary);
+  background: rgba(65, 231, 126, 0.06);
+}
+
+/* blinking block cursor after the headline */
+:root[data-skin="terminal"] .hero-title::after {
+  content: "█";
+  color: var(--link);
+  margin-left: 2px;
+  animation: nan-blink 1.06s steps(1) infinite;
+}
+@keyframes nan-blink { 0%, 54% { opacity: 1; } 55%, 100% { opacity: 0; } }
+
+:root[data-skin="terminal"] .eyebrow,
+:root[data-skin="terminal"] .mini-label,
+:root[data-skin="terminal"] .usecase dt {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--link);
+}
+
+:root[data-skin="terminal"] .detail h2::before { content: "### "; color: var(--link); }
+:root[data-skin="terminal"] .usecase dt::before { content: "> "; color: var(--link); }
+
+:root[data-skin="terminal"] .pill {
+  border-radius: 0;
+  border: 1px solid var(--frame);
+  box-shadow: 3px 3px 0 rgba(2, 8, 5, 0.8);
+}
+:root[data-skin="terminal"] .pill-dark {
+  background: var(--text);
+  border-color: var(--text);
+  color: #04120a;
+}
+:root[data-skin="terminal"] .pill-dark:hover { background: var(--link); border-color: var(--link); }
+:root[data-skin="terminal"] .pill-open { background: transparent; border-color: var(--frame); color: var(--text); }
+
+:root[data-skin="terminal"] .bento .tile {
+  border-radius: 0;
+  transition: background 0.12s linear;
+}
+:root[data-skin="terminal"] .bento .tile:hover { background: #123a24; }
+
+:root[data-skin="terminal"] hr.dash,
+:root[data-skin="terminal"] .detail hr.dash { border-top-style: dashed; border-top-color: var(--frame); }
+
+:root[data-skin="terminal"] .screens figure { position: relative; }
+:root[data-skin="terminal"] .screens figure img {
+  border: 1px solid var(--frame);
+  border-radius: 0;
+  filter: grayscale(1) contrast(1.08) sepia(1) hue-rotate(54deg) saturate(2.4) brightness(0.92);
+}
+:root[data-skin="terminal"] .screens figure::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0 1px, transparent 1px 3px);
+  mix-blend-mode: multiply;
+}
+
+:root[data-skin="terminal"] .hero-face,
+:root[data-skin="terminal"] .hero-pin { border-color: var(--frame); border-radius: 0; }
+
+:root[data-skin="terminal"] .chip-role { border-radius: 0; }
+
+:root[data-skin="terminal"] .cv-dates,
+:root[data-skin="terminal"] .cv-tag { border-radius: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-skin="terminal"] .hero-title::after { animation: none; }
+}
+
+/* ————— layout: strip bar + file-listing work section ————— */
+:root[data-skin="terminal"] .top {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 0;
+  background: rgba(5, 13, 8, 0.94);
+  border-bottom: 2px solid var(--text);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+:root[data-skin="terminal"] .top-inner {
+  width: 100%;
+  max-width: none;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+}
+
+:root[data-skin="terminal"] .wordmark {
+  display: flex;
+  align-items: center;
+  padding: 0 22px;
+  border-right: 1px solid var(--frame);
+  font: 600 12px var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+:root[data-skin="terminal"] .top nav ul { gap: 0; }
+:root[data-skin="terminal"] .top nav li { display: flex; }
+
+:root[data-skin="terminal"] .top nav a {
+  display: flex;
+  align-items: center;
+  padding: 13px 18px;
+  border-right: 1px solid rgba(65, 231, 126, 0.22);
+  font: 600 11px var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+:root[data-skin="terminal"] .top nav a:hover,
+:root[data-skin="terminal"] .top nav a:focus-visible {
+  background: rgba(65, 231, 126, 0.12);
+  color: var(--link);
+  text-decoration: none;
+}
+
+/* the bento becomes an `ls -l` listing */
+:root[data-skin="terminal"] .bento {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--frame);
+  border-radius: 0;
+  background: var(--fill);
+  box-shadow: var(--hard);
+}
+
+:root[data-skin="terminal"] .bento .tile {
+  display: block;
+  border: 0;
+  border-bottom: 1px solid rgba(65, 231, 126, 0.22);
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 18px 22px;
+  transform: none;
+}
+
+:root[data-skin="terminal"] .bento .tile:last-child { border-bottom: 0; }
+:root[data-skin="terminal"] .bento .tile:hover { background: #0f2c1c; transform: none; }
+
+:root[data-skin="terminal"] .tile-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+:root[data-skin="terminal"] .tile-index::before {
+  content: "$ ls ";
+  color: var(--link);
+}
+
+:root[data-skin="terminal"] .tile-icon { display: none; }
+
+:root[data-skin="terminal"] .tile h3 {
+  margin: 8px 0 4px;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+:root[data-skin="terminal"] .t-wide .tile-body { display: block; }
+:root[data-skin="terminal"] .t-wide h3 { max-width: none; }
+:root[data-skin="terminal"] .tile h3::after { content: "/"; color: var(--text-secondary); }
+:root[data-skin="terminal"] .big-stat { color: var(--link); }
+:root[data-skin="terminal"] .tile-foot { margin-top: 10px; }

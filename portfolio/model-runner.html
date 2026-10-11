@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <script>(function(){try{var p=JSON.parse(localStorage.getItem('cryz-prefs'))||{};var e=document.documentElement;e.setAttribute('data-theme',p.theme||'system');e.setAttribute('data-accent',p.accent||'pink');if(p.mono)e.classList.add('cryz-mono');if(p.field)e.classList.add('cryz-field');if(p.tilt===false)e.classList.add('cryz-no-tilt');if(p.heroBg===false)e.classList.add('cryz-no-hero-bg');if(p.heroIcons===false)e.classList.add('cryz-no-hero-icons');}catch(_){}})();</script>
+  <script>(function(){try{if(localStorage.getItem('work-unlocked')!=='1')document.documentElement.classList.add('work-locked');}catch(_){document.documentElement.classList.add('work-locked');}})();</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
@@ -11,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../style.css">
+  <script src="../themes/skin.js"></script>
 </head>
 <body>
 
@@ -21,10 +23,10 @@
       </a>
       <nav aria-label="Primary">
         <ul>
-          <li><a href="../experience.html">Resume</a></li>
+          <li><a href="../resume.html">Resume</a></li>
           <li><a href="../index.html#work">Portfolio</a></li>
           <li><a href="../playground/index.html">Playground</a></li>
-          <li><a href="../index.html#about">About</a></li>
+          <li><a href="../about.html">About</a></li>
           <li><a href="mailto:javier.alonso@docker.com">Contact</a></li>
           <li><a class="cryz" href="../cryz.html" aria-label="cryz"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 11h.01"/><path d="M14 6h.01"/><path d="M18 6h.01"/><path d="M6.5 13.1h.01"/><path d="M22 5c0 9-4 12-6 12s-6-3-6-12c0-2 2-3 6-3s6 1 6 3"/><path d="M17.4 9.9c-.8.8-2 .8-2.8 0"/><path d="M10.1 7.1C9 7.2 7.7 7.7 6 8.6c-3.5 2-4.7 3.9-3.7 5.6 4.5 7.8 9.5 8.4 11.2 7.4.9-.5 1.9-2.1 1.9-4.7"/><path d="M9.1 16.5c.3-1.1 1.4-1.7 2.4-1.4"/></svg>cryz</a></li>
         </ul>
@@ -35,7 +37,7 @@
     <main class="detail">
     <div class="wrap">
 
-      <p class="eyebrow" style="margin-bottom:8px">Case 03 / 05 — Selected Work</p>
+      <p class="eyebrow" style="margin-bottom:8px">Case 03 / 06 — Selected Work</p>
       <h1>Docker Model Runner</h1>
       <p class="sub">Local inference 0→1, with the coded model cards that help developers pick the right model.</p>
 
@@ -113,5 +115,6 @@
   </footer>
 
   <script src="../cryz.js" defer></script>
+  <script src="../work-gate.js" defer></script>
 </body>
 </html>

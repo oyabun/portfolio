@@ -3,6 +3,7 @@
 (function () {
   'use strict';
   var KEY = 'cryz-prefs';
+  var SKINS_ENABLED = false; /* Theme (skins) row hidden for now; flip to true to show */
   var TOGGLES = [
     { id: 'field', label: 'Dusk field', def: false },
     { id: 'mono', label: 'Monochrome', def: false },
@@ -21,6 +22,12 @@
     { id: 'green', label: 'Green', dot: '#1f9d57' },
     { id: 'amber', label: 'Amber', dot: '#d98324' },
     { id: 'violet', label: 'Violet', dot: '#7c5cff' }
+  ];
+  var SKINS = [
+    { id: 'bento', label: 'Bento (default)', icon: '<rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="5" rx="2"/><rect x="13" y="10" width="8" height="11" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/>' },
+    { id: 'os', label: 'OS / Desktop', icon: '<rect x="3" y="4" width="18" height="13" rx="2"/><line x1="9" x2="15" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/><circle cx="6.2" cy="7.2" r="0.9" fill="currentColor" stroke="none"/>' },
+    { id: 'terminal', label: 'Terminal', icon: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m6.5 9 3 3-3 3"/><line x1="12" x2="17.5" y1="15" y2="15"/>' },
+    { id: 'halftone', label: 'Halftone', icon: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="8" r="0.8" fill="currentColor" stroke="none"/><circle cx="16" cy="8" r="0.5" fill="currentColor" stroke="none"/><circle cx="8" cy="12" r="0.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="0.8" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="8" cy="16" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="16" r="0.8" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="0.5" fill="currentColor" stroke="none"/>' }
   ];
   var FIELD_DEFAULTS = { pixel: 4, noise: 1, levels: 7, speed: 1, curve: 1.35, top: 1.08, pos: -14, opacity: 1 };
   var FIELD_SLIDERS = [
@@ -46,6 +53,8 @@
   TOGGLES.forEach(function (t) { if (typeof state[t.id] !== 'boolean') state[t.id] = t.def; });
   if (THEMES.every(function (t) { return t.id !== state.theme; })) state.theme = 'system';
   if (ACCENTS.every(function (a) { return a.id !== state.accent; })) state.accent = 'pink';
+  if (SKINS.every(function (s) { return s.id !== state.skin; })) state.skin = 'bento';
+  function skinIcon(s) { return '<svg viewBox="0 0 24 24" aria-hidden="true">' + s.icon + '</svg>'; }
   state.fieldParams = Object.assign({}, FIELD_DEFAULTS, state.fieldParams || {});
 
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
@@ -59,6 +68,7 @@
     h.classList.toggle('cryz-no-hero-icons', state.heroIcons === false);
     h.setAttribute('data-theme', state.theme);
     h.setAttribute('data-accent', state.accent);
+    if (window.nanSkin) window.nanSkin.set(state.skin || 'bento');
     if (window.duskField) {
       Object.assign(window.duskField.params, state.fieldParams);
       window.duskField.apply();
@@ -66,8 +76,9 @@
   }
 
   var segTheme, dd, ddBtn, ddList;
+  var sDD, sDDBtn, sDDList;
 
-  function closeDD() { if (dd) dd.classList.remove('open'); }
+  function closeDD() { if (dd) dd.classList.remove('open'); if (sDD) sDD.classList.remove('open'); }
 
   function build() {
     var panel = document.createElement('aside');
@@ -75,16 +86,16 @@
     panel.setAttribute('aria-label', 'Cryz mode');
     panel.innerHTML = '<p class="cryz-panel-title">CRYZ MODE</p>';
 
-    /* theme: system / light / dark, as icons */
+    /* mode: system / light / dark, as icons */
     var tRow = document.createElement('div');
     tRow.className = 'cryz-seg-row';
     var tLab = document.createElement('span');
     tLab.className = 'cryz-seg-label';
-    tLab.textContent = 'Theme';
+    tLab.textContent = 'Mode';
     segTheme = document.createElement('div');
     segTheme.className = 'cryz-seg';
     segTheme.setAttribute('role', 'radiogroup');
-    segTheme.setAttribute('aria-label', 'Theme');
+    segTheme.setAttribute('aria-label', 'Mode');
     THEMES.forEach(function (t) {
       var btn = document.createElement('button');
       btn.type = 'button';
@@ -101,6 +112,46 @@
     });
     tRow.appendChild(tLab); tRow.appendChild(segTheme);
     panel.appendChild(tRow);
+
+    /* theme: full-visual skins, in a dropdown */
+    if (SKINS_ENABLED) {
+    var sRow = document.createElement('div');
+    sRow.className = 'cryz-seg-row cryz-dd-row';
+    var sLab = document.createElement('span');
+    sLab.className = 'cryz-seg-label';
+    sLab.textContent = 'Theme';
+    sDD = document.createElement('div');
+    sDD.className = 'cryz-dd';
+    sDDBtn = document.createElement('button');
+    sDDBtn.type = 'button';
+    sDDBtn.className = 'cryz-dd-btn';
+    sDDBtn.setAttribute('aria-haspopup', 'listbox');
+    sDDBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      dd && dd.classList.remove('open');
+      sDD.classList.toggle('open');
+    });
+    sDDList = document.createElement('div');
+    sDDList.className = 'cryz-dd-list';
+    sDDList.setAttribute('role', 'listbox');
+    SKINS.forEach(function (s) {
+      var opt = document.createElement('button');
+      opt.type = 'button';
+      opt.className = 'cryz-dd-opt';
+      opt.dataset.val = s.id;
+      opt.setAttribute('role', 'option');
+      opt.innerHTML = '<span class="cryz-dd-ic">' + skinIcon(s) + '</span>' + s.label;
+      opt.addEventListener('click', function (e) {
+        e.stopPropagation();
+        state.skin = s.id;
+        save(); apply(); sync(); closeDD();
+      });
+      sDDList.appendChild(opt);
+    });
+    sDD.appendChild(sDDBtn); sDD.appendChild(sDDList);
+    sRow.appendChild(sLab); sRow.appendChild(sDD);
+    panel.appendChild(sRow);
+    }
 
     var tuneRow = null;
     TOGGLES.forEach(function (p) {
@@ -152,6 +203,7 @@
     ddBtn.setAttribute('aria-haspopup', 'listbox');
     ddBtn.addEventListener('click', function (e) {
       e.stopPropagation();
+      sDD && sDD.classList.remove('open');
       dd.classList.toggle('open');
     });
     ddList = document.createElement('div');
@@ -182,6 +234,7 @@
       TOGGLES.forEach(function (t) { state[t.id] = t.def; });
       state.theme = 'system';
       state.accent = 'pink';
+      state.skin = 'bento';
       state.fieldParams = Object.assign({}, FIELD_DEFAULTS);
       syncModal();
       save(); apply(); sync();
@@ -201,6 +254,13 @@
       if (ddBtn) ddBtn.innerHTML = '<span class="cryz-dd-cur"><span class="cryz-dd-ic">' + accentIcon(cur) + '</span>' + cur.label + '</span>' + CHEV;
       if (ddList) ddList.querySelectorAll('.cryz-dd-opt').forEach(function (o) {
         var on = o.dataset.val === state.accent;
+        o.classList.toggle('on', on);
+        o.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      var curS = SKINS.filter(function (s) { return s.id === (state.skin || 'bento'); })[0] || SKINS[0];
+      if (sDDBtn) sDDBtn.innerHTML = '<span class="cryz-dd-cur"><span class="cryz-dd-ic">' + skinIcon(curS) + '</span>' + curS.label + '</span>' + CHEV;
+      if (sDDList) sDDList.querySelectorAll('.cryz-dd-opt').forEach(function (o) {
+        var on = o.dataset.val === (state.skin || 'bento');
         o.classList.toggle('on', on);
         o.setAttribute('aria-selected', on ? 'true' : 'false');
       });
@@ -226,6 +286,7 @@
     document.body.appendChild(panel);
     document.addEventListener('click', function (e) {
       if (dd && !dd.contains(e.target)) closeDD();
+      if (sDD && !sDD.contains(e.target)) closeDD();
       if (opened && !panel.contains(e.target) && !(trigger && trigger.contains(e.target))) open(false);
     });
     document.addEventListener('keydown', function (e) {

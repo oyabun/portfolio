@@ -1,0 +1,269 @@
+/* ————— skin: Halftone Press —————
+   from examples/05-halftone: near-black print field, cream paper cards
+   with coarse halftone dot texture, vermillion accents, serif display. */
+
+:root[data-skin="halftone"] {
+  --background: #10100e;
+  --highlight: #eee6d0;
+  --dots: rgba(238, 230, 208, 0.14);
+  --text: #eee6d0;
+  --text-secondary: rgba(238, 230, 208, 0.65);
+  --link: #c95c3f;
+  --logo: #eee6d0;
+  --leader: rgba(238, 230, 208, 0.3);
+  --font-sans: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --paper: #eee6d0;
+  --ink: #211914;
+  --verm: #c95c3f;
+  --halftone: radial-gradient(circle, rgba(33, 25, 20, 0.06) 1px, transparent 1.4px);
+}
+
+:root[data-skin="halftone"] body {
+  background:
+    radial-gradient(circle at 50% 30%, rgba(201, 92, 63, 0.07), transparent 32rem),
+    radial-gradient(circle at 45% 60%, rgba(238, 230, 208, 0.035), transparent 44rem),
+    var(--background);
+}
+
+/* dot grain coarsens into press halftone + vignette */
+:root[data-skin="halftone"] body::before {
+  background-image:
+    radial-gradient(circle, rgba(238, 230, 208, 0.05) 1px, transparent 1.4px),
+    radial-gradient(circle at 50% 46%, transparent 52%, rgba(7, 7, 6, 0.5) 100%);
+  background-size: 4px 4px, cover;
+  -webkit-mask-image: none;
+  mask-image: none;
+  inset: 0;
+  opacity: 1;
+}
+
+:root[data-skin="halftone"] ::selection { background: rgba(201, 92, 63, 0.85); color: var(--paper); }
+
+/* paper cards with ink halftone texture */
+:root[data-skin="halftone"] .hero-card,
+:root[data-skin="halftone"] .mini,
+:root[data-skin="halftone"] .bento .tile,
+:root[data-skin="halftone"] .usecase,
+:root[data-skin="halftone"] .xp-banner,
+:root[data-skin="halftone"] .bottom {
+  --text: var(--ink);
+  --text-secondary: rgba(33, 25, 20, 0.66);
+  --link: var(--verm);
+  --dots: rgba(33, 25, 20, 0.16);
+  --leader: rgba(33, 25, 20, 0.3);
+  --background: #e6ddc6;
+  color: var(--ink);
+  background: var(--halftone), var(--paper);
+  background-size: 4px 4px, auto;
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 0 1px rgba(33, 25, 20, 0.16),
+    0 18px 44px rgba(0, 0, 0, 0.45);
+}
+:root[data-skin="halftone"] .hero-card,
+:root[data-skin="halftone"] .mini,
+:root[data-skin="halftone"] .bento .tile,
+:root[data-skin="halftone"] .usecase,
+:root[data-skin="halftone"] .xp-banner {
+  --background: #e6ddc6;
+}
+
+/* labels read ink only inside paper cards; on the dark field they stay paper */
+:root[data-skin="halftone"] .hero-card .eyebrow,
+:root[data-skin="halftone"] .hero-card .mini-label,
+:root[data-skin="halftone"] .mini .eyebrow,
+:root[data-skin="halftone"] .mini .mini-label,
+:root[data-skin="halftone"] .bottom .eyebrow,
+:root[data-skin="halftone"] .bottom .mini-label {
+  color: rgba(33, 25, 20, 0.6);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+:root[data-skin="halftone"] .detail .eyebrow { color: rgba(238, 230, 208, 0.55); }
+
+:root[data-skin="halftone"] .hero-title { letter-spacing: -0.015em; }
+:root[data-skin="halftone"] .hero-title .accent { font-style: italic; }
+
+:root[data-skin="halftone"] .eyebrow,
+:root[data-skin="halftone"] .mini-label {
+  color: rgba(33, 25, 20, 0.6);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+:root[data-skin="halftone"] .bottom .eyebrow,
+:root[data-skin="halftone"] .bottom .mini-label { color: rgba(33, 25, 20, 0.6); }
+
+:root[data-skin="halftone"] .detail h2 { font-weight: 400; letter-spacing: -0.01em; }
+:root[data-skin="halftone"] .detail h2::before { content: "※ "; color: var(--verm); }
+:root[data-skin="halftone"] .detail .stats .stat,
+:root[data-skin="halftone"] .usecase {
+  background: var(--halftone), var(--paper);
+  background-size: 4px 4px, auto;
+  color: var(--ink);
+  --text: var(--ink);
+  --text-secondary: rgba(33, 25, 20, 0.66);
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(33, 25, 20, 0.16), 0 10px 26px rgba(0, 0, 0, 0.4);
+}
+
+:root[data-skin="halftone"] .pill-dark {
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: 4px 4px 0 rgba(201, 92, 63, 0.9);
+}
+:root[data-skin="halftone"] .pill { border-radius: 3px; }
+:root[data-skin="halftone"] .pill-open {
+  background: transparent;
+  border: 1px solid rgba(238, 230, 208, 0.35);
+  color: var(--paper);
+}
+:root[data-skin="halftone"] .pill-open:hover { border-color: var(--verm); color: var(--verm); }
+
+:root[data-skin="halftone"] .screens figure img {
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(33, 25, 20, 0.2), 0 10px 26px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(33, 25, 20, 0.2);
+}
+
+:root[data-skin="halftone"] .detail p,
+:root[data-skin="halftone"] .detail li { line-height: 1.65; }
+
+:root[data-skin="halftone"] hr.dash,
+:root[data-skin="halftone"] .detail hr.dash { border-top: 1px solid var(--dots); }
+
+:root[data-skin="halftone"] .hero-face,
+:root[data-skin="halftone"] .hero-pin { border-color: var(--paper); }
+
+:root[data-skin="halftone"] .chip { border-radius: 3px 1px 4px 2px; }
+:root[data-skin="halftone"] .chip-role { border-radius: 3px; }
+
+:root[data-skin="halftone"] .bento .tile .mini-cta,
+:root[data-skin="halftone"] .mini-cta { color: var(--verm); }
+
+/* ————— layout: hairline press nav + single-column index ————— */
+:root[data-skin="halftone"] .top {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 16px 0;
+  background: rgba(16, 16, 14, 0.82);
+  border-bottom: 1px solid rgba(238, 230, 208, 0.16);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  backdrop-filter: blur(10px) saturate(1.2);
+}
+
+:root[data-skin="halftone"] .wordmark {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+:root[data-skin="halftone"] .top nav a {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+:root[data-skin="halftone"] .hero-title { line-height: 1.45; }
+
+/* hanko seal on the hero card, after 05's press mark */
+:root[data-skin="halftone"] .hero-card { position: relative; }
+:root[data-skin="halftone"] .hero-card::after {
+  content: "親";
+  position: absolute;
+  top: 26px;
+  right: 30px;
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  background: var(--verm);
+  color: #1b1410;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "Songti SC", serif;
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1;
+  border-radius: 10px 7px 12px 8px;
+  box-shadow: inset 0 0 0 3px rgba(27, 20, 16, 0.35), 0 8px 20px rgba(0, 0, 0, 0.4);
+  transform: rotate(-3deg);
+}
+
+/* the bento becomes the paper's index of the remaining pieces */
+:root[data-skin="halftone"] .bento {
+  display: block;
+  border-top: 1px solid rgba(238, 230, 208, 0.16);
+}
+
+:root[data-skin="halftone"] .bento .tile {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "idx    idx"
+    "name   metric"
+    "blurb  blurb"
+    "foot   foot";
+  gap: 4px 24px;
+  padding: 24px 2px;
+  border: 0;
+  border-bottom: 1px solid rgba(238, 230, 208, 0.16);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--paper);
+  --text: var(--paper);
+  --text-secondary: rgba(238, 230, 208, 0.6);
+  --dots: rgba(238, 230, 208, 0.16);
+  --link: var(--verm);
+  --leader: rgba(238, 230, 208, 0.3);
+  transform: none;
+  transition: padding-left 0.2s var(--spring);
+}
+
+:root[data-skin="halftone"] .bento .tile:hover {
+  transform: none;
+  padding-left: 10px;
+  text-decoration: none;
+}
+
+:root[data-skin="halftone"] .tile-top { grid-area: idx; }
+:root[data-skin="halftone"] .tile-index {
+  font: 500 10px var(--font-mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(238, 230, 208, 0.45);
+}
+:root[data-skin="halftone"] .tile-icon { display: none; }
+
+:root[data-skin="halftone"] .tile h3 {
+  grid-area: name;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: clamp(22px, 2.6vw, 30px);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  color: var(--paper);
+}
+
+:root[data-skin="halftone"] .tile:hover h3 { color: var(--verm); }
+
+:root[data-skin="halftone"] .blurb {
+  grid-area: blurb;
+  color: rgba(238, 230, 208, 0.65);
+  max-width: 62ch;
+}
+
+:root[data-skin="halftone"] .big-stat {
+  grid-area: metric;
+  align-self: end;
+  text-align: right;
+  font-family: var(--font-sans);
+  color: var(--verm);
+}
+
+:root[data-skin="halftone"] .tile-foot { grid-area: foot; }
+:root[data-skin="halftone"] .t-contact .lines { grid-area: blurb; }
