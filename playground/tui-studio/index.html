@@ -859,17 +859,17 @@
   <nav>
     <a class="nav-logo" href="#">
       <img src="assets/logo-tui-studio_dark.svg" alt="TUIStudio" style="height:30px;filter:drop-shadow(0 0 6px rgba(74,222,128,0.35));" />
-      <span class="alpha-tag">Alpha</span>
+      <span class="alpha-tag">Case study</span>
     </a>
     <div class="nav-links">
       <a class="nav-link" href="#features">Features</a>
       <a class="nav-link" href="#export">Export</a>
-      <a class="nav-link" href="https://github.com/jalonsogo/tui-studio">GitHub</a>
+      <a class="nav-link" href="../">Playground</a>
       <div class="ng-platform ng-platform--sm ng-platform--primary">
         <button class="ng-btn ng-btn--sm" id="navBtn">
           <span class="ng-btn-scan"></span>
           <span class="ng-btn-shine"></span>
-          <span class="ng-btn-label"><span class="apple-logo"></span> Download for Mac</span>
+          <span class="ng-btn-label">Case study · archived</span>
         </button>
       </div>
     </div>
@@ -886,15 +886,7 @@
     <div class="hero-glass">
       <img class="hero-computer" src="assets/Computer.png" alt="TUIStudio Editor" />
 
-      <a id="whats-new-badge" class="whats-new-badge"
-         href="https://github.com/jalonsogo/tui-studio/blob/main/CHANGELOG.md"
-         target="_blank" rel="noopener">
-        <span class="hero-badge-dot"></span>
-        <span class="whats-new-ver" id="whats-new-ver"></span>
-        <span class="whats-new-sep">·</span>
-        <span class="whats-new-change" id="whats-new-change"></span>
-        <span class="whats-new-arrow">↗</span>
-      </a>
+      
 
       <h1>
         Design Terminal UIs. <em>Visually</em><span class="cursor"></span>
@@ -911,7 +903,7 @@
           <button class="ng-btn" id="heroBtn">
             <span class="ng-btn-scan"></span>
             <span class="ng-btn-shine"></span>
-            <span class="ng-btn-label"><span class="apple-logo"></span> Download for Mac</span>
+            <span class="ng-btn-label">Case study · archived</span>
           </button>
         </div>
         <div class="os-selector">
@@ -923,13 +915,13 @@
            Apple Silicon
         </span>
         <span style="font-family:var(--font-mono);font-size:12px;color:var(--text-mid);letter-spacing:0.05em;">
-          Can't run it? It's safe —&nbsp;<a href="#faq" style="color:var(--green);text-decoration:underline;text-underline-offset:3px;">see how to open it ↓</a>
+          Curious how it worked?&nbsp;<a href="#faq" style="color:var(--green);text-decoration:underline;text-underline-offset:3px;">read the FAQ ↓</a>
         </span>
       </div>
 
-      <a class="hero-cta-ghost" href="https://github.com/jalonsogo/tui-studio">
+      <a class="hero-cta-ghost" href="../">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-        View on GitHub
+        More experiments
       </a>
     </div>
   </div>
@@ -1165,7 +1157,7 @@
           </button>
           <div class="faq-body">
             <div class="faq-answer">
-              <p>TUIStudio is currently in early access. The core editor is free to download and use. A pro tier with team features, cloud sync, and priority support is planned for later.</p>
+              <p>TUIStudio was an early-access experiment. It is presented here as a case study: the editor, the export flows and the design decisions. The app is no longer distributed.</p>
             </div>
           </div>
         </div>
@@ -1188,17 +1180,17 @@
 
   <!-- ── FINAL CTA ── -->
   <section class="cta-section">
-    <p class="eyebrow" style="justify-content:center;display:flex">Get Started</p>
-    <h2 class="section-heading">Ready to build<br>your TUI?</h2>
+    <p class="eyebrow" style="justify-content:center;display:flex">Case study</p>
+    <h2 class="section-heading">Inside<br>the experiment</h2>
     <p id="ctaSub" class="section-sub">
-      Native Mac app for Apple Silicon.<br>No install fuss — download and start designing immediately.
+      An archived experiment.<br>Screens, flows and decisions — no downloads.
     </p>
     <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
       <div class="ng-platform">
         <button class="ng-btn" id="ctaBtn">
           <span class="ng-btn-scan"></span>
           <span class="ng-btn-shine"></span>
-          <span class="ng-btn-label"><span class="apple-logo"></span> Download for Mac</span>
+          <span class="ng-btn-label">Case study · archived</span>
         </button>
       </div>
       <div class="os-selector">
@@ -1253,69 +1245,31 @@
     });
   </script>
 
-  <script>
-    /* ── Changelog: live version + What's New badge ── */
-    (async function () {
-      try {
-        const res = await fetch(
-          'https://raw.githubusercontent.com/jalonsogo/tui-studio/main/CHANGELOG.md',
-          { cache: 'no-cache' }
-        );
-        if (!res.ok) return;
-        const text = await res.text();
 
-        // Parse latest version header: ## [0.3.6] - 2026-02-22
-        const verMatch = text.match(/^##\s+\[([0-9][^\]]*)\]/m);
-        if (!verMatch) return;
-        const version = verMatch[1];
-
-        // Extract the latest version's block (up to the next ## heading)
-        const blockStart = text.indexOf(verMatch[0]);
-        const blockEnd = text.indexOf('\n## ', blockStart + 1);
-        const block = blockEnd > -1 ? text.slice(blockStart, blockEnd) : text.slice(blockStart);
-
-        // First bullet point in the block (strip markdown bold)
-        const bulletMatch = block.match(/^[-*]\s+(.+)$/m);
-        const firstChange = bulletMatch
-          ? bulletMatch[1].replace(/\*\*/g, '').trim()
-          : null;
-
-        // Show the What's New badge in the hero
-        const badge    = document.getElementById('whats-new-badge');
-        const verEl    = document.getElementById('whats-new-ver');
-        const changeEl = document.getElementById('whats-new-change');
-        if (badge && verEl && changeEl) {
-          verEl.textContent    = 'v' + version;
-          changeEl.textContent = firstChange || '';
-          badge.style.display  = 'inline-flex';
-        }
-      } catch (_) { /* silently fail — never break the page */ }
-    })();
-  </script>
 
   <script>
     (function () {
-      const RELEASES = 'https://github.com/jalonsogo/tui-studio-desktop/releases';
-      const BASE     = RELEASES + '/latest/download';
+      const RELEASES = '../';
+      const BASE     = '../';
 
       const OS_CONFIG = {
         mac: {
-          url:    BASE + '/TUIStudio.dmg',
-          label:  '<span class="apple-logo"></span> Download for Mac',
-          hint:   'Apple Silicon',
-          ctaSub: 'Native Mac app for Apple Silicon.<br>No install fuss — download and start designing immediately.',
+          url:    '../',
+          label:  'Case study · archived',
+          hint:   'shown as a design case study',
+          ctaSub: 'An archived experiment.<br>Screens, flows and decisions — no downloads.',
         },
         win: {
-          url:    BASE + '/TUIStudio.exe',
-          label:  '<span class="win-logo">⊞</span> Download for Windows',
-          hint:   'Windows 10 / 11 &nbsp;·&nbsp; x64 &nbsp;ARM64',
-          ctaSub: 'Native Windows app.<br>No install fuss — download and start designing immediately.',
+          url:    '../',
+          label:  'Case study · archived',
+          hint:   'shown as a design case study',
+          ctaSub: 'An archived experiment.<br>Screens, flows and decisions — no downloads.',
         },
         docker: {
-          url:    'https://hub.docker.com/r/javieralonso716/tui-studio-web',
-          label:  '🐳 Run with Docker',
-          hint:   'Web-based &nbsp;·&nbsp; Any OS &nbsp;·&nbsp; No install',
-          ctaSub: 'Run TUIStudio in a container.<br>Works on any OS — no install fuss.',
+          url:    '../',
+          label:  'Case study · archived',
+          hint:   'shown as a design case study',
+          ctaSub: 'An archived experiment.<br>Screens, flows and decisions — no downloads.',
         },
       };
 

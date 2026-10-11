@@ -23,17 +23,16 @@
 
   <header class="top">
     <div class="wrap top-inner">
-      <a class="wordmark" href="index.html" aria-label="Javier Alonso — home">
+      <a class="wordmark" href="./" aria-label="Javier Alonso — home">
         Javier Alonso
       </a>
       <nav aria-label="Primary">
         <ul>
           <li><a href="resume.html">Resume</a></li>
           <li><a href="#work">Portfolio</a></li>
-          <li><a href="playground/index.html">Playground</a></li>
-          <li><a href="about.html">About</a></li>
-          <li><a href="mailto:javier.alonso@docker.com">Contact</a></li>
-          <li><a class="cryz" href="cryz.html" aria-label="crzy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 11h.01"/><path d="M14 6h.01"/><path d="M18 6h.01"/><path d="M6.5 13.1h.01"/><path d="M22 5c0 9-4 12-6 12s-6-3-6-12c0-2 2-3 6-3s6 1 6 3"/><path d="M17.4 9.9c-.8.8-2 .8-2.8 0"/><path d="M10.1 7.1C9 7.2 7.7 7.7 6 8.6c-3.5 2-4.7 3.9-3.7 5.6 4.5 7.8 9.5 8.4 11.2 7.4.9-.5 1.9-2.1 1.9-4.7"/><path d="M9.1 16.5c.3-1.1 1.4-1.7 2.4-1.4"/></svg>crzy</a></li>
+          <li><a href="playground/">Playground</a></li>
+          <li><a href="#" data-mail>Contact</a></li>
+          <li><a class="cryz" href="cryz.html" aria-label="theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="c2" cx="13.5" cy="6.5" r=".5"/><circle class="c2" cx="17.5" cy="10.5" r=".5"/><circle class="c2" cx="8.5" cy="7.5" r=".5"/><circle class="c2" cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.436-.652-.436-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>theme</a></li>
         </ul>
       </nav>
     </div>
@@ -76,7 +75,7 @@
           </a>
 
           <div class="mini mini-where">
-            <img class="mini-photo" src="assets/caceres-es.jpg" alt="The old town of Cáceres, Spain, at golden hour" loading="lazy">
+            <span class="mini-photo-frame"><img class="mini-photo" src="assets/caceres-es.jpg" alt="The old town of Cáceres, Spain, at golden hour" loading="lazy"></span>
             <p class="mini-label"><i data-lucide="map-pin" aria-hidden="true"></i>Based in</p>
             <div class="mini-where-txt">
               <p class="mini-big">Cáceres, Spain</p>
@@ -159,7 +158,7 @@
               </span>
             </div>
             <h3>Agentic Platform &amp; cagent</h3>
-            <p class="blurb">Defined the product&rsquo;s primitives and IA before it had a name — sessions · sandboxes · kits.</p>
+            <p class="blurb">Defined the product&rsquo;s primitives and IA — sessions · sandboxes · kits.</p>
             <div class="tile-foot">
               <span class="tile-metric">~20.7M events</span>
               <span class="tile-dates">2025–2026</span>
@@ -202,19 +201,6 @@
             </div>
           </a>
 
-          <div class="tile t-x3 t-contact" id="contact">
-            <div class="tile-top">
-              <span class="tile-index">Currently — Staff Product Designer, AI &amp; Agentic UX @ Docker</span>
-            </div>
-            <h3>Let&rsquo;s talk</h3>
-            <div class="lines">
-              <a href="mailto:javier.alonso@docker.com"><span class="k">Email</span><i aria-hidden="true"></i>javier.alonso@docker.com</a>
-              <a href="https://www.linkedin.com/in/javieralonsogomez/" target="_blank" rel="noopener"><span class="k">LinkedIn</span><i aria-hidden="true"></i>/in/javieralonsogomez</a>
-              <a href="https://x.com/oyabun" target="_blank" rel="noopener"><span class="k">Twitter</span><i aria-hidden="true"></i>@oyabun</a>
-              <span><span class="k">Based</span><i aria-hidden="true"></i>Cáceres, Spain</span>
-            </div>
-          </div>
-
         </div>
       </div>
     </section>
@@ -224,7 +210,7 @@
         <p class="eyebrow">Personal Projects — solo builds &amp; side quests</p>
         <div class="bento">
 
-          <a class="tile t-wide" href="playground/den/index.html" aria-label="Den, the app for Docker Sandboxes — preview the landing page.">
+          <a class="tile t-wide" href="playground/den/" aria-label="Den, an experimental macOS app around Docker Sandboxes — preview the landing page.">
             <div class="tile-top">
               <span class="tile-index">01 · macOS · Swift · Docker Sandboxes</span>
               <span class="tile-icon" aria-hidden="true">
@@ -234,14 +220,14 @@
             </div>
             <span class="tile-preview"><img src="assets/previews/den-landing.webp" alt="Den landing page preview" loading="lazy"></span>
             <h3>Den <span class="cv-tag">archived</span></h3>
-            <p class="blurb">Somewhere safe to let agents run wild — the app for Docker Sandboxes. Every coding agent gets a private microVM with its own filesystem, daemon and guarded network, so it can build, install and rewrite freely while your machine never stirs.</p>
+            <p class="blurb">Somewhere safe to let agents run wild — an experimental macOS app I built around Docker Sandboxes. Every coding agent gets a private microVM with its own filesystem, daemon and guarded network, so it can build, install and rewrite freely while your machine never stirs.</p>
             <div class="tile-foot">
               <span class="study">Preview <span class="arrow">→</span></span>
               <span class="tile-dates">useden.ai · 2026</span>
             </div>
           </a>
 
-          <a class="tile t-wide" href="playground/vcr/index.html" aria-label="VCR — preview the landing page.">
+          <a class="tile t-wide" href="playground/vcr/" aria-label="VCR — preview the landing page.">
             <div class="tile-top">
               <span class="tile-index">02 · Session replay · privacy-first</span>
               <span class="tile-icon" aria-hidden="true">
@@ -258,20 +244,19 @@
             <p class="blurb">A VCR for your Claude Code and Codex sessions — drop in the session log and replay the whole run like a tape: every prompt, tool call, token and dollar on a scrubbable timeline, 1× to 60×. Parsed entirely in your browser; nothing uploaded, no server, no build step.</p>
             <div class="tile-foot">
               <span class="study">Preview <span class="arrow">→</span></span>
-              <span class="tile-dates">vcr.dev · 2026</span>
+              <span class="tile-dates">vcr · 2026</span>
             </div>
           </a>
 
           <a class="tile t-x4 xp-banner" href="playground/" aria-label="All playground — the full project catalog.">
             <div class="tile-top">
-              <span class="tile-index">Figx · TUI.Studio · HarbourMaster · ProteOS · Narwhal · tinyd · Conveyor · Crane · Loom · Graphic Recorder</span>
+              <span class="tile-index">Den · VCR · Figx · TUI.Studio · tinyd · Conveyor · Crane</span>
             </div>
             <div class="xp-main">
               <div>
                 <h3>All playground</h3>
                 <p class="blurb">The full shelf — shipped apps, session tools, Figma plugins and terminal toys.</p>
               </div>
-              <span class="study">Browse <span class="arrow">→</span></span>
             </div>
           </a>
 
@@ -279,23 +264,17 @@
       </div>
     </section>
 
-    <section class="about" id="about" aria-label="About">
+    <section class="about" id="contact" aria-label="Contact">
       <div class="wrap">
-        <p class="eyebrow">About</p>
-        <ul class="about-list">
-          <li>
-            <span class="k">Research-led</span><i class="dashed" aria-hidden="true"></i>
-            <p>Authored and facilitated 5+ studies — the Ask Gordon Continuous Research Plan, Agentic Platform Research (DRI), Model Runner Insights, DockerCon CLI Research Report, and the Dagent UX Study.</p>
-          </li>
-          <li>
-            <span class="k">Recognition</span><i class="dashed" aria-hidden="true"></i>
-            <p>Early Figma-MCP power user courted by Figma → invited to apply to speak at Config 2026; the <b class="mono">--help-agent</b> concept called &ldquo;genuinely novel&rdquo;; conducts staff-level design interviews.</p>
-          </li>
-          <li>
-            <span class="k">Tools</span><i class="dashed" aria-hidden="true"></i>
-            <p>Figma · HTML/CSS/JS prototypes on Vercel · Swift/macOS · Qualtrics, Maze, Useberry · Sigma. Pairs product design with a hands-on research practice and engineering-grade prototyping.</p>
-          </li>
-        </ul>
+        <div class="mini t-contact contact-card">
+          <p class="mini-label"><i data-lucide="message-circle" aria-hidden="true"></i>Let&rsquo;s talk</p>
+          <div class="lines">
+            <a href="#" data-mail><span class="k">Email</span><i aria-hidden="true"></i><span data-mail-text></span></a>
+            <a href="https://www.linkedin.com/in/javieralonsogomez/" target="_blank" rel="noopener"><span class="k">LinkedIn</span><i aria-hidden="true"></i>/in/javieralonsogomez</a>
+            <a href="https://x.com/oyabun" target="_blank" rel="noopener"><span class="k">Twitter</span><i aria-hidden="true"></i>@oyabun</a>
+            <span><span class="k">Based</span><i aria-hidden="true"></i>Cáceres, Spain</span>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -304,7 +283,7 @@
   <footer class="bottom">
     <div class="wrap bottom-inner">
       <nav aria-label="Footer">
-        <a href="mailto:javier.alonso@docker.com">email</a>
+        <a href="#" data-mail>email</a>
         <a href="https://www.linkedin.com/in/javieralonsogomez/" target="_blank" rel="noopener">linkedin</a>
         <a href="https://x.com/oyabun" target="_blank" rel="noopener">twitter</a>
         <a href="#work">work</a>
@@ -737,6 +716,7 @@ void main(){
   </script>
 
   <script src="cryz.js" defer></script>
+  <script src="email.js" defer></script>
   <script src="work-gate.js" defer></script>
 </body>
 </html>

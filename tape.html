@@ -43,17 +43,16 @@
 
   <header class="top">
     <div class="wrap top-inner">
-      <a class="wordmark" href="index.html" aria-label="Back to home">
+      <a class="wordmark" href="./" aria-label="Back to home">
         Javier Alonso
       </a>
       <nav aria-label="Primary">
         <ul>
           <li><a href="resume.html">Resume</a></li>
-          <li><a href="index.html#work">Portfolio</a></li>
-          <li><a href="playground/index.html">Playground</a></li>
-          <li><a href="about.html">About</a></li>
-          <li><a href="mailto:javier@woztopus.com">Contact</a></li>
-          <li><a class="cryz" href="cryz.html" aria-label="cryz"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 11h.01"/><path d="M14 6h.01"/><path d="M18 6h.01"/><path d="M6.5 13.1h.01"/><path d="M22 5c0 9-4 12-6 12s-6-3-6-12c0-2 2-3 6-3s6 1 6 3"/><path d="M17.4 9.9c-.8.8-2 .8-2.8 0"/><path d="M10.1 7.1C9 7.2 7.7 7.7 6 8.6c-3.5 2-4.7 3.9-3.7 5.6 4.5 7.8 9.5 8.4 11.2 7.4.9-.5 1.9-2.1 1.9-4.7"/><path d="M9.1 16.5c.3-1.1 1.4-1.7 2.4-1.4"/></svg>cryz</a></li>
+          <li><a href="#work">Portfolio</a></li>
+          <li><a href="playground/">Playground</a></li>
+          <li><a href="#" data-mail>Contact</a></li>
+          <li><a class="cryz" href="cryz.html" aria-label="theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="c2" cx="13.5" cy="6.5" r=".5"/><circle class="c2" cx="17.5" cy="10.5" r=".5"/><circle class="c2" cx="8.5" cy="7.5" r=".5"/><circle class="c2" cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.436-.652-.436-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>theme</a></li>
         </ul>
       </nav>
     </div>
@@ -69,8 +68,8 @@
           <p class="cv-summary">Scuffed shell, dust in the moulding, a sticker gone amber in the sun and filled in by
             hand. The sessions still play. Drag to turn it, double-click to face it again.</p>
           <div class="tape-actions cv-pills">
-            <a class="pill pill-dark" href="playground/vcr/index.html">Open VCR <span class="arrow" aria-hidden="true">→</span></a>
-            <a class="pill pill-open" href="playground/index.html">All playground</a>
+            <a class="pill pill-dark" href="playground/vcr/">Open VCR <span class="arrow" aria-hidden="true">→</span></a>
+            <a class="pill pill-open" href="playground/">All playground</a>
           </div>
         </div>
       </section>
@@ -86,10 +85,10 @@
   <footer class="bottom">
     <div class="wrap bottom-inner">
       <nav aria-label="Footer">
-        <a href="mailto:javier@woztopus.com">email</a>
+        <a href="#" data-mail>email</a>
         <a href="https://www.linkedin.com/in/javieralonsogomez" target="_blank" rel="noopener">linkedin</a>
         <a href="https://x.com/oyabun" target="_blank" rel="noopener">twitter</a>
-        <a href="index.html#work">work</a>
+        <a href="#work">work</a>
       </nav>
       <a class="to-top" href="#">↑</a>
     </div>
@@ -172,18 +171,18 @@
         g.fillStyle = '#33291c'; g.font = '600 84px Caveat, cursive';
         g.save(); g.translate(60, 330); g.rotate(-0.02); g.fillText('orbit-watch', 0, 0); g.restore();
         g.font = '300 28px "Geist Mono", ui-monospace, monospace'; g.fillStyle = '#6b5c42';
-        g.fillText('47 min · 312 events · SP · replay at vcr.dev', 60, 386);
+        g.fillText('47 min · 312 events · SP · replay in vcr', 60, 386);
         var x = 60;
         for (var b = 0; b < 42; b++) { var w = 2 + Math.floor(Math.random() * 7); if (Math.random() < 0.72) { g.fillStyle = 'rgba(51,41,28,.8)'; g.fillRect(x, 468, w, 68); } x += w + 5; }
         g.fillStyle = '#8c2f56'; g.fillRect(60, 442, 160, 5);
         g.font = '300 21px "Geist Mono", ui-monospace, monospace'; g.fillStyle = '#6b5c42';
-        g.fillText('vcr.dev', 60, 578);
+        g.fillText('vcr', 60, 578);
         g.textAlign = 'right'; g.fillText('© MCMLXXXVI', 964, 578); g.textAlign = 'left';
       } else {
         g.fillStyle = '#33291c'; g.font = '500 38px "Geist Mono", ui-monospace, monospace';
         g.fillText('BE KIND — REWIND', 60, 120);
         g.font = '300 25px Geist, system-ui, sans-serif'; g.fillStyle = '#6b5c42';
-        ['Every session on this tape is recorded end to end:', 'prompts, tool calls and diffs, wound hub to hub.', 'Slotted into the deck at vcr.dev, it plays back at', 'exactly the speed it happened.', '', 'SIDE A · 240 min · TYPE I · FERRIC OXIDE'].forEach(function (l, k) { g.fillText(l, 60, 186 + k * 44); });
+        ['Every session on this tape is recorded end to end:', 'prompts, tool calls and diffs, wound hub to hub.', 'Slotted into the deck, it plays back at', 'exactly the speed it happened.', '', 'SIDE A · 240 min · TYPE I · FERRIC OXIDE'].forEach(function (l, k) { g.fillText(l, 60, 186 + k * 44); });
         g.fillStyle = '#8c2f56'; g.fillRect(60, 540, 1024 - 120, 4);
       }
       return tex(c);
@@ -286,7 +285,7 @@
       g.font = '500 26px Caveat, cursive'; g.fillStyle = '#5a5046';
       g.fillText('play me — 47 min · 312 events · oct 2026', 268, 164);
       g.fillStyle = '#3a3226'; g.font = '400 20px "Geist Mono", ui-monospace, monospace';
-      g.textAlign = 'right'; g.fillText('vcr.dev', 996, 208); g.textAlign = 'left';
+      g.textAlign = 'right'; g.fillText('vcr', 996, 208); g.textAlign = 'left';
       // coffee ring
       g.strokeStyle = 'rgba(110,70,30,.16)'; g.lineWidth = 7; g.beginPath(); g.arc(880, 90, 44, 0, Math.PI * 2); g.stroke();
       // a corner lifting
@@ -347,5 +346,6 @@
   })();
   </script>
   <script src="cryz.js" defer></script>
+  <script src="email.js" defer></script>
 </body>
 </html>

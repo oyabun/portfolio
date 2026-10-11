@@ -14,36 +14,31 @@
   var type = sc.getAttribute('data-type') || '';
   var H = 54;
   var P = root + '/';
-  var catalog = P + 'index.html';
-  var home = root + '/../index.html';
+  var catalog = P;
+  var home = root + '/../';
 
   var DEMOS = [
-    { name: 'Den', type: 'App', path: 'den/index.html',
+    { name: 'Den', type: 'App', path: 'den/',
       logo: { light: 'den/resources/icon-light.svg', dark: 'den/resources/icon-dark.svg' },
       what: 'A private microVM sandbox for each coding agent, with its own filesystem, daemon and guarded network.',
       why: 'I wanted somewhere to let agents run wild, building and rewriting freely, without ever risking my actual machine.',
       learn: 'How far a per-session VM can isolate an agent, and what a safe network policy really has to allow to stay useful.' },
-    { name: 'VCR', type: 'Web', path: 'vcr/index.html',
+    { name: 'VCR', type: 'Web', path: 'vcr/',
       mark: 'VCR',
       what: 'Replay Claude Code and Codex sessions like a tape: every prompt, tool call, token and dollar on a scrubbable timeline.',
       why: 'Agent runs go opaque the moment they finish, and I kept losing the thread of what a session actually did.',
       learn: 'Whether a raw session log can become a legible, shareable recording, parsed entirely in the browser with nothing uploaded.' },
-    { name: 'Figx', type: 'Web', path: 'figx/docs/index.html',
+    { name: 'Figx', type: 'Web', path: 'figx/docs/',
       logo: { light: 'figx/docs/assets/fig.svg', dark: 'figx/docs/assets/fig.svg' },
       what: 'An offline .fig viewer that decodes Figma’s binary format and renders the scene graph to SVG, with a token inspector.',
       why: 'I wanted to open design files without an account, the cloud, or a plugin standing between me and the file.',
       learn: 'How Figma’s proprietary format actually packs layers and tokens, and how much of a design you can faithfully reconstruct from it.' },
-    { name: 'TUI Studio', type: 'Tool', path: 'tui-studio/index.html',
+    { name: 'TUI Studio', type: 'Tool', path: 'tui-studio/',
       logo: { light: 'tui-studio/assets/logo-tui-studio_light.svg', dark: 'tui-studio/assets/logo-tui-studio_dark.svg' },
       what: 'A Figma-like visual editor for terminal UIs, with a neon-glass component kit built for the occasion.',
       why: 'Designing terminal interfaces meant hand-editing code, and there was no real visual tool for it.',
       learn: 'How close a browser canvas can get to a true terminal layout, and what a TUI component system needs to feel native.' },
-    { name: 'HarbourMaster', type: 'App', path: 'harbourmaster/index.html',
-      logo: { light: 'harbourmaster/AppIcon.png', dark: 'harbourmaster/AppIcon.png' },
-      what: 'A macOS menu-bar app that shows which process holds which port, so dev servers never collide in the dark.',
-      why: 'Two dev servers kept fighting over the same port, and the usual way to find the culprit was a chore every time.',
-      learn: 'How to read the OS socket table cheaply and surface it in the menu bar without slowing the machine down.' },
-    { name: 'tinyd', type: 'CLI', path: 'tinyd/index.html',
+    { name: 'tinyd', type: 'CLI', path: 'tinyd/',
       logo: { light: 'tinyd/logo/favicon.svg', dark: 'tinyd/logo/favicon.svg' },
       what: 'A tiny TUI for your containers: manage images, containers and volumes straight from the terminal.',
       why: 'I live in the terminal and wanted Docker under control without leaving it or opening a heavy GUI.',

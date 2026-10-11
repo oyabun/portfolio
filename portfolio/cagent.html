@@ -10,7 +10,7 @@
   <link rel="apple-touch-icon" href="../apple-touch-icon.png">
   <meta name="color-scheme" content="light dark">
   <title>Agentic Platform & cagent — Javier Alonso</title>
-  <meta name="description" content="Agentic Platform and cagent: the agent app, the multi-agent runtime and the marketplace UX, shaped by an 11-session study. ~20.7M command events.">
+  <meta name="description" content="Agentic Platform and cagent: the agent app, the multi-agent runtime and the marketplace UX, shaped by moderated research. A Docker design case study.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
@@ -21,17 +21,16 @@
 
   <header class="top">
     <div class="wrap top-inner">
-      <a class="wordmark" href="../index.html" aria-label="Back to home">
+      <a class="wordmark" href="../" aria-label="Back to home">
         Javier Alonso
       </a>
       <nav aria-label="Primary">
         <ul>
           <li><a href="../resume.html">Resume</a></li>
-          <li><a href="../index.html#work">Portfolio</a></li>
-          <li><a href="../playground/index.html">Playground</a></li>
-          <li><a href="../about.html">About</a></li>
-          <li><a href="mailto:javier.alonso@docker.com">Contact</a></li>
-          <li><a class="cryz" href="../cryz.html" aria-label="cryz"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 11h.01"/><path d="M14 6h.01"/><path d="M18 6h.01"/><path d="M6.5 13.1h.01"/><path d="M22 5c0 9-4 12-6 12s-6-3-6-12c0-2 2-3 6-3s6 1 6 3"/><path d="M17.4 9.9c-.8.8-2 .8-2.8 0"/><path d="M10.1 7.1C9 7.2 7.7 7.7 6 8.6c-3.5 2-4.7 3.9-3.7 5.6 4.5 7.8 9.5 8.4 11.2 7.4.9-.5 1.9-2.1 1.9-4.7"/><path d="M9.1 16.5c.3-1.1 1.4-1.7 2.4-1.4"/></svg>cryz</a></li>
+          <li><a href="../#work">Portfolio</a></li>
+          <li><a href="../playground/">Playground</a></li>
+          <li><a href="#" data-mail>Contact</a></li>
+          <li><a class="cryz" href="../cryz.html" aria-label="theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="c2" cx="13.5" cy="6.5" r=".5"/><circle class="c2" cx="17.5" cy="10.5" r=".5"/><circle class="c2" cx="8.5" cy="7.5" r=".5"/><circle class="c2" cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.436-.652-.436-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>theme</a></li>
         </ul>
       </nav>
     </div>
@@ -49,7 +48,7 @@
 
       <section aria-label="Context">
         <h2>Context</h2>
-        <p>Docker's bet on agents has two layers: <b>cagent</b>, the open-source CLI multi-agent runtime that Gordon and agents run on (~20.7M command events), and <b>dagent</b>, the agent app where developers create, run, import and share agents with a marketplace (&ldquo;Agent Fleet&rdquo;). This case is the design-and-research narrative of the app layer that fronts the runtime.</p>
+        <p>Docker's bet on agents has two layers: <b>cagent</b>, the CLI multi-agent runtime that Gordon and agents run on (public as docker-agent), and <b>dagent</b>, the agent app where developers create, run, import and share agents with a marketplace (&ldquo;Agent Fleet&rdquo;). This case is the design-and-research narrative of the app layer that fronts the runtime.</p>
       </section>
 
       <section aria-label="Research">
@@ -70,13 +69,13 @@
         <article class="usecase"><h3>cagent runtime with YAML-defined agents; the UX above it standardizes sessions, runs and logs.</h3><p class="uc-job">&ldquo;Run multi-agent workflows from the terminal&rdquo;</p><dl><dt>Objective</dt><dd>Make an agent team as composable and scriptable as an image.</dd><dt>Outcome</dt><dd>~20.7M command events on the runtime; the same primitives surface in the Agentic Platform sessions/sandboxes IA.</dd><dt>Trade-off</dt><dd>CLI-first maximizes composability and speed at the cost of discoverability, which the app layer answers.</dd></dl></article>
         <article class="usecase"><h3>dagent lifecycle: create, edit, run, import/export, pull/push to the Agent Fleet marketplace.</h3><p class="uc-job">&ldquo;Create, run and share agents without building from scratch&rdquo;</p><dl><dt>Objective</dt><dd>Turn agents from one-off scripts into shareable artifacts.</dd><dt>Outcome</dt><dd>Prototype-scale validation: 369 agents created, 2,144 runs, 475 pulls across 96 users (Aug 2025 – Jun 2026).</dd><dt>Trade-off</dt><dd>Marketplace sharing before maturity risks low-quality listings; early scale accepted as the cost of learning the shape.</dd></dl></article>
         <article class="usecase"><h3>Import by URL or .yaml upload (Qualtrics instrument: get the Agents from users with a URL or by uploading .yaml files).</h3><p class="uc-job">&ldquo;Bring an existing agent definition into Docker&rdquo;</p><dl><dt>Objective</dt><dd>Meet power users where their agents already live.</dd><dt>Outcome</dt><dd>90 imports logged in prototype; fed the sessions-vs-sandboxes modeling on the platform.</dd><dt>Trade-off</dt><dd>Accepting arbitrary YAML widens the failure surface; mitigated with validation feedback at import.</dd></dl></article>
-        <article class="usecase"><h3>The Dagent UX Study: ~11 moderated think-aloud sessions (Oct 2025) plus a continuous feedback form.</h3><p class="uc-job">&ldquo;Understand what people actually do with agents&rdquo;</p><dl><dt>Objective</dt><dd>Ground the platform's primitives in observed behavior, not opinion.</dd><dt>Outcome</dt><dd>Study findings shaped sessions/sandboxes, kits and the New Session Composer direction.</dd><dt>Trade-off</dt><dd>Prototype-scale metrics cannot carry the scale story; the study trades breadth for depth by design.</dd></dl></article>
+        <article class="usecase"><h3>The Dagent UX Study: moderated think-aloud sessions plus a continuous feedback form.</h3><p class="uc-job">&ldquo;Understand what people actually do with agents&rdquo;</p><dl><dt>Objective</dt><dd>Ground the platform's primitives in observed behavior, not opinion.</dd><dt>Outcome</dt><dd>Study findings shaped sessions/sandboxes, kits and the New Session Composer direction.</dd><dt>Trade-off</dt><dd>Prototype-scale metrics cannot carry the scale story; the study trades breadth for depth by design.</dd></dl></article>
       </section>
 
       <section aria-label="Measurement">
-        Measurement mixed scale and signal: runtime command events (~20.7M) show adoption; prototype telemetry (369 agents / 2,144 runs / 475 pulls) plus the study sessions show direction. The two are deliberately reported apart: prototype numbers are not scale numbers.
-        <div class="stats"><div class="stat"><b>~20.7M</b><span>cagent command events</span></div><div class="stat"><b>369 / 2,144</b><span>agents created / runs in dagent prototype</span></div><div class="stat"><b>~11</b><span>moderated UX-study sessions facilitated</span></div><div class="stat"><b>96</b><span>distinct dagent users (prototype)</span></div></div>
-        <p class="caveat" style="margin-top:24px">dagent numbers are prototype-phase by design (Sigma L1_DAGENT__AGENT); the runtime (cagent) is open source at github.com/docker/cagent. Naming: dagent = app, cagent = runtime, Gordon = embedded assistant.</p>
+        Measurement mixed scale and signal: public runtime adoption (GitHub stars, forks and install counts for docker-agent) showed scale; prototype telemetry and the study sessions showed direction. The two were deliberately reported apart: prototype numbers are not scale numbers.
+        <div class="stats"><div class="stat"><b>4.4K</b><span>GitHub stars on docker-agent (public)</span></div><div class="stat"><b>Prototype</b><span>telemetry reported apart from runtime scale</span></div><div class="stat"><b>~11</b><span>moderated UX-study sessions facilitated</span></div><div class="stat"><b>96</b><span>distinct dagent users (prototype)</span></div></div>
+        <p class="caveat" style="margin-top:24px">dagent numbers are prototype-phase by design; the runtime is open source as docker-agent at github.com/docker/docker-agent. Naming: dagent = app, cagent = runtime, Gordon = embedded assistant.</p>
       </section>
 
       <section aria-label="Reflection">
@@ -108,16 +107,17 @@
   <footer class="bottom">
     <div class="wrap bottom-inner">
       <nav aria-label="Footer">
-        <a href="mailto:javier.alonso@docker.com">email</a>
+        <a href="#" data-mail>email</a>
         <a href="https://www.linkedin.com/in/javieralonsogomez/" target="_blank" rel="noopener">linkedin</a>
         <a href="https://x.com/oyabun" target="_blank" rel="noopener">twitter</a>
-        <a href="../index.html#work">work</a>
+        <a href="../#work">work</a>
       </nav>
       <a class="to-top" href="#">↑</a>
     </div>
   </footer>
 
   <script src="../cryz.js" defer></script>
+  <script src="../email.js" defer></script>
   <script src="../work-gate.js" defer></script>
 </body>
 </html>

@@ -67,7 +67,9 @@
       '<button type="submit">Unlock</button>' +
       '</form>' +
       '<p class="gate-err" role="alert"></p>' +
-      '<p class="gate-note">No key? <a href="mailto:javier.alonso@docker.com">Ask Javier.</a></p>';
+      '<p class="gate-note">No key? <a href="#" data-mail>Ask Javier.</a></p>';
+    var mail = card.querySelector('a[data-mail]');
+    if (mail && window.MAIL_ADDR) mail.setAttribute('href', 'mailto:' + window.MAIL_ADDR);
     return card;
   }
 

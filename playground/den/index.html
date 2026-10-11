@@ -1236,18 +1236,13 @@
       <details class="faq-item" name="faq">
         <summary>Is den open source?<svg class="faq-chev" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
         <div class="faq-body">
-          <p>The source is open: you can read it, build it, and run it yourself. den is fair-source, use and modify it however you like, for anything except repackaging den itself as a competing product.</p>
-          <p>That lets me keep stewarding the project, and maybe offer a hosted version down the road, while the code stays open and yours to run. Each release also turns fully open after a couple of years, so it can never be locked away, including by me.</p>
-          <p class="faq-more"><a href="https://fsl.software/" target="_blank" rel="noopener">About the license <span class="arw">→</span></a></p>
+          <p>It was, for a while. den is now an archived experiment: the code is no longer distributed, and this page stays up as the design case study for an interface over the public Docker Sandboxes CLI.</p>
         </div>
       </details>
       <details class="faq-item" name="faq">
         <summary>Found a bug, or want a feature?<svg class="faq-chev" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
         <div class="faq-body">
-          <p>First, an honest confession: den is in alpha, so it doesn't just <em>may</em> have bugs, it has them. I'm sorry in advance for the ones you'll find. The good news is that den is young and built in the open, so bug reports and ideas genuinely shape it.</p>
-          <p>If something breaks, behaves oddly, or you wish it did one more thing, open an issue and tell me.</p>
-          <p>A note on what you did, what you expected, and what happened goes a long way. Screenshots and your OS help too.</p>
-          <p class="faq-more"><a href="https://github.com/jalonsogo/den/issues" target="_blank" rel="noopener">Report an issue on GitHub <span class="arw">→</span></a></p>
+          <p>den is archived, so there is no issue tracker anymore. If you want to talk about the design decisions, the sandboxes model or the network policy UX, reach out through the contact section on the site. I still enjoy arguing about all of it.</p>
         </div>
       </details>
       <details class="faq-item" name="faq">
@@ -1377,30 +1372,7 @@
     loadList();
   })();
 
-  // ── point the download buttons at the latest release asset for the visitor's OS ──
-  // Buttons default to the /releases/latest page; this upgrades them to the direct
-  // .dmg of whatever the newest release is, and appends the release tag to each
-  // label ("Download v0.6.1"). den ships for macOS only for now.
-  (async () => {
-    const btns = [...document.querySelectorAll('a.btn[href*="/releases/latest"]')];
-    if (!btns.length) return;
-    const ua = navigator.userAgent || '', plat = navigator.platform || '';
-    const isMac = /Mac/i.test(ua) || /Mac/i.test(plat);
-    try {
-      const res = await fetch('https://api.github.com/repos/jalonsogo/den/releases/latest', { headers: { Accept: 'application/vnd.github+json' } });
-      if (!res.ok) return;
-      const rel = await res.json();
-      const tag = rel.tag_name || '';
-      if (tag) btns.forEach((b) => {
-        const t = [...b.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim());
-        if (t) t.textContent = t.textContent.trim() + ' ' + tag;
-      });
-      if (!isMac) return;
-      const assets = rel.assets || [];
-      const asset = assets.find((a) => /\.dmg$/i.test(a.name)) || assets.find((a) => /mac.*\.zip$/i.test(a.name));
-      if (asset && asset.browser_download_url) btns.forEach((b) => { b.href = asset.browser_download_url; });
-    } catch (e) {}
-  })();
+  // (release wiring removed: den is archived, nothing to download)
 
   // keep any embedded den-ui frames (the live pillar crops) on the site theme
   (() => {

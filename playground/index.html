@@ -9,7 +9,7 @@
   <link rel="apple-touch-icon" href="../apple-touch-icon.png">
   <meta name="color-scheme" content="light dark">
   <title>Playground — Javier Alonso</title>
-  <meta name="description" content="Everything built on the side: Den, VCR, Figx, TUI.Studio, tinyd and the Figma plugins.">
+  <meta name="description" content="Case studies and live demos: Den, VCR, Figx, TUI.Studio, tinyd and the Figma plugins.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet">
@@ -20,17 +20,16 @@
 
   <header class="top">
     <div class="wrap top-inner">
-      <a class="wordmark" href="../index.html" aria-label="Back to home">
+      <a class="wordmark" href="../" aria-label="Back to home">
         Javier Alonso
       </a>
       <nav aria-label="Primary">
         <ul>
           <li><a href="../resume.html">Resume</a></li>
-          <li><a href="../index.html#work">Portfolio</a></li>
-          <li><a href="index.html" aria-current="page">Playground</a></li>
-          <li><a href="../about.html">About</a></li>
-          <li><a href="mailto:javier.alonso@docker.com">Contact</a></li>
-          <li><a class="cryz" href="../cryz.html" aria-label="cryz"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 11h.01"/><path d="M14 6h.01"/><path d="M18 6h.01"/><path d="M6.5 13.1h.01"/><path d="M22 5c0 9-4 12-6 12s-6-3-6-12c0-2 2-3 6-3s6 1 6 3"/><path d="M17.4 9.9c-.8.8-2 .8-2.8 0"/><path d="M10.1 7.1C9 7.2 7.7 7.7 6 8.6c-3.5 2-4.7 3.9-3.7 5.6 4.5 7.8 9.5 8.4 11.2 7.4.9-.5 1.9-2.1 1.9-4.7"/><path d="M9.1 16.5c.3-1.1 1.4-1.7 2.4-1.4"/></svg>cryz</a></li>
+          <li><a href="../#work">Portfolio</a></li>
+          <li><a href="./" aria-current="page">Playground</a></li>
+          <li><a href="#" data-mail>Contact</a></li>
+          <li><a class="cryz" href="../cryz.html" aria-label="theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="c2" cx="13.5" cy="6.5" r=".5"/><circle class="c2" cx="17.5" cy="10.5" r=".5"/><circle class="c2" cx="8.5" cy="7.5" r=".5"/><circle class="c2" cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.436-.652-.436-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>theme</a></li>
         </ul>
       </nav>
     </div>
@@ -41,7 +40,7 @@
 
       <div class="hero-card xp-head">
         <p class="eyebrow" style="margin-bottom:12px">Playground</p>
-        <h1>Everything built on the side.</h1>
+        <h1>Experiments, prototypes and shipped tools.</h1>
         <p class="sub">Shipped apps, session tools, Figma plugins and terminal toys — the prototyping habit, taken to production.</p>
       </div>
 
@@ -51,22 +50,22 @@
           <img class="xp-shot" src="../assets/previews/den-landing.webp" alt="Den landing page" loading="lazy">
           <div class="xp-body">
             <div class="xp-top"><h3>Den <span class="cv-tag"><svg class="cv-ico" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>archived</span></h3></div>
-            <p class="xp-blurb">Somewhere safe to let agents run wild — the app for Docker Sandboxes. Every coding agent gets a private microVM with its own filesystem, daemon and guarded network, so it can build, install and rewrite freely while your machine never stirs.</p>
+            <p class="xp-blurb">Somewhere safe to let agents run wild — an experimental macOS app I built around Docker Sandboxes. Every coding agent gets a private microVM with its own filesystem, daemon and guarded network, so it can build, install and rewrite freely while your machine never stirs.</p>
             <ul class="hero-skills xp-tags"><li>macOS · Swift</li><li>Docker Sandboxes</li><li>microVMs</li><li>agent safety</li></ul>
             <div class="xp-links">
-              <a class="pill pill-dark" href="den/index.html"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Preview <span class="arrow" aria-hidden="true">→</span></a>
+              <a class="pill pill-dark" href="den/"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Preview <span class="arrow" aria-hidden="true">→</span></a>
             </div>
           </div>
         </article>
 
         <article class="xp-card">
-          <img class="xp-shot" src="../assets/previews/vcr-landing.webp" alt="vcr.dev replaying a session" loading="lazy">
+          <img class="xp-shot" src="../assets/previews/vcr-landing.webp" alt="VCR replaying a session" loading="lazy">
           <div class="xp-body">
             <div class="xp-top"><h3>VCR</h3></div>
             <p class="xp-blurb">A VCR for your Claude Code and Codex sessions. Drop in the session log and replay the whole run like a tape — every prompt, response and tool call on a video-editor timeline, with cost and token analytics on the side. 1× to 60× transport, shuttle, dead-air skip. Parsed entirely in your browser: no server, nothing uploaded.</p>
             <ul class="hero-skills xp-tags"><li>Vanilla JS</li><li>Three.js</li><li>session analytics</li><li>privacy-first</li></ul>
             <div class="xp-links">
-              <a class="pill pill-dark" href="vcr/index.html"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Preview <span class="arrow" aria-hidden="true">→</span></a>
+              <a class="pill pill-dark" href="vcr/"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Preview <span class="arrow" aria-hidden="true">→</span></a>
               <a class="pill pill-open" href="vcr/player.html" target="_blank" rel="noopener">The deck</a>
             </div>
           </div>
@@ -79,7 +78,7 @@
             <p class="xp-blurb">A personal, offline .fig file viewer — decodes Figma's proprietary binary format (Kiwi schema, Zstandard) and renders the scene graph to SVG. Pan/zoom, a Pages/Layers sidebar and a design-token inspector. No account, no cloud, no plugin.</p>
             <ul class="hero-skills xp-tags"><li>TypeScript</li><li>reverse engineering</li><li>SVG rendering</li></ul>
             <div class="xp-links">
-              <a class="pill pill-dark" href="figx/docs/index.html"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Preview <span class="arrow" aria-hidden="true">→</span></a>
+              <a class="pill pill-dark" href="figx/docs/"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Preview <span class="arrow" aria-hidden="true">→</span></a>
             </div>
           </div>
         </article>
@@ -91,7 +90,7 @@
             <p class="xp-blurb">A Figma-like visual editor for Terminal UI applications — design, preview and ship TUI apps with a neon-glass component kit built for the occasion.</p>
             <ul class="hero-skills xp-tags"><li>desktop app</li><li>terminal UX</li><li>design tooling</li></ul>
             <div class="xp-links">
-              <a class="pill pill-dark" href="tui-studio/index.html"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Preview <span class="arrow" aria-hidden="true">→</span></a>
+              <a class="pill pill-dark" href="tui-studio/"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Preview <span class="arrow" aria-hidden="true">→</span></a>
             </div>
           </div>
         </article>
@@ -106,7 +105,7 @@
             <p class="xp-blurb">A tiny TUI for your containers — the daily container loop without leaving the prompt, with a landing page whose hero is an animated terminal.</p>
             <ul class="hero-skills xp-tags"><li>Go</li><li>TUI</li><li>Docker</li></ul>
             <div class="xp-links">
-              <a class="pill pill-dark" href="tinyd/index.html"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Preview <span class="arrow" aria-hidden="true">→</span></a>
+              <a class="pill pill-dark" href="tinyd/"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>Preview <span class="arrow" aria-hidden="true">→</span></a>
             </div>
           </div>
         </article>
@@ -131,10 +130,14 @@
           </div>
         </article>
 
-
-        <!-- TODO: confirm Graphic Recorder blurb with Javier -->
-
       </div>
+
+      <hr class="dash">
+
+      <nav class="back-nav" aria-label="Page navigation">
+        <a href="../resume.html">← Back to resume</a>
+        <a href="../#contact">Next: contact →</a>
+      </nav>
 
     </div>
   </main>
@@ -142,14 +145,15 @@
   <footer class="bottom">
     <div class="wrap bottom-inner">
       <nav aria-label="Footer">
-        <a href="mailto:javier.alonso@docker.com">email</a>
+        <a href="#" data-mail>email</a>
         <a href="https://www.linkedin.com/in/javieralonsogomez" target="_blank" rel="noopener">linkedin</a>
-        <a href="../index.html#work">work</a>
+        <a href="../#work">work</a>
       </nav>
       <a class="to-top" href="#">↑</a>
     </div>
   </footer>
 
   <script src="../cryz.js" defer></script>
+  <script src="../email.js" defer></script>
 </body>
 </html>
