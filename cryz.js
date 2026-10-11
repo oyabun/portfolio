@@ -29,7 +29,8 @@
     { id: 'terminal', label: 'Terminal', icon: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m6.5 9 3 3-3 3"/><line x1="12" x2="17.5" y1="15" y2="15"/>' },
     { id: 'halftone', label: 'Halftone', icon: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="8" r="0.8" fill="currentColor" stroke="none"/><circle cx="16" cy="8" r="0.5" fill="currentColor" stroke="none"/><circle cx="8" cy="12" r="0.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="0.8" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="8" cy="16" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="16" r="0.8" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="0.5" fill="currentColor" stroke="none"/>' }
   ];
-  var FIELD_DEFAULTS = { pixel: 4, noise: 1, levels: 7, speed: 1, curve: 1.35, top: 1.08, pos: -14, opacity: 1 };
+  var FIELD_DEFAULTS = { pixel: 4, noise: 1, levels: 7, speed: 1, curve: 1.35, top: 1.08, pos: -34, opacity: 0.25, color: 'default' };
+  var FIELD_COLORS = [['default', 'Default (accent)'], ['#ea3f8b', 'Hibiscus'], ['#ff6b4a', 'Coral'], ['#f5a623', 'Amber'], ['#6b9b37', 'Moss'], ['#14b8a6', 'Teal'], ['#3b82f6', 'Ocean'], ['#8b5cf6', 'Violet'], ['#8e8e96', 'Mono']];
   var FIELD_SLIDERS = [
     { key: 'pixel', label: 'Pixel size', min: 1, max: 12, step: 1 },
     { key: 'noise', label: 'Grain', min: 0, max: 3, step: 0.1 },
@@ -83,8 +84,8 @@
   function build() {
     var panel = document.createElement('aside');
     panel.className = 'cryz-panel';
-    panel.setAttribute('aria-label', 'Cryz mode');
-    panel.innerHTML = '<p class="cryz-panel-title">CRYZ MODE</p>';
+    panel.setAttribute('aria-label', 'Theme and experiments');
+    panel.innerHTML = '<p class="cryz-panel-title">Theme and experiments</p>';
 
     /* mode: system / light / dark, as icons */
     var tRow = document.createElement('div');
@@ -95,7 +96,7 @@
     segTheme = document.createElement('div');
     segTheme.className = 'cryz-seg';
     segTheme.setAttribute('role', 'radiogroup');
-    segTheme.setAttribute('aria-label', 'Mode');
+    segTheme.setAttribute('aria-label', 'Theme');
     THEMES.forEach(function (t) {
       var btn = document.createElement('button');
       btn.type = 'button';
@@ -304,6 +305,8 @@
       var valEl = inp.parentNode.querySelector('.cryz-slider-val');
       if (valEl) valEl.textContent = fmtVal(k, state.fieldParams[k]);
     });
+    var sel = modalEl.querySelector('select[data-key=color]');
+    if (sel) sel.value = state.fieldParams.color || 'default';
   }
   function closeModal() { if (modalEl) modalEl.classList.remove('open'); }
   function openModal() {
@@ -342,6 +345,22 @@
         row.appendChild(lab); row.appendChild(val); row.appendChild(input);
         body.appendChild(row);
       });
+      var colorRow = document.createElement('div'); colorRow.className = 'cryz-slider cryz-color-row';
+      var colorLab = document.createElement('label'); colorLab.textContent = 'Color';
+      var colorSel = document.createElement('select'); colorSel.className = 'cryz-color-sel'; colorSel.dataset.key = 'color';
+      FIELD_COLORS.forEach(function (c) {
+        var o = document.createElement('option'); o.value = c[0]; o.textContent = c[1];
+        if (c[0].charAt(0) === '#') o.setAttribute('data-hex', c[0]);
+        colorSel.appendChild(o);
+      });
+      colorSel.value = state.fieldParams.color || 'default';
+      colorSel.addEventListener('change', function () {
+        state.fieldParams.color = colorSel.value;
+        if (window.duskField) { window.duskField.params.color = colorSel.value; window.duskField.apply(); }
+        save();
+      });
+      colorRow.appendChild(colorLab); colorRow.appendChild(colorSel);
+      body.appendChild(colorRow);
       card.appendChild(body);
       var foot = document.createElement('div'); foot.className = 'cryz-modal-foot';
       var resetBtn = document.createElement('button');

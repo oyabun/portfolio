@@ -744,7 +744,8 @@ a.mini:hover .mini-cta .arrow { transform: translateX(3px); }
 }
 
 /* the photo sits on frosted glass: the dusk field drifts visibly behind it */
-.mini-where .mini-photo { opacity: 0.93; backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
+.mini-where .mini-photo { opacity: 0.93; }
+.mini-where .mini-photo-alt { opacity: 0; pointer-events: none; }
 
 .mini-photo-frame {
   position: absolute;
@@ -778,10 +779,12 @@ a.mini:hover .mini-cta .arrow { transform: translateX(3px); }
 
 .mini-where > *:not(.mini-photo):not(.mini-photo-frame) { position: relative; z-index: 2; }
 
-.mini-photo { transition: transform 0.35s var(--spring); cursor: zoom-in; }
+.mini-photo { transition: transform 0.35s var(--spring), opacity 0.35s ease; cursor: zoom-in; }
 .mini-where:hover .mini-photo { transform: scale(1.06); }
 .mini-photo.zoomed { transform: scale(1.18); }
 .mini-where:hover .mini-photo.zoomed { transform: scale(1.24); }
+.mini-where:has(.mini-map:hover) .mini-photo { opacity: 0; }
+.mini-where:has(.mini-map:hover) .mini-photo-alt { opacity: 0.93; }
 
 .mini-big {
   font-family: var(--font-sans);
@@ -1309,6 +1312,21 @@ a.tile:hover .tile-preview img { transform: scale(1.035); }
 .cv-aka { font-family: var(--font-mono); font-size: 13px; color: var(--link); margin-top: 8px; }
 
 .cv-summary { margin: 20px 0 0; line-height: 1.625; font-size: 15.5px; color: var(--text-secondary); }
+.cv-summary a { color: var(--link); text-decoration: none; }
+.cv-summary a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.cv-summary a[target="_blank"]::after {
+  content: "";
+  display: inline-block;
+  width: 0;
+  height: 0.8em;
+  vertical-align: -0.05em;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 3h6v6'/%3E%3Cpath d='M10 14 21 3'/%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3C/svg%3E") no-repeat center / contain;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 3h6v6'/%3E%3Cpath d='M10 14 21 3'/%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3C/svg%3E") no-repeat center / contain;
+  opacity: 0;
+  transition: opacity 0.2s ease, width 0.2s ease, margin-left 0.2s ease;
+}
+.cv-summary a[target="_blank"]:hover::after, .cv-summary a[target="_blank"]:focus-visible::after { width: 0.8em; margin-left: 3px; opacity: 1; }
 .detail .cv-summary { max-width: none; }
 .cv-summary-aka { margin-top: 10px; color: var(--text-secondary); }
 
@@ -2068,3 +2086,7 @@ html.cryz-no-tilt .snap { --tilt: 0deg; }
 .gate-locked > *:not(.t-contact) { display: none; }
 html.work-locked .detail { display: none; }
 html.work-locked #work .bento { display: none; }
+
+.cryz-color-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; }
+.cryz-color-sel { font: 500 12px var(--font-mono); color: var(--text); background: var(--highlight); border: 1px solid var(--dots); border-radius: 8px; padding: 6px 8px; cursor: pointer; }
+.cryz-color-sel:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
