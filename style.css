@@ -1411,6 +1411,8 @@ a.tile:hover .tile-preview img { transform: scale(1.035); }
 .xp-shot { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; object-position: top center; border-radius: 10px; border: 1px solid var(--dots); background: var(--background); display: block; }
 
 .xp-shot-plain { display: grid; place-items: center; }
+.xp-shot-live { position: relative; overflow: hidden; }
+.xp-shot-live iframe { position: absolute; top: 0; left: 50%; width: 1280px; height: 720px; transform: translateX(-50%) scale(0.4375); transform-origin: top center; border: 0; pointer-events: none; }
 .xp-glyph { font-size: 44px; color: var(--link); }
 
 .xp-top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-top: 16px; }
@@ -2015,7 +2017,7 @@ html.cryz-no-tilt .snap { --tilt: 0deg; }
   padding: 24px;
 }
 .gate-card {
-  width: min(100%, 460px);
+  width: 100%;
   border: 1px dashed var(--leader);
   border-radius: 14px;
   background: var(--highlight);

@@ -7,6 +7,7 @@
    <script src="../chrome.js" data-root=".." data-name="Den" data-type="App" defer></script> */
 (function () {
   'use strict';
+  if (/[?&]bare=1/.test(location.search)) return;
   var sc = document.currentScript || (function () { var s = document.getElementsByTagName('script'); return s[s.length - 1]; })();
   var root = sc.getAttribute('data-root') || '..';
   var name = sc.getAttribute('data-name') || 'Demo';

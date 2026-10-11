@@ -61,8 +61,7 @@
     card.innerHTML =
       '<p class="eyebrow">Selected work</p>' +
       '<h2>A velvet rope.</h2>' +
-      '<p>The case studies are here, but the door opens with a pattern, not a login. ' +
-      'If Javier handed you a key, type it below. Random guesses will not do.</p>' +
+      '<p>The case studies are private. If Javier gave you an access key, enter it below.</p>' +
       '<form class="gate-form" autocomplete="off">' +
       '<input type="password" name="key" placeholder="access key" spellcheck="false" aria-label="Access key">' +
       '<button type="submit">Unlock</button>' +
@@ -82,7 +81,7 @@
         record(key);
         onSuccess();
       } else {
-        err.textContent = 'Not a pattern. Try the one Javier gave you.';
+        err.textContent = 'That key does not work.';
         form.elements.key.select();
       }
     });
