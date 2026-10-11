@@ -317,7 +317,7 @@ a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-ra
 
 .docker-chip:active { transform: rotate(calc(var(--tilt, -2deg) * -1)) scale(0.98); }
 .docker-chip canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; display: block; }
-.docker-chip span { position: relative; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35); }
+.docker-chip span { position: relative; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35); font-family: "Jost", var(--font-sans); font-weight: 600; font-size: 1.06em; text-transform: lowercase; letter-spacing: 0.005em; }
 .docker-chip svg { position: relative; width: auto; height: 1.02em; display: block; }
 
 

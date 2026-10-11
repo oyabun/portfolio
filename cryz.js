@@ -6,9 +6,7 @@
   var SKINS_ENABLED = false; /* Theme (skins) row hidden for now; flip to true to show */
   var TOGGLES = [
     { id: 'field', label: 'Dusk field', def: false },
-    { id: 'mono', label: 'Monochrome', def: false },
-    { id: 'heroBg', label: 'Hero background', def: true },
-    { id: 'heroIcons', label: 'Hero icons', def: true }
+    { id: 'mono', label: 'Monochrome', def: false }
   ];
   var THEMES = [
     { id: 'system', label: 'System', icon: '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>' },
