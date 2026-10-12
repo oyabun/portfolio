@@ -414,6 +414,7 @@ a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-ra
   position: absolute;
   top: calc(100% + 12px);
   left: 50%;
+  transform: translateX(-50%) translateY(8px);
   z-index: 30;
   display: flex;
   flex-direction: column;
@@ -433,9 +434,9 @@ a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-ra
   overscroll-behavior: contain;
   scrollbar-width: none;
   opacity: 0;
-  transform: translateX(-50%) translateY(8px);
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
 }
 
 .role-list::-webkit-scrollbar { width: 0; height: 0; display: none; }
@@ -454,7 +455,7 @@ a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-ra
 .role-list::before { top: -8px; margin-bottom: -28px; background: linear-gradient(var(--highlight), transparent); }
 .role-list::after { bottom: -8px; margin-top: -28px; background: linear-gradient(transparent, var(--highlight)); }
 
-.chip-role.open .role-list { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+.chip-role.open .role-list { opacity: 1; transform: translateX(-50%) translateY(0); visibility: visible; pointer-events: auto; transition: opacity 0.2s ease, visibility 0s linear 0s, transform 0.2s ease; }
 
 .role-list li {
   font-family: var(--font-sans);
@@ -1546,7 +1547,7 @@ a.tile:hover .tile-preview img { transform: scale(1.035); }
   .tile, .tile .study .arrow, .pill, .pill-dark .arrow, a.mini, .mini-cta .arrow, .tile-preview img { transition: none; }
   a.tile:hover, a.pill-dark:hover, a.pill-line:hover, a.mini:hover { transform: none; }
   .role-word, .role-view, .chip-role { transition: none; }
-  .chip-role.open .role-list { display: none; }
+  .chip-role.open .role-list { display: flex; visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); transition: none; }
 }
 
 /* ————— cryz: the harlequin backdoor ————— */
