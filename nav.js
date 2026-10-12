@@ -5,6 +5,7 @@
   // wrapped and visible (no links lost).
   var inner = document.querySelector(".top-inner");
   var nav = inner && inner.querySelector("nav");
+  var topEl = inner && inner.closest ? inner.closest(".top") : document.querySelector("header.top");
   if (!inner || !nav) return;
 
   var btn = document.createElement("button");
@@ -30,11 +31,13 @@
 
   function close() {
     inner.classList.remove("nav-open");
+    if (topEl) topEl.classList.remove("nav-open");
     btn.setAttribute("aria-expanded", "false");
   }
 
   btn.addEventListener("click", function () {
     var open = inner.classList.toggle("nav-open");
+    if (topEl) topEl.classList.toggle("nav-open", open);
     btn.setAttribute("aria-expanded", open ? "true" : "false");
   });
 
@@ -45,7 +48,9 @@
   });
 
   // reset when going back to desktop widths
-  var mq = window.matchMedia("(max-width: 667px)");
-  (mq.addEventListener ? mq.addEventListener("change", close) : mq.addListener(close));
+  if (window.matchMedia) {
+    var mq = window.matchMedia("(max-width: 667px)");
+    (mq.addEventListener ? mq.addEventListener("change", close) : mq.addListener(close));
+  }
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
 })();
