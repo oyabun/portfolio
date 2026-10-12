@@ -1480,6 +1480,16 @@ a.tile:hover .tile-preview img { transform: scale(1.035); }
 
 @media (max-width: 667px) {
   .top { padding-top: 40px; padding-bottom: 40px; }
+  /* header: let wordmark sit on its own line instead of wrapping internally,
+     and let nav links wrap onto a second line instead of clipping "Contact" */
+  .top-inner { flex-wrap: wrap; gap: 14px 20px; align-items: baseline; }
+  .wordmark { white-space: nowrap; flex: none; }
+  .top nav ul { gap: 16px 18px; flex-wrap: wrap; }
+  .top nav a { font-size: 15px; }
+  /* hero: keep name unbroken, article glued to role chip, "at" glued to docker chip */
+  .hero-name { white-space: nowrap; }
+  .role-unit { display: inline-block; max-width: 100%; }
+  .docker-unit { display: inline-block; }
   .bento { grid-template-columns: 1fr; grid-auto-rows: auto; }
   .t-gordon, .t-wide, .t-x3, .t-x4 { grid-column: span 1; }
   .tile { padding: 20px; }
