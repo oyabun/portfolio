@@ -1,0 +1,276 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jsonresume/resume-schema/master/schema.json",
+  "basics": {
+    "name": "Javier Alonso",
+    "label": "Staff Product Designer / AI and Agentic Flows UX Lead",
+    "email": "hello@javieralonso.com",
+    "summary": "Product design leader with 10+ years in developer tools, leading 0→1 initiatives and end-to-end design programs in high-tech environments. Product-minded and execution-focused, setting direction, aligning cross-functional teams, and translating complex technical contexts into simple, scalable workflows, driving measurable outcomes (adoption, conversion, usability) from strategy through delivery.",
+    "profiles": [
+      {
+        "network": "LinkedIn",
+        "username": "javieralonsogomez",
+        "url": "http://www.linkedin.com/in/javieralonsogomez"
+      },
+      {
+        "network": "Twitter",
+        "username": "oyabun",
+        "url": "http://www.twitter.com/oyabun"
+      },
+      {
+        "network": "GitHub",
+        "username": "jalonsogo",
+        "url": "https://github.com/jalonsogo"
+      }
+    ],
+    "phone": "",
+    "url": "https://javieralonso.com",
+    "location": "Caceres, Spain — 100% remote / EU"
+  },
+  "work": [
+    {
+      "name": "Docker.com",
+      "position": "Staff Product Designer / AI and Agentic Flows UX Lead",
+      "startDate": "2023",
+      "endDate": "",
+      "location": "Remote",
+      "highlights": [
+        "Designed and owned Docker AI features (Model Runner, MCP Toolkit, Docker AI Agent) from early concept to shipped product; scaled MCP adoption from 0 to tens of thousands of developers within the first quarter after launch and grew the AI agent from 0 to thousands of daily active users. Improved upgrade UX (upgrade flows and in-product prompts), driving a ~19% lift in Basic → paid plan upgrades.",
+        "Redesigned Docker CLI to improve usability for millions of developers, simplifying onboarding and everyday workflows; improved CLI OAuth flows by 17%.",
+        "Served as interim PM across CLI/GUI/AI, shaping the roadmap and prioritizing UX delivery; defined the foundations of the Docker TUI (Text-based UI) and led cross-product integration of TUI features, taking it from concept to active implementation.",
+        "Built functional proof-of-concepts (beyond prototypes) combining LLM tools (Claude, v0, Lovable) with the CLI and developer workflows, accelerating validation and driving adoption in beta programs."
+      ]
+    },
+    {
+      "name": "Metrist.io",
+      "position": "Lead Product Designer",
+      "startDate": "2021",
+      "endDate": "2022",
+      "location": "Remote",
+      "highlights": [
+        "Zero to one design lead: built the brand identity, design system (Petal UI Kit), and first product interfaces.",
+        "Partnered with engineers (Elixir, HTML, CSS) to deliver fast iterations.",
+        "Ran customer research sessions with design partners to validate product direction."
+      ]
+    },
+    {
+      "name": "Sysdig",
+      "position": "Lead Product Designer & Design System Lead",
+      "startDate": "2020",
+      "endDate": "2021",
+      "location": "Remote",
+      "highlights": [
+        "Led the design of the Sysdig Secure feature for providing security and compliance monitoring for containers across the development and production lifecycle.",
+        "Migrated team from Sketch → Figma; built a scalable design system integrated with Git/Slack.",
+        "Created custom research framework with Dovetail & advanced analytics.",
+        "Trained team on research methods, increasing autonomy in testing and instrumentation."
+      ]
+    },
+    {
+      "name": "Netdata.cloud",
+      "position": "Lead Product Designer",
+      "startDate": "2019",
+      "endDate": "2020",
+      "location": "Remote",
+      "highlights": [
+        "Owned the UX and design for both open-source and cloud products, tackling real-time data visualization at massive scale.",
+        "Defined and delivered flows that enabled developers to monitor and troubleshoot performance issues faster.",
+        "Partnered with engineering teams to ensure complex technical concepts were translated into intuitive user experiences."
+      ]
+    },
+    {
+      "name": "Rstor / Atrio.io (spinoff, acquired by AMD)",
+      "position": "Lead Product Designer",
+      "startDate": "2016",
+      "endDate": "2019",
+      "location": "Remote",
+      "highlights": [
+        "Owned end-to-end design for all Atrio products, focused on supercomputing and HPC environments.",
+        "Designed interfaces and flows to simplify complex, large-scale infrastructure management.",
+        "Built and maintained a multi-product design system, enabling consistency and faster delivery across multiple engineering teams.",
+        "Partnered closely with RStor's technical teams in California to ensure alignment between cutting-edge HPC capabilities and usable product experiences."
+      ]
+    },
+    {
+      "name": "Delis.io",
+      "position": "CPO",
+      "startDate": "2012",
+      "endDate": "2016",
+      "location": "",
+      "highlights": [
+        "A smart shopping cart in the cloud: recipes became basket orders on any device, with cheapest-supermarket comparison, allergen warnings and a revenue-share model for publishers.",
+        "Intrapreneurship project inside Intexmedia: owned the full product spec from concept to MVP, reaching 1M unique users with no acquisition spend. Raised the pre-seed round."
+      ]
+    },
+    {
+      "name": "Uvalent",
+      "position": "CPO",
+      "startDate": "2011",
+      "endDate": "2012",
+      "location": "",
+      "highlights": [
+        "Led product as CPO for an HRM startup backed by Intexmedia (cash + tech-angel sweat equity) while the company acted as its tech provider."
+      ]
+    },
+    {
+      "name": "Intexmedia",
+      "position": "Developer → UX Designer → CSO → CEO",
+      "startDate": "2009",
+      "endDate": "2016",
+      "location": "",
+      "highlights": [
+        "Hired and scaled cross-functional teams (including CTO); grew a portfolio of 44 sites to Top-10 traffic in Spain, Mexico & Argentina.",
+        "Scaled the business and recurring revenue, launching multiple SaaS MVPs aligning UX with business models."
+      ]
+    },
+    {
+      "name": "Liqueed Studio",
+      "position": "Founder",
+      "startDate": "2004",
+      "endDate": "2009",
+      "highlights": [
+        "Led UX & R&D projects, including Demiko (social geolocation for Opera/Nokia) and Zentipede (project management tool) for the University of Extremadura."
+      ]
+    }
+  ],
+  "volunteer": [
+    {
+      "organization": "BV Startup School / theEvnt Foundation",
+      "position": "Founder"
+    },
+    {
+      "organization": "Trivago, EY, Project Management Institute, United Nations World Food Program, Government of Spain",
+      "position": "Visual Storytelling Collaborator"
+    },
+    {
+      "organization": "Open Future Startup Program, Extremadura Startup School, INCIBE Cybersecurity Accelerator",
+      "position": "Mentor"
+    },
+    {
+      "organization": "University of Extremadura & NeoCK Entrepreneur School",
+      "position": "Lecturer",
+      "summary": "Delivered courses on UX, product design, research and data visualization."
+    },
+    {
+      "organization": "Industry events",
+      "position": "Speaker",
+      "summary": "Talks on Guerrilla UX Research, Inference Engines for LLMs, UX for Developers, Designing AI and CLI products, and Nocode Product Development."
+    }
+  ],
+  "education": [
+    {
+      "institution": "Tramontana Institute",
+      "studyType": "Design Graduate"
+    },
+    {
+      "institution": "Universitat Oberta de Catalunya",
+      "studyType": "Multimedia Degree"
+    },
+    {
+      "institution": "University of Extremadura",
+      "studyType": "Computer Engineering"
+    },
+    {
+      "institution": "Egibide Gasteiz",
+      "studyType": "Specialist Professional Technician in Business Computing"
+    },
+    {
+      "institution": "UX Learn",
+      "studyType": "Usability Evaluation Methods"
+    },
+    {
+      "institution": "ONCE",
+      "studyType": "Web Accessibility"
+    },
+    {
+      "institution": "WSAB",
+      "studyType": "Bootcamp in Web Analytics"
+    }
+  ],
+  "skills": [
+    {
+      "name": "Design Craft",
+      "keywords": [
+        "Figma",
+        "Custom Plugins",
+        "Advanced Prototypes"
+      ]
+    },
+    {
+      "name": "Design Systems",
+      "keywords": [
+        "Tokens/Variables",
+        "Git Integration",
+        "Slack Integration",
+        "Scaling"
+      ]
+    },
+    {
+      "name": "Research & Feedback",
+      "keywords": [
+        "Customer Interviews",
+        "Usability Testing",
+        "Insight Synthesis"
+      ]
+    },
+    {
+      "name": "Data & Analytics",
+      "keywords": [
+        "Dovetail",
+        "Maze",
+        "FullStory",
+        "A/B Testing"
+      ]
+    },
+    {
+      "name": "Technical Fluency",
+      "keywords": [
+        "HTML",
+        "CSS",
+        "JavaScript",
+        "Ruby",
+        "Go",
+        "GitHub",
+        "GitHub Actions"
+      ]
+    },
+    {
+      "name": "Advanced Prototyping",
+      "keywords": [
+        "Figma",
+        "POCs",
+        "Claude Code",
+        "Codex",
+        "MCPs",
+        "Pencil",
+        "Lovable",
+        "v0",
+        "Bolt"
+      ]
+    },
+    {
+      "name": "AI/LLM Tooling",
+      "keywords": [
+        "Inference Engines",
+        "MCPs",
+        "LLM Evaluation"
+      ]
+    }
+  ],
+  "tailoring": {
+    "agent-ux": {
+      "summary": "Product designer and design engineer building the interaction and trust layer for AI agents: agentic UX, sandboxes, safety patterns, MCP and local-LLM tooling. Designer who codes, shipping 0→1 developer products with measurable outcomes.",
+      "skill_order": [
+        "AI/LLM Tooling",
+        "Advanced Prototyping",
+        "Design Systems",
+        "Technical Fluency",
+        "Design Craft",
+        "Research & Feedback",
+        "Data & Analytics"
+      ]
+    },
+    "staff-lead": {
+      "summary": "Staff Product Designer and design leader with 15+ years in developer tools: leading 0-to-1 initiatives, design systems at org scale, and cross-functional programs from strategy through delivery, with measurable outcomes in adoption, conversion and usability."
+    }
+  }
+}
