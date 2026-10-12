@@ -142,6 +142,9 @@ a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-ra
 
 .top nav a:hover { color: var(--text); }
 
+/* hamburger toggle — hidden by default; mobile media query reveals it */
+.nav-toggle { display: none; }
+
 /* ————— hero ————— "Hi, I'm…" card with inline chips + mini utility cards */
 .hero { padding-bottom: 60px; }
 
@@ -1480,12 +1483,30 @@ a.tile:hover .tile-preview img { transform: scale(1.035); }
 
 @media (max-width: 667px) {
   .top { padding-top: 40px; padding-bottom: 40px; }
-  /* header: let wordmark sit on its own line instead of wrapping internally,
-     and let nav links wrap onto a second line instead of clipping "Contact" */
-  .top-inner { flex-wrap: wrap; gap: 14px 20px; align-items: baseline; }
-  .wordmark { white-space: nowrap; flex: none; }
-  .top nav ul { gap: 16px 18px; flex-wrap: wrap; }
-  .top nav a { font-size: 15px; }
+  /* header: wordmark left, hamburger right; nav becomes a dropdown panel */
+  .top-inner { position: relative; flex-wrap: nowrap; align-items: center; gap: 12px; }
+  .wordmark { white-space: nowrap; flex: none; order: 1; margin-right: auto; }
+  .nav-toggle { order: 2; flex: none; display: inline-flex; width: 42px; height: 42px; align-items: center; justify-content: center; background: none; border: 1px solid var(--dots); border-radius: 12px; color: var(--text); cursor: pointer; padding: 0; }
+  .nav-toggle svg { width: 20px; height: 20px; }
+  .nav-toggle .bar { transition: transform 0.2s var(--spring), opacity 0.15s; transform-origin: center; }
+  .nav-open .nav-toggle .b1 { transform: translateY(5px) rotate(45deg); }
+  .nav-open .nav-toggle .b2 { opacity: 0; }
+  .nav-open .nav-toggle .b3 { transform: translateY(-5px) rotate(-45deg); }
+  .top nav { order: 3; }
+  .top nav ul { display: none; }
+  .top-inner.nav-open nav ul {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 0;
+    position: absolute; top: calc(100% + 10px); right: 0; z-index: 60;
+    background: var(--highlight); border: 1px solid var(--dots); border-radius: 16px;
+    padding: 8px; min-width: 180px;
+    box-shadow: 0 1px 2px rgba(32, 32, 44, 0.06), 0 24px 48px -24px rgba(32, 32, 44, 0.35);
+  }
+  .top-inner.nav-open nav ul a {
+    display: block; width: 100%; padding: 11px 14px; border-radius: 10px;
+    font-size: 15px; color: var(--text-secondary);
+  }
+  .top-inner.nav-open nav ul a:hover { color: var(--text); background: var(--background); }
+  .top-inner.nav-open nav ul li { width: 100%; }
   /* hero: keep name unbroken, article glued to role chip, "at" glued to docker chip */
   .hero-name { white-space: nowrap; }
   .role-unit { display: inline-block; max-width: 100%; }
