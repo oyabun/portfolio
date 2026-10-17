@@ -1434,6 +1434,9 @@ a.tile:hover .tile-preview img { transform: scale(1.035); }
   .role-icon { width: 1.5em; height: 1.5em; margin: 0; filter: none; }
   .role-view { display: block; }
   .role-caret { margin-left: 0.1em; }
+  /* pill always on its own line: swapping word lengths must not reflow the title */
+  .role-br { display: none; }
+  .chip-role { display: flex; width: max-content; margin-top: 4px; }
   .hero-face { width: 1.8em; height: 1.8em; margin: 0 0.12em; }
   body { overflow-x: hidden; }
 }
