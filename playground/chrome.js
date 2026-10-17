@@ -90,8 +90,12 @@
     '.pgc-brand{display:inline-flex;align-items:center;gap:10px;white-space:nowrap;min-width:0}',
     '.pgc-logo{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;flex:none;overflow:hidden}',
     '.pgc-logo img{width:26px;height:26px;object-fit:contain;display:block}',
+    '.pgc-logo-sm{width:18px;height:18px;border-radius:5px}',
+    '.pgc-logo-sm img{width:18px;height:18px}',
+    '.pgc-mark-sm{width:18px;height:18px;border-radius:5px;font-size:7px}',
     '.pgc-mark{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font:700 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--chip);border:1px solid var(--chipbd);color:var(--fg)}',
     '.pgc-wm{font-weight:700;letter-spacing:-.2px;font-size:14px}',
+    '.pgc-bs{width:1px;height:14px;background:var(--line);flex:none}',
     '.pgc-sub{color:var(--mut);font-weight:500}',
     '.pgc-sep{color:var(--sep)}',
     '.pgc-cur{font-weight:600;color:var(--fg);overflow:hidden;text-overflow:ellipsis}',
@@ -144,7 +148,7 @@
     '.pgc-namedd{font-weight:600;color:var(--fg);white-space:nowrap;max-width:190px}',
     '.pgc-namedd svg{margin-left:2px;flex:none}',
     '.pgc-vr{width:1px;height:22px;background:var(--line);margin:0 5px;flex:none}',
-    '@media (max-width:640px){.pgc-sub,.pgc-sep{display:none}.pgc-link.pgc-home{display:none}}'
+    '@media (max-width:640px){.pgc-sub,.pgc-bs,.pgc-sep{display:none}.pgc-link.pgc-home{display:none}}'
   ].join('\n');
   document.head.appendChild(style);
 
@@ -169,6 +173,13 @@
   } else if (cur && cur.mark) {
     logoHtml = '<span class="pgc-mark">' + cur.mark + '</span>';
   }
+  var ddLogoHtml = '';
+  if (cur && cur.logo) {
+    var dlp = (isDark ? cur.logo.dark : cur.logo.light) || cur.logo.light;
+    ddLogoHtml = '<span class="pgc-logo pgc-logo-sm"><img src="' + P + dlp + '" alt="" width="18" height="18"></span>';
+  } else if (cur && cur.mark) {
+    ddLogoHtml = '<span class="pgc-mark pgc-mark-sm">' + cur.mark + '</span>';
+  }
 
   function sec(lbl, txt) { return txt ? '<section><span class="lbl">' + lbl + '</span><p>' + txt + '</p></section>' : ''; }
   var hasNote = cur && (cur.what || cur.why || cur.learn);
@@ -183,14 +194,14 @@
   rootEl.innerHTML =
     '<div class="pgc">' +
       '<a class="pgc-brand" href="' + catalog + '">' + logoHtml +
-        '<span class="pgc-wm">Javier Alonso</span><span class="pgc-sub">Playground</span>' +
+        '<span class="pgc-wm">Javier Alonso</span><span class="pgc-bs" aria-hidden="true"></span><span class="pgc-sub">Playground</span>' +
       '</a>' +
       '<div class="pgc-right">' +
         (type ? '<span class="pgc-chip">' + type + '</span>' : '') +
         (hasNote ? '<label class="pgc-sw">Notes<input type="checkbox" checked><i aria-hidden="true"></i></label>' : '') +
         '<div class="pgc-nav">' +
           (prev ? '<a class="pgc-arrow" href="' + P + prev.path + '" aria-label="Previous: ' + prev.name + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></a>' : '') +
-          '<div class="pgc-dd"><button class="pgc-ddbtn pgc-namedd" type="button" aria-expanded="false">' + name + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button><div class="pgc-ddmenu" role="menu">' + menu + '</div></div>' +
+          '<div class="pgc-dd"><button class="pgc-ddbtn pgc-namedd" type="button" aria-expanded="false">' + ddLogoHtml + name + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button><div class="pgc-ddmenu" role="menu">' + menu + '</div></div>' +
           (next ? '<a class="pgc-arrow" href="' + P + next.path + '" aria-label="Next: ' + next.name + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>' : '') +
         '</div>' +
         '<span class="pgc-vr" aria-hidden="true"></span>' +
