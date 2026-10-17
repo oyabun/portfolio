@@ -1428,12 +1428,13 @@ a.tile:hover .tile-preview img { transform: scale(1.035); }
   .hero-card { padding: 36px 24px 28px; border-radius: 24px; }
 .hero-title { font-size: clamp(17px, 4.8vw, 24px); line-height: 1.75; max-width: none; }
   .hero-whisper { font-size: 14px; }
-  /* keep pills inline with the text flow */
-  .chip-role { font-size: 0.88em; padding: 0.32em 0.48em; vertical-align: middle; }
-  /* shrink the sticker icon so it fits inside the pill and the line stays centered */
-  .role-icon { width: 1.5em; height: 1.5em; margin: -0.25em 0.14em -0.25em -0.1em; }
+  /* keep pills inline with the text flow, as a tidy flex pill */
+  .chip-role { display: inline-flex; align-items: center; gap: 0.32em; font-size: 0.88em; padding: 0.22em 0.55em; vertical-align: middle; }
+  /* sticker icon fully inside the pill, no overflow, no drop-shadow */
+  .role-icon { width: 1.5em; height: 1.5em; margin: 0; filter: none; }
+  .role-view { display: block; }
+  .role-caret { margin-left: 0.1em; }
   .hero-face { width: 1.8em; height: 1.8em; margin: 0 0.12em; }
-  .role-sizer { display: none; }
   body { overflow-x: hidden; }
 }
 
