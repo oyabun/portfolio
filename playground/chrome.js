@@ -148,7 +148,10 @@
     '.pgc-namedd{font-weight:600;color:var(--fg);white-space:nowrap;max-width:190px}',
     '.pgc-namedd svg{margin-left:2px;flex:none}',
     '.pgc-vr{width:1px;height:22px;background:var(--line);margin:0 5px;flex:none}',
-    '@media (max-width:640px){.pgc-sub,.pgc-bs,.pgc-sep{display:none}.pgc-link.pgc-home{display:none}}'
+    '@media (max-width:640px){.pgc-sub,.pgc-bs,.pgc-sep,.pgc-vr,.pgc-wm,.pgc-chip,.pgc-link{display:none}' +
+      '.pgc-note{width:calc(100vw - 24px);left:12px;bottom:12px}' +
+      '.pgc-note-close{left:calc(100vw - 52px)}' +
+      'html.pgc-note-open body{padding-left:0}html.pgc-note-open .pgc-side{left:0 !important}}'
   ].join('\n');
   document.head.appendChild(style);
 

@@ -1438,6 +1438,8 @@ a.tile:hover .tile-preview img { transform: scale(1.035); }
   .role-br { display: none; }
   .chip-role { display: flex; width: max-content; margin-top: 4px; }
   .hero-face { width: 1.8em; height: 1.8em; margin: 0 0.12em; }
+  /* tooltips must not widen the page: anchor them to the term's right edge */
+  .term[data-tip]::after { left: auto; right: 0; width: min(240px, 78vw); }
   body { overflow-x: hidden; }
 }
 
