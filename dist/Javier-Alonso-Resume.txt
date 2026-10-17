@@ -15,7 +15,7 @@ Staff Product Designer / AI and Agentic Flows UX Lead | 2023 - Present
   * Served as interim PM across CLI/GUI/AI, shaping the roadmap and prioritizing UX delivery; defined the foundations of the Docker TUI (Text-based UI) and led cross-product integration of TUI features, taking it from concept to active implementation.
   * Built functional proof-of-concepts (beyond prototypes) combining LLM tools (Claude, v0, Lovable) with the CLI and developer workflows, accelerating validation and driving adoption in beta programs.
 
-Metrist.io — Remote
+Metrist.io (closed) — Remote
 Lead Product Designer | 2021 - 2022
   * Zero to one design lead: built the brand identity, design system (Petal UI Kit), and first product interfaces.
   * Partnered with engineers (Elixir, HTML, CSS) to deliver fast iterations.
@@ -41,12 +41,13 @@ Lead Product Designer | 2016 - 2019
   * Built and maintained a multi-product design system, enabling consistency and faster delivery across multiple engineering teams.
   * Partnered closely with RStor's technical teams in California to ensure alignment between cutting-edge HPC capabilities and usable product experiences.
 
-Delis.io
+Delis.io (intrapreneurship, closed)
 CPO | 2012 - 2016
-  * A smart shopping cart in the cloud: recipes became basket orders on any device, with cheapest-supermarket comparison, allergen warnings and a revenue-share model for publishers.
-  * Intrapreneurship project inside Intexmedia: owned the full product spec from concept to MVP, reaching 1M unique users with no acquisition spend. Raised the pre-seed round.
+  * A smart shopping cart in the cloud, pitched as “the Fintonic of the grocery cart”: recipes became basket orders on any device, with cheapest-supermarket comparison, allergen warnings and a revenue-share model for food publishers.
+  * Intrapreneurship project inside Intexmedia: owned the full product specification from concept to MVP, reaching 1M unique users in its first month with no acquisition spend.
+  * Raised the pre-seed round; the project closed when the follow-on round didn't land.
 
-Uvalent
+Uvalent (closed)
 CPO | 2011 - 2012
   * Led product as CPO for an HRM startup backed by Intexmedia (cash + tech-angel sweat equity) while the company acted as its tech provider.
 
@@ -55,7 +56,7 @@ Developer → UX Designer → CSO → CEO | 2009 - 2016
   * Hired and scaled cross-functional teams (including CTO); grew a portfolio of 44 sites to Top-10 traffic in Spain, Mexico & Argentina.
   * Scaled the business and recurring revenue, launching multiple SaaS MVPs aligning UX with business models.
 
-Liqueed Studio
+Liqueed Studio (closed)
 Founder | 2004 - 2009
   * Led UX & R&D projects, including Demiko (social geolocation for Opera/Nokia) and Zentipede (project management tool) for the University of Extremadura.
 
