@@ -32,7 +32,7 @@
       learn: 'Whether a familiar video-editor metaphor can bring light to that complexity: are my skills being used, are those MCPs I added earning their keep, and why did it take so long, navigated in a meaningful way.',
       learned: 'A timeline you can scrub and a dollar-per-second readout made opaque sessions legible. What felt like a 2-minute run took 4 minutes and $0.83, and the tape showed exactly where.' },
     { name: 'Figx', type: 'Web', path: 'figx/docs/',
-      logo: { light: 'figx/docs/assets/fig.svg', dark: 'figx/docs/assets/fig.svg' },
+      logo: { light: 'figx/docs/assets/fig-ink.svg', dark: 'figx/docs/assets/fig.svg' },
       what: 'An offline .fig viewer that decodes Figma’s binary format and renders the scene graph to SVG, with a token inspector.',
       why: 'Designers are moving toward the terminal because of Claude Code and friends. I wanted to give them a way to explore their own Figma files there, without an account, the cloud, or a plugin in between.',
       learn: 'How Figma’s proprietary format actually packs layers and tokens, and what good UX looks like for a designer inside a command line.',
