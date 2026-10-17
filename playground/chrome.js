@@ -2,8 +2,9 @@
    can jump between demos and get back to the catalog / main site. Self-contained
    (its own scoped styles) so it never depends on a demo's CSS. It samples the page
    background to follow the demo's light/dark theme, shows the current app's logo,
-   and has a Notes switch that opens a fixed top-left window with the project's
-   story: what it is, why I built it, and what I was trying to learn. Include with:
+   and has a Notes switch that opens a left side panel pushing the demo aside,
+   with the project's story: what it is, why I built it, and what I was trying to learn.
+   Include with:
    <script src="../chrome.js" data-root=".." data-name="Den" data-type="App" defer></script> */
 (function () {
   'use strict';
@@ -22,27 +23,32 @@
       logo: { light: 'den/resources/icon-light.svg', dark: 'den/resources/icon-dark.svg' },
       what: 'A private microVM sandbox for each coding agent, with its own filesystem, daemon and guarded network.',
       why: 'I wanted somewhere to let agents run wild, building and rewriting freely, without ever risking my actual machine.',
-      learn: 'How far a per-session VM can isolate an agent, and what a safe network policy really has to allow to stay useful.' },
+      learn: 'Whether a landing page can show the product instead of screenshots: every UI shot here is a live, inert embed of the app itself, so updating the UI updates the whole page. Plus how far AI-assisted building goes without the slop, all the way to the <a href="#engine">3D sandbox map</a>.',
+      learned: 'That a designer can take a product this far solo when the agents do the heavy lifting and taste and scope stay under human control. The 3D map is where it stopped feeling like a prototype.' },
     { name: 'VCR', type: 'Web', path: 'vcr/',
       mark: 'VCR',
       what: 'Replay Claude Code and Codex sessions like a tape: every prompt, tool call, token and dollar on a scrubbable timeline.',
-      why: 'Agent runs go opaque the moment they finish, and I kept losing the thread of what a session actually did.',
-      learn: 'Whether a raw session log can become a legible, shareable recording, parsed entirely in the browser with nothing uploaded.' },
+      why: 'We let agents run whole sessions and, honestly, review almost none of it, even outside YOLO mode. When you do want to understand what happened, the raw log is no help.',
+      learn: 'Whether a familiar video-editor metaphor can bring light to that complexity: are my skills being used, are those MCPs I added earning their keep, and why did it take so long, navigated in a meaningful way.',
+      learned: 'A timeline you can scrub and a dollar-per-second readout made opaque sessions legible. What felt like a 2-minute run took 4 minutes and $0.83, and the tape showed exactly where.' },
     { name: 'Figx', type: 'Web', path: 'figx/docs/',
       logo: { light: 'figx/docs/assets/fig.svg', dark: 'figx/docs/assets/fig.svg' },
       what: 'An offline .fig viewer that decodes Figma’s binary format and renders the scene graph to SVG, with a token inspector.',
-      why: 'I wanted to open design files without an account, the cloud, or a plugin standing between me and the file.',
-      learn: 'How Figma’s proprietary format actually packs layers and tokens, and how much of a design you can faithfully reconstruct from it.' },
+      why: 'Designers are moving toward the terminal because of Claude Code and friends. I wanted to give them a way to explore their own Figma files there, without an account, the cloud, or a plugin in between.',
+      learn: 'How Figma’s proprietary format actually packs layers and tokens, and what good UX looks like for a designer inside a command line.',
+      learned: 'That a binary format is mostly UX decisions made years ago. Decoding .fig taught me which parts of a design file designers actually need, and which are tooling baggage.' },
     { name: 'TUI Studio', type: 'Tool', path: 'tui-studio/',
       logo: { light: 'tui-studio/assets/logo-tui-studio_light.svg', dark: 'tui-studio/assets/logo-tui-studio_dark.svg' },
       what: 'A Figma-like visual editor for terminal UIs, with a neon-glass component kit built for the occasion.',
-      why: 'Designing terminal interfaces meant hand-editing code, and there was no real visual tool for it.',
-      learn: 'How close a browser canvas can get to a true terminal layout, and what a TUI component system needs to feel native.' },
+      why: 'The new wave of CLI tools needs a design surface. I built this both to explore the intersection of design and code tooling and to hand designers a meaningful way to create TUIs.',
+      learn: 'How close a browser canvas can get to a true terminal layout, and what a TUI component system needs to feel native.',
+      learned: 'The bridge is visual scaffolding. Give designers a drag-and-drop canvas that generates Ink, BubbleTea and Textual code, and they start building TUIs themselves instead of hand-editing.' },
     { name: 'tinyd', type: 'CLI', path: 'tinyd/',
       logo: { light: 'tinyd/logo/favicon.svg', dark: 'tinyd/logo/favicon.svg' },
       what: 'A tiny TUI for your containers: manage images, containers and volumes straight from the terminal.',
       why: 'I live in the terminal and wanted Docker under control without leaving it or opening a heavy GUI.',
-      learn: 'How much of Docker’s value fits into a fast, keyboard-first CLI that adapts to your light or dark terminal.' }
+      learn: 'How much of Docker’s value fits into a fast, keyboard-first CLI that adapts to your light or dark terminal.',
+      learned: 'That terminal tools win on feel, not feature count. The hard part was never the Docker API, it was making keyboard flow and color survive every terminal theme.' }
   ];
   var cur = null;
   for (var i = 0; i < DEMOS.length; i++) if (DEMOS[i].name === name) cur = DEMOS[i];
@@ -113,14 +119,23 @@
     '.pgc-item .t{font:500 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--mut)}',
     '.pgc-item.cur{background:var(--hover)}',
     '.pgc-item.cur .t{color:var(--bg);background:var(--fg);border-radius:999px;padding:3px 7px;font-weight:600}',
-    '.pgc-note{position:fixed;top:' + (H + 12) + 'px;left:16px;z-index:2147482999;width:min(372px,calc(100vw - 32px));max-height:calc(100vh - ' + (H + 28) + 'px);overflow:auto;background:var(--menu);border:1px solid var(--menuline);border-radius:16px;box-shadow:var(--shadow);color:var(--fg);font-family:var(--sans);padding:18px 18px 18px;opacity:0;transform:translateY(-10px) scale(.98);pointer-events:none;transition:opacity .22s ease,transform .3s var(--spring)}',
+    '.pgc-note{position:fixed;top:' + H + 'px;left:0;bottom:0;z-index:2147482999;width:min(340px,86vw);overflow:auto;background:var(--menu);border:1px solid var(--menuline);border-left:0;border-radius:0 16px 16px 0;box-shadow:var(--shadow);color:var(--fg);font-family:var(--sans);padding:24px 24px 32px;opacity:0;transform:translateX(-100%);pointer-events:none;transition:transform .3s cubic-bezier(0.22,1,0.36,1),opacity .22s ease}',
     '.pgc-note.open{opacity:1;transform:none;pointer-events:auto}',
+    'html.pgc-has-note body{transition:padding-left .3s cubic-bezier(0.22,1,0.36,1)}',
+    'html.pgc-note-open{--pgc-w:min(340px,86vw)}',
+    'html.pgc-note-open body{padding-left:var(--pgc-w)}',
+    'html.pgc-note-open .pgc-side{left:var(--pgc-w) !important;transition:left .3s cubic-bezier(0.22,1,0.36,1)}',
     '.pgc-note .ttl{display:block;font-size:19px;font-weight:700;letter-spacing:-.3px;line-height:1.15;color:var(--fg)}',
-    '.pgc-note .role{display:block;font-size:12.5px;font-weight:500;line-height:1.3;color:var(--mut);margin:3px 0 16px}',
-    '.pgc-note section{margin-top:15px;padding-top:15px;border-top:1px solid var(--line)}',
+    '.pgc-note-head{margin-bottom:20px;padding-right:34px}',
+    '.pgc-note section{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}',
     '.pgc-note section:first-of-type{margin-top:0;padding-top:0;border-top:0}',
-    '.pgc-note .lbl{display:block;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}',
-    '.pgc-note p{margin:0;font-size:13.5px;line-height:1.62;color:var(--fg)}',
+    '.pgc-note .role{display:block;font-size:12.5px;font-weight:500;line-height:1.3;color:var(--mut);margin:3px 0 0}',
+    '.pgc-note-close{position:fixed;top:' + (H + 12) + 'px;left:calc(min(340px,86vw) - 42px);width:26px;height:26px;border:0;border-radius:8px;background:transparent;color:var(--mut);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px;line-height:1;pointer-events:auto}',
+    '.pgc-note-close:hover{color:var(--fg);background:var(--hover)}',
+    '.pgc-note:not(.open) .pgc-note-close{visibility:hidden}',
+    '.pgc-note .lbl{display:block;font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);margin-bottom:10px}',
+    '.pgc-note p{margin:0;font-size:14.5px;line-height:1.6;color:var(--fg)}',
+    '.pgc-note a{color:inherit;text-decoration:underline;text-underline-offset:2px}',
     '.pgc-spacer{height:' + H + 'px}',
     '.pgc-nav{display:inline-flex;align-items:center;gap:2px}',
     '.pgc-arrow{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;color:var(--mut);flex:none}',
@@ -158,8 +173,9 @@
   function sec(lbl, txt) { return txt ? '<section><span class="lbl">' + lbl + '</span><p>' + txt + '</p></section>' : ''; }
   var hasNote = cur && (cur.what || cur.why || cur.learn);
   var noteHtml = hasNote
-    ? '<div class="pgc-note open"><span class="ttl">' + cur.name + '</span>' + (cur.type ? '<span class="role">' + cur.type + ' experiment</span>' : '') +
-      sec('What it is', cur.what) + sec('Why I built it', cur.why) + sec('What I wanted to learn', cur.learn) + '</div>'
+    ? '<div class="pgc-note open"><div class="pgc-note-head"><span class="ttl">' + cur.name + '</span>' + (cur.type ? '<span class="role">' + cur.type + ' experiment</span>' : '') + '</div>' +
+      sec('What it is', cur.what) + sec('Why I built it', cur.why) + sec('What I wanted to learn', cur.learn) + sec('What I finally learned', cur.learned) +
+      '<button class="pgc-note-close" aria-label="Close notes">&#10005;</button></div>'
     : '';
 
   var rootEl = document.createElement('div');
@@ -193,12 +209,25 @@
   [].forEach.call(document.querySelectorAll('header,nav,.bar,.nav,.topbar,.masthead,[class*="nav"],[class*="header"],[class*="bar"]'), function (el) {
     if (el.closest('.pgc-root')) return;
     var cs; try { cs = getComputedStyle(el); } catch (e) { return; }
-    if ((cs.position === 'fixed' || cs.position === 'sticky') && parseFloat(cs.top || '0') <= 1) el.style.top = H + 'px';
+    if ((cs.position === 'fixed' || cs.position === 'sticky') && parseFloat(cs.top || '0') <= 1) {
+      el.style.top = H + 'px';
+      if (cs.left === '0px' || cs.left === 'auto') el.classList.add('pgc-side');
+    }
   });
 
   var noteBtn = rootEl.querySelector('.pgc-sw input');
   var note = rootEl.querySelector('.pgc-note');
-  if (noteBtn && note) noteBtn.addEventListener('change', function () { note.classList.toggle('open', noteBtn.checked); });
+  if (noteBtn && note) {
+    document.documentElement.classList.add('pgc-has-note');
+    function syncNote() {
+      note.classList.toggle('open', noteBtn.checked);
+      document.documentElement.classList.toggle('pgc-note-open', noteBtn.checked);
+    }
+    noteBtn.addEventListener('change', syncNote);
+    var closeBtn = rootEl.querySelector('.pgc-note-close');
+    if (closeBtn) closeBtn.addEventListener('click', function () { noteBtn.checked = false; syncNote(); });
+    syncNote();
+  }
 
   var dd = rootEl.querySelector('.pgc-dd');
   var btn = rootEl.querySelector('.pgc-ddbtn');
