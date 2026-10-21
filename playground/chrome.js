@@ -30,7 +30,8 @@
       what: 'Replay Claude Code and Codex sessions like a tape: every prompt, tool call, token and dollar on a scrubbable timeline.',
       why: 'We let agents run whole sessions and, honestly, review almost none of it, even outside YOLO mode. When you do want to understand what happened, the raw log is no help.',
       learn: 'Whether a familiar video-editor metaphor can bring light to that complexity: are my skills being used, are those MCPs I added earning their keep, and why did it take so long, navigated in a meaningful way.',
-      learned: 'A timeline you can scrub and a dollar-per-second readout made opaque sessions legible. What felt like a 2-minute run took 4 minutes and $0.83, and the tape showed exactly where.' },
+      learned: 'A timeline you can scrub and a dollar-per-second readout made opaque sessions legible. What felt like a 2-minute run took 4 minutes and $0.83, and the tape showed exactly where.',
+      thanks: 'The original idea and the inspiration for VCR belong to <a href="https://www.linkedin.com/in/ivanpedrazas" target="_blank" rel="noopener">Ivan Pedrazas</a>.' },
     { name: 'Figx', type: 'Web', path: 'figx/docs/',
       logo: { light: 'figx/docs/assets/fig-ink.svg', dark: 'figx/docs/assets/fig.svg' },
       what: 'An offline .fig viewer that decodes Figma’s binary format and renders the scene graph to SVG, with a token inspector.',
@@ -188,7 +189,7 @@
   var hasNote = cur && (cur.what || cur.why || cur.learn);
   var noteHtml = hasNote
     ? '<div class="pgc-note open"><div class="pgc-note-head"><span class="ttl">' + cur.name + '</span>' + (cur.type ? '<span class="role">' + cur.type + ' experiment</span>' : '') + '</div>' +
-      sec('What it is', cur.what) + sec('Why I built it', cur.why) + sec('What I wanted to learn', cur.learn) + sec('What I finally learned', cur.learned) +
+      sec('What it is', cur.what) + sec('Why I built it', cur.why) + sec('What I wanted to learn', cur.learn) + sec('What I finally learned', cur.learned) + sec('Shoutout', cur.thanks) +
       '<button class="pgc-note-close" aria-label="Close notes">&#10005;</button></div>'
     : '';
 
